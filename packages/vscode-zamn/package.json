@@ -1,7 +1,7 @@
 {
   "name": "vscode-zamn",
   "displayName": "zamn",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Syntax highlighting for zamn templates, in .zamn files and in Vue single-file components.",
   "license": "MIT",
   "private": true,
@@ -31,9 +31,9 @@
         }
       },
       {
-        "scopeName": "source.zamn.vue-injection",
+        "scopeName": "zamn.vue-injection",
         "path": "./syntaxes/zamn.vue-injection.tmLanguage.json",
-        "injectTo": ["source.vue"],
+        "injectTo": ["text.html.vue"],
         "embeddedLanguages": {
           "source.zamn": "zamn",
           "source.ts.embedded.zamn": "typescript"

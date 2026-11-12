@@ -8,16 +8,33 @@ import { zamn } from "../../../tests/zamn.ts";
 const syntaxes = resolve(import.meta.dir, "../syntaxes");
 const wasm = createRequire(import.meta.url).resolve("vscode-oniguruma/release/onig.wasm");
 
-// A stand-in for the Vue extension's grammar, which the injection extends.
+// A stand-in for the Vue extension's grammar, with the parts of it that the
+// injection has to get ahead of or uses: a rule for every `<`, which takes
+// the content of an element in a language it does not know as plain text.
 const VUE = {
-  scopeName: "source.vue",
-  patterns: [],
-  repository: { "tag-stuff": { begin: "\\G", end: ">", name: "meta.tag-stuff" } },
+  scopeName: "text.html.vue",
+  patterns: [
+    {
+      begin: "(<)",
+      end: "(>)",
+      patterns: [
+        {
+          begin: "([a-zA-Z0-9:-]+)",
+          end: "(</)(\\1)\\s*(?=>)",
+          patterns: [
+            { include: "#tag-stuff" },
+            { begin: "(?<=>)", end: "(?=<\\/)", name: "text" },
+          ],
+        },
+      ],
+    },
+  ],
+  repository: { "tag-stuff": { begin: "\\G", end: "(?=/>)|(>)", name: "meta.tag-stuff" } },
 };
 
 const files: Record<string, string> = {
   "source.zamn": resolve(syntaxes, "zamn.tmLanguage.json"),
-  "source.zamn.vue-injection": resolve(syntaxes, "zamn.vue-injection.tmLanguage.json"),
+  "zamn.vue-injection": resolve(syntaxes, "zamn.vue-injection.tmLanguage.json"),
 };
 
 const registry = new textmate.Registry({
@@ -26,7 +43,7 @@ const registry = new textmate.Registry({
     createOnigString: (text: string) => new oniguruma.OnigString(text),
   })),
   async loadGrammar(scopeName) {
-    if (scopeName === "source.vue") return VUE as any;
+    if (scopeName === "text.html.vue") return VUE as any;
     const file = files[scopeName];
     if (file) return textmate.parseRawGrammar(await Bun.file(file).text(), file);
     // TypeScript, HTML and the rest come with VS Code. Here they are
@@ -35,7 +52,7 @@ const registry = new textmate.Registry({
     const nothing = { patterns: [{ match: "(?!)" }] };
     return { scopeName, ...nothing, repository: { expression: nothing } } as any;
   },
-  getInjections: (scopeName) => (scopeName === "source.vue" ? ["source.zamn.vue-injection"] : []),
+  getInjections: (scopeName) => (scopeName === "text.html.vue" ? ["zamn.vue-injection"] : []),
 });
 
 /**
@@ -53,7 +70,7 @@ async function tokens(source: string, scopeName = "source.zamn") {
       const text = line.slice(token.startIndex, token.endIndex);
       if (!text.trim()) continue;
       const scopes = token.scopes
-        .filter((s) => !/^(source\.(zamn|vue)|meta\.(tag|attributes|text-block)\.zamn)$/.test(s))
+        .filter((s) => !/^(source\.zamn|text\.html\.vue|meta\.(line\.tag|attributes|text-block)\.zamn)$/.test(s))
         .map((s) => s.replace(/\.zamn$/, ""));
       out.push(scopes.length ? `${text}  ${scopes.join(" ")}` : text);
     }
@@ -275,7 +292,7 @@ test("is injected into <template lang=\"zamn\"> of a Vue file, and only there", 
     p.a= b
     </template>
   `;
-  expect(await tokens(source, "source.vue")).toEqual([
+  expect(await tokens(source, "text.html.vue")).toEqual([
     "<  punctuation.definition.tag.begin.html",
     "template  entity.name.tag.template.html",
     ' lang="zamn"  meta.tag-stuff',
@@ -287,8 +304,11 @@ test("is injected into <template lang=\"zamn\"> of a Vue file, and only there", 
     "</  punctuation.definition.tag.begin.html",
     "template  entity.name.tag.template.html",
     ">  punctuation.definition.tag.end.html",
-    "<template>",
-    "p.a= b",
-    "</template>",
+    "<",
+    "template",
+    ">  meta.tag-stuff",
+    "p.a= b  text",
+    "</template",
+    ">",
   ]);
 });

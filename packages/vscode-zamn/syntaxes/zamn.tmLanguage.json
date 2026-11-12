@@ -256,7 +256,7 @@
     "element": {
       "begin": "^[ \\t]*(?=[A-Za-z]|[.#][\\w-])",
       "end": "$",
-      "name": "meta.tag.zamn",
+      "name": "meta.line.tag.zamn",
       "patterns": [
         {
           "include": "#element-line"

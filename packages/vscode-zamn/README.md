@@ -23,8 +23,8 @@ and formatting from `prettier-plugin-zamn`.
 
 ```sh
 cd packages/vscode-zamn
-bun run package                                   # writes vscode-zamn-0.1.0.vsix
-code --install-extension vscode-zamn-0.1.0.vsix
+bun run package                                   # writes vscode-zamn-0.1.1.vsix
+code --install-extension vscode-zamn-0.1.1.vsix
 ```
 
 ## Develop

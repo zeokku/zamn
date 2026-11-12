@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "zamn in Vue",
-  "scopeName": "source.zamn.vue-injection",
-  "injectionSelector": "L:source.vue -comment",
+  "scopeName": "zamn.vue-injection",
+  "injectionSelector": "L:text.html.vue -comment -source -text.html.derivative -text.pug",
   "patterns": [
     {
       "comment": "<template lang=\"zamn\">, as the Vue grammar does it for its own languages",
@@ -29,11 +29,11 @@
       },
       "patterns": [
         {
-          "include": "source.vue#tag-stuff"
+          "include": "text.html.vue#tag-stuff"
         },
         {
           "begin": "(?<=>)",
-          "end": "(?=</template\\b)",
+          "end": "(?=</template[\\s>])",
           "contentName": "source.zamn",
           "patterns": [
             {
