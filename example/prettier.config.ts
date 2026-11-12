@@ -6,4 +6,6 @@ export default {
   printWidth: 100,
   // Formats <template lang="zamn">.
   plugins: ['prettier-plugin-zamn'],
+  // 'space' (the default) or 'comma': a(href="/", target="_blank")
+  zamnAttributeSeparator: 'space',
 } satisfies Config

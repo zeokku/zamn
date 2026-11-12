@@ -1,0 +1,53 @@
+{
+  "name": "vscode-zamn",
+  "displayName": "zamn",
+  "version": "0.1.0",
+  "description": "Syntax highlighting for zamn templates, in .zamn files and in Vue single-file components.",
+  "license": "MIT",
+  "private": true,
+  "publisher": "zamn",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": ["Programming Languages"],
+  "keywords": ["zamn", "vue", "pug", "template"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "zamn",
+        "aliases": ["zamn"],
+        "extensions": [".zamn"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "zamn",
+        "scopeName": "source.zamn",
+        "path": "./syntaxes/zamn.tmLanguage.json",
+        "embeddedLanguages": {
+          "source.ts.embedded.zamn": "typescript",
+          "meta.embedded.html.zamn": "html"
+        }
+      },
+      {
+        "scopeName": "source.zamn.vue-injection",
+        "path": "./syntaxes/zamn.vue-injection.tmLanguage.json",
+        "injectTo": ["source.vue"],
+        "embeddedLanguages": {
+          "source.zamn": "zamn",
+          "source.ts.embedded.zamn": "typescript"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "test": "bun test",
+    "package": "vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.0.0",
+    "vscode-oniguruma": "^2.0.0",
+    "vscode-textmate": "^9.0.0"
+  }
+}

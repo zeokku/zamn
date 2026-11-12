@@ -1,0 +1,643 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "zamn",
+  "scopeName": "source.zamn",
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#doctype"
+    },
+    {
+      "include": "#unsupported"
+    },
+    {
+      "include": "#raw-html"
+    },
+    {
+      "include": "#pipe"
+    },
+    {
+      "include": "#block-close"
+    },
+    {
+      "include": "#script-block"
+    },
+    {
+      "include": "#style-block"
+    },
+    {
+      "include": "#text-block"
+    },
+    {
+      "include": "#output"
+    },
+    {
+      "include": "#element"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "patterns": [
+        {
+          "begin": "^([ \\t]*)(//-)",
+          "end": "^(?!\\1[ \\t]+|[ \\t]*$)",
+          "name": "comment.block.silent.zamn",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.comment.zamn"
+            }
+          }
+        },
+        {
+          "begin": "^([ \\t]*)(//)",
+          "end": "^(?!\\1[ \\t]+|[ \\t]*$)",
+          "name": "comment.block.zamn",
+          "beginCaptures": {
+            "2": {
+              "name": "punctuation.definition.comment.zamn"
+            }
+          }
+        }
+      ]
+    },
+    "doctype": {
+      "match": "^[ \\t]*(doctype)\\b[ \\t]*(.*)$",
+      "name": "meta.tag.sgml.doctype.zamn",
+      "captures": {
+        "1": {
+          "name": "entity.name.tag.doctype.zamn"
+        },
+        "2": {
+          "name": "string.unquoted.doctype.zamn"
+        }
+      }
+    },
+    "unsupported": {
+      "comment": "pug syntax that zamn rejects",
+      "patterns": [
+        {
+          "match": "^[ \\t]*((?:if|unless|while|case|when|each|for|mixin|extends?|append|prepend)(?=[ \\t])|(?:else|block)(?=[ \\t]|$)|include(?=[ \\t:]|$)|default(?=[ \\t]*$|:))",
+          "captures": {
+            "1": {
+              "name": "invalid.illegal.unsupported.zamn"
+            }
+          }
+        },
+        {
+          "match": "^[ \\t]*([-+]|:[\\w-]|#\\{).*$",
+          "name": "invalid.illegal.unsupported.zamn"
+        },
+        {
+          "match": "&attributes\\b",
+          "name": "invalid.illegal.unsupported.zamn"
+        }
+      ]
+    },
+    "raw-html": {
+      "begin": "^[ \\t]*(?=<)",
+      "end": "$",
+      "name": "meta.embedded.html.zamn",
+      "patterns": [
+        {
+          "include": "#mustache"
+        },
+        {
+          "include": "text.html.basic"
+        }
+      ]
+    },
+    "pipe": {
+      "begin": "^[ \\t]*(\\|)[ \\t]?",
+      "end": "$",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.text.zamn"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#inline"
+        }
+      ]
+    },
+    "block-close": {
+      "match": "^[ \\t]*(\\})[ \\t]*$",
+      "captures": {
+        "1": {
+          "name": "punctuation.section.block.end.zamn"
+        }
+      }
+    },
+    "braces": {
+      "comment": "`{` ends the line of a tag, unless it is `{{`; `{ }` is an empty block",
+      "match": "[ \\t]*((?<!\\{)\\{)(?!\\{)[ \\t]*(\\})?[ \\t]*$",
+      "captures": {
+        "1": {
+          "name": "punctuation.section.block.begin.zamn"
+        },
+        "2": {
+          "name": "punctuation.section.block.end.zamn"
+        }
+      }
+    },
+    "script-block": {
+      "begin": "^([ \\t]*)(?=script(?:[.#][\\w-]+)*(?:\\((?:[^()\"'`]|\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^'\\\\]|\\\\.)*'|`(?:[^`\\\\]|\\\\.)*`)*\\))?(?:[.#][\\w-]+)*\\.[ \\t]*$)",
+      "end": "^(?!\\1[ \\t]+|[ \\t]*$)",
+      "name": "meta.text-block.zamn",
+      "patterns": [
+        {
+          "begin": "\\G",
+          "end": "$",
+          "patterns": [
+            {
+              "include": "#tag-name"
+            },
+            {
+              "include": "#id"
+            },
+            {
+              "include": "#class"
+            },
+            {
+              "include": "#attributes"
+            },
+            {
+              "match": "\\.(?=[ \\t]*$)",
+              "name": "punctuation.definition.text-block.zamn"
+            }
+          ]
+        },
+        {
+          "include": "source.js"
+        }
+      ]
+    },
+    "style-block": {
+      "begin": "^([ \\t]*)(?=style(?:[.#][\\w-]+)*(?:\\((?:[^()\"'`]|\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^'\\\\]|\\\\.)*'|`(?:[^`\\\\]|\\\\.)*`)*\\))?(?:[.#][\\w-]+)*\\.[ \\t]*$)",
+      "end": "^(?!\\1[ \\t]+|[ \\t]*$)",
+      "name": "meta.text-block.zamn",
+      "patterns": [
+        {
+          "begin": "\\G",
+          "end": "$",
+          "patterns": [
+            {
+              "include": "#tag-name"
+            },
+            {
+              "include": "#id"
+            },
+            {
+              "include": "#class"
+            },
+            {
+              "include": "#attributes"
+            },
+            {
+              "match": "\\.(?=[ \\t]*$)",
+              "name": "punctuation.definition.text-block.zamn"
+            }
+          ]
+        },
+        {
+          "include": "source.css"
+        }
+      ]
+    },
+    "text-block": {
+      "begin": "^([ \\t]*)(?=(?:[A-Za-z][\\w-]*(?::[\\w-]+)*)?(?:[.#][\\w-]+)*(?:\\((?:[^()\"'`]|\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^'\\\\]|\\\\.)*'|`(?:[^`\\\\]|\\\\.)*`)*\\))?(?:[.#][\\w-]+)*\\.[ \\t]*$)",
+      "end": "^(?!\\1[ \\t]+|[ \\t]*$)",
+      "name": "meta.text-block.zamn",
+      "patterns": [
+        {
+          "begin": "\\G",
+          "end": "$",
+          "patterns": [
+            {
+              "include": "#tag-name"
+            },
+            {
+              "include": "#id"
+            },
+            {
+              "include": "#class"
+            },
+            {
+              "include": "#attributes"
+            },
+            {
+              "match": "\\.(?=[ \\t]*$)",
+              "name": "punctuation.definition.text-block.zamn"
+            }
+          ]
+        },
+        {
+          "include": "#inline"
+        }
+      ]
+    },
+    "output": {
+      "begin": "^[ \\t]*(=)",
+      "end": "$",
+      "contentName": "source.ts.embedded.zamn",
+      "patterns": [
+        {
+          "include": "source.ts#expression"
+        }
+      ],
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.operator.output.zamn"
+        }
+      }
+    },
+    "element": {
+      "begin": "^[ \\t]*(?=[A-Za-z]|[.#][\\w-])",
+      "end": "$",
+      "name": "meta.tag.zamn",
+      "patterns": [
+        {
+          "include": "#element-line"
+        }
+      ]
+    },
+    "element-line": {
+      "patterns": [
+        {
+          "include": "#tag-name"
+        },
+        {
+          "include": "#id"
+        },
+        {
+          "include": "#class"
+        },
+        {
+          "include": "#attributes"
+        },
+        {
+          "match": "/(?=[ \\t]*$)",
+          "name": "punctuation.definition.tag.self-closing.zamn"
+        },
+        {
+          "include": "#braces"
+        },
+        {
+          "begin": "(:)[ \\t]+",
+          "end": "$",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.separator.expansion.zamn"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#element-line"
+            }
+          ]
+        },
+        {
+          "begin": "=",
+          "end": "$",
+          "contentName": "source.ts.embedded.zamn",
+          "patterns": [
+            {
+              "include": "source.ts#expression"
+            }
+          ],
+          "beginCaptures": {
+            "0": {
+              "name": "keyword.operator.output.zamn"
+            }
+          }
+        },
+        {
+          "begin": "[ \\t]",
+          "end": "$",
+          "patterns": [
+            {
+              "include": "#inline"
+            }
+          ]
+        }
+      ]
+    },
+    "element-interpolated": {
+      "patterns": [
+        {
+          "include": "#tag-name"
+        },
+        {
+          "include": "#id"
+        },
+        {
+          "include": "#class"
+        },
+        {
+          "include": "#attributes"
+        },
+        {
+          "match": "/(?=[ \\t]*$)",
+          "name": "punctuation.definition.tag.self-closing.zamn"
+        },
+        {
+          "include": "#braces"
+        },
+        {
+          "begin": "(:)[ \\t]+",
+          "end": "(?=\\])",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.separator.expansion.zamn"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#element-interpolated"
+            }
+          ]
+        },
+        {
+          "begin": "=",
+          "end": "(?=\\])",
+          "contentName": "source.ts.embedded.zamn",
+          "patterns": [
+            {
+              "include": "source.ts#expression"
+            }
+          ],
+          "beginCaptures": {
+            "0": {
+              "name": "keyword.operator.output.zamn"
+            }
+          }
+        },
+        {
+          "begin": "[ \\t]",
+          "end": "(?=\\])",
+          "patterns": [
+            {
+              "include": "#inline"
+            }
+          ]
+        }
+      ]
+    },
+    "tag-name": {
+      "match": "[A-Za-z][\\w-]*(?::[\\w-]+)*",
+      "name": "entity.name.tag.zamn"
+    },
+    "id": {
+      "match": "#[\\w-]+",
+      "name": "entity.other.attribute-name.id.zamn"
+    },
+    "class": {
+      "match": "\\.[\\w-]+",
+      "name": "entity.other.attribute-name.class.zamn"
+    },
+    "attributes": {
+      "begin": "\\(",
+      "end": "\\)",
+      "name": "meta.attributes.zamn",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.attributes.begin.zamn"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.attributes.end.zamn"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "((?:v-|[:@#])[^\\s=,()!]+)(!?=)(\")",
+          "end": "\"",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.other.attribute-name.directive.zamn"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.zamn"
+            },
+            "3": {
+              "name": "punctuation.definition.string.begin.zamn"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.zamn"
+            }
+          },
+          "name": "meta.attribute.directive.zamn",
+          "contentName": "source.ts.embedded.zamn",
+          "patterns": [
+            {
+              "include": "source.ts#expression"
+            }
+          ]
+        },
+        {
+          "begin": "((?:v-|[:@#])[^\\s=,()!]+)(!?=)(')",
+          "end": "'",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.other.attribute-name.directive.zamn"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.zamn"
+            },
+            "3": {
+              "name": "punctuation.definition.string.begin.zamn"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.zamn"
+            }
+          },
+          "name": "meta.attribute.directive.zamn",
+          "contentName": "source.ts.embedded.zamn",
+          "patterns": [
+            {
+              "include": "source.ts#expression"
+            }
+          ]
+        },
+        {
+          "begin": "((?:v-|[:@#])[^\\s=,()!]+)(!?=)(`)",
+          "end": "`",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.other.attribute-name.directive.zamn"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.zamn"
+            },
+            "3": {
+              "name": "punctuation.definition.string.begin.zamn"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.zamn"
+            }
+          },
+          "name": "meta.attribute.directive.zamn",
+          "contentName": "source.ts.embedded.zamn",
+          "patterns": [
+            {
+              "include": "source.ts#expression"
+            }
+          ]
+        },
+        {
+          "match": "(?:v-|[:@#])[^\\s=,()!]+",
+          "name": "entity.other.attribute-name.directive.zamn"
+        },
+        {
+          "match": "(?<!=)[^\\s=,()!\"'`]+(?=!?=|[\\s,)]|$)",
+          "name": "entity.other.attribute-name.zamn"
+        },
+        {
+          "match": "!?=",
+          "name": "keyword.operator.assignment.zamn"
+        },
+        {
+          "match": ",",
+          "name": "punctuation.separator.attribute.zamn"
+        },
+        {
+          "begin": "\"",
+          "end": "\"",
+          "name": "string.quoted.double.zamn",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.zamn"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.zamn"
+            }
+          },
+          "patterns": [
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.zamn"
+            }
+          ]
+        },
+        {
+          "begin": "'",
+          "end": "'",
+          "name": "string.quoted.single.zamn",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.zamn"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.zamn"
+            }
+          },
+          "patterns": [
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.zamn"
+            }
+          ]
+        },
+        {
+          "begin": "`",
+          "end": "`",
+          "name": "string.quoted.other.zamn",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.zamn"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.zamn"
+            }
+          },
+          "patterns": [
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.zamn"
+            }
+          ]
+        },
+        {
+          "match": "(?<==)(?:true|false|null|undefined)(?=[\\s,)]|$)",
+          "name": "constant.language.zamn"
+        },
+        {
+          "match": "(?<==)-?\\d+(?:\\.\\d+)?(?=[\\s,)]|$)",
+          "name": "constant.numeric.zamn"
+        },
+        {
+          "match": "(?<==)[^\\s,)]+",
+          "name": "string.unquoted.zamn"
+        }
+      ]
+    },
+    "inline": {
+      "comment": "text: `{{ }}`, `#[tag ...]` and the escapes for both",
+      "patterns": [
+        {
+          "match": "\\\\(?:#\\[|\\{)",
+          "name": "constant.character.escape.zamn"
+        },
+        {
+          "include": "#mustache"
+        },
+        {
+          "begin": "#\\[",
+          "end": "\\]",
+          "name": "meta.interpolation.tag.zamn",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.begin.zamn"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.embedded.end.zamn"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#element-interpolated"
+            }
+          ]
+        }
+      ]
+    },
+    "mustache": {
+      "begin": "\\{\\{",
+      "end": "\\}\\}",
+      "contentName": "source.ts.embedded.zamn",
+      "patterns": [
+        {
+          "include": "source.ts#expression"
+        }
+      ],
+      "name": "meta.interpolation.expression.zamn",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.interpolation.begin.zamn"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.interpolation.end.zamn"
+        }
+      }
+    }
+  }
+}

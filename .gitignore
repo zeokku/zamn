@@ -40,3 +40,6 @@ target
 
 # generated wasm bindings
 packages/zamn/pkg
+
+# packaged VS Code extension
+*.vsix

@@ -259,3 +259,44 @@ test("formats <template lang=\"zamn\"> in Vue files", async () => {
     </template>
   `);
 });
+
+test("zamnAttributeSeparator: commas between attributes", async () => {
+  const source = zamn`
+    a(href='/' target="_blank"   disabled) Home
+    a(href="/",target="_blank",
+      disabled) Home
+    input(type="text")
+  `;
+  expect(await format(source)).toBe(zamn`
+    a(href="/" target="_blank" disabled) Home
+    a(href="/" target="_blank" disabled) Home
+    input(type="text")
+  `);
+  expect(await format(source, { zamnAttributeSeparator: "comma" })).toBe(zamn`
+    a(href="/", target="_blank", disabled) Home
+    a(href="/", target="_blank", disabled) Home
+    input(type="text")
+  `);
+});
+
+test("zamnAttributeSeparator: one attribute per line, and in Vue files", async () => {
+  const source = zamn`
+    <template lang="zamn">
+    div(:class="{
+      active: isActive
+    }" @click="go" disabled)
+    </template>
+  `;
+  const options = { parser: "vue", plugins: [plugin], zamnAttributeSeparator: "comma" as const };
+  expect(await prettier.format(source, options)).toBe(zamn`
+    <template lang="zamn">
+    div(
+      :class="{
+        active: isActive
+      }",
+      @click="go",
+      disabled
+    )
+    </template>
+  `);
+});

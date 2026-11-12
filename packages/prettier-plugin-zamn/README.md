@@ -18,13 +18,24 @@ bunx prettier --write "src/**/*.zamn"
 `.zamn` files are picked up by extension. In Vue single-file components,
 `<template lang="zamn">` is formatted too.
 
+## Options
+
+| Option | Values | |
+|---|---|---|
+| `zamnAttributeSeparator` | `"space"` (default) | `a(href="/" target="_blank")` |
+| | `"comma"` | `a(href="/", target="_blank")` |
+
+`singleQuote`, `printWidth`, `tabWidth` and `useTabs` apply as well.
+
 ## What it does
 
 - Re-indents everything with `tabWidth` / `useTabs`, including the contents of
   `{ }` blocks, text blocks (`p.`) and comment blocks. Whether an element uses
   braces or indentation is left as written.
-- Writes attributes as `name="value"` separated by spaces. Quotes follow
-  `singleQuote`, unless the other quote needs fewer escapes.
+- Writes attributes as `name="value"`. Quotes follow `singleQuote`, unless the
+  other quote needs fewer escapes. Attributes may be written with spaces or
+  commas between them; they are printed with what `zamnAttributeSeparator`
+  says.
 - Puts attributes one per line when the tag, ids, classes and attributes do not
   fit in `printWidth`. Text after the tag does not count and is never wrapped.
 - Keeps at most one blank line between statements.

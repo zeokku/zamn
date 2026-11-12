@@ -355,20 +355,24 @@ function print(path, options) {
    * Returns the doc and the column after it.
    */
   function head(el, column, start, flat) {
+    const comma = options.zamnAttributeSeparator === "comma";
     const pieces = el.head.map((piece) =>
       typeof piece === "string" ? piece : piece.attrs.map((a) => attrLines(a, options)),
     );
     const multiline = pieces.some((p) => typeof p !== "string" && p.some((a) => a.length > 1));
-    const text = pieces.map((p) => (typeof p === "string" ? p : `(${p.join(" ")})`)).join("");
+    const text = pieces.map((p) => (typeof p === "string" ? p : `(${p.join(comma ? ", " : " ")})`)).join("");
     const width = util.getStringWidth(text);
     const hasAttrs = pieces.some((p) => typeof p !== "string");
     if (!hasAttrs || (!multiline && (flat || start + width <= printWidth))) {
       return [text, start + width];
     }
+    // One attribute per line; a comma follows each but the last.
+    const attr = (lines, i, all) =>
+      join(hardline, comma && i < all.length - 1 ? lines.with(-1, `${lines.at(-1)},`) : lines);
     const docs = pieces.map((p) =>
       typeof p === "string"
         ? p
-        : ["(", indent([hardline, join(hardline, p.map((a) => join(hardline, a)))]), hardline, ")"],
+        : ["(", indent([hardline, join(hardline, p.map(attr))]), hardline, ")"],
     );
     return [docs, column + 1];
   }
@@ -452,6 +456,19 @@ export const languages = [
   },
 ];
 
+export const options = {
+  zamnAttributeSeparator: {
+    category: "zamn",
+    type: "choice",
+    default: "space",
+    description: "What to put between the attributes of a tag.",
+    choices: [
+      { value: "space", description: 'A space: a(href="/" target="_blank")' },
+      { value: "comma", description: 'A comma and a space: a(href="/", target="_blank")' },
+    ],
+  },
+};
+
 export const parsers = {
   zamn: {
     parse,
@@ -465,4 +482,4 @@ export const printers = {
   zamn: { print },
 };
 
-export default { languages, parsers, printers };
+export default { languages, options, parsers, printers };

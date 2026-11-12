@@ -1,0 +1,47 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "zamn in Vue",
+  "scopeName": "source.zamn.vue-injection",
+  "injectionSelector": "L:source.vue -comment",
+  "patterns": [
+    {
+      "comment": "<template lang=\"zamn\">, as the Vue grammar does it for its own languages",
+      "begin": "(<)(template)\\b(?=[^>]*\\blang\\s*=\\s*(['\"]?)zamn\\b\\3)",
+      "end": "(</)(template)\\s*(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.html"
+        },
+        "2": {
+          "name": "entity.name.tag.template.html"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.html"
+        },
+        "2": {
+          "name": "entity.name.tag.template.html"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.end.html"
+        }
+      },
+      "patterns": [
+        {
+          "include": "source.vue#tag-stuff"
+        },
+        {
+          "begin": "(?<=>)",
+          "end": "(?=</template\\b)",
+          "contentName": "source.zamn",
+          "patterns": [
+            {
+              "include": "source.zamn"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

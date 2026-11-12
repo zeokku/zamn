@@ -48,6 +48,7 @@ div
 | `packages/prettier-plugin-zamn` | Prettier plugin: formats `.zamn` files |
 | `packages/vue-language-plugin-zamn` | Vue language tools (Volar) plugin: type checking and editor support for `<template lang="zamn">` |
 | `packages/vue-eslint-parser-template-tokenizer-zamn` | ESLint: lets vue-eslint-parser read `<template lang="zamn">` |
+| `packages/vscode-zamn` | VS Code extension: syntax highlighting for `.zamn` files and `<template lang="zamn">` |
 | `example` | Vue's starter app in zamn, with Vite, vue-tsc, ESLint and Prettier set up |
 | `tests/fixtures` | shared fixtures; `pug/` holds pug's own test cases |
 
