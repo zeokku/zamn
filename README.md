@@ -27,6 +27,28 @@ div
   as usual. `{{` never opens a block, so `p {{ msg }}` is text; write `p \{` for
   a literal brace at the end of a line.
 - **`tag= expr`** emits `{{ expr }}`. The expression is not parsed.
+- **Whitespace at the end of a line** is ignored everywhere: `b text  ` is
+  `<b>text</b>`. A `|` on its own is one space, and is how a space between two
+  lines is written:
+
+  ```
+  p {
+    b this
+    |
+    | is
+    |
+    u cool
+  }
+  ```
+
+  ```html
+  <p><b>this</b> is <u>cool</u></p>
+  ```
+
+  In pug a bare `|` is an empty line of text, so this is the one place where
+  static pug compiles to different (but equivalently rendered) whitespace.
+- **Braces in text** are text. Only a `{` straight after the tag and its
+  attributes opens a block: `p some { text }` and `| { text }` are text.
 - **Attribute values** are quoted strings, numbers or bare words. `true` makes
   a boolean attribute; `false`, `null` and `undefined` drop it. `!=` skips
   escaping. Vue-style names work: `:to`, `@click`, `#slot`, `v-model.trim`.

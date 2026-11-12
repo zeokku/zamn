@@ -141,7 +141,9 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// End of the content of the line containing `from` (excludes `\r\n`).
+    /// End of the content of the line containing `from`: before `\r\n` and
+    /// before any whitespace at the end of the line, which never means
+    /// anything.
     fn content_end(&self, from: usize) -> usize {
         let mut e = from;
         while e < self.b.len() && self.b[e] != b'\n' {
@@ -150,12 +152,18 @@ impl<'a> Lexer<'a> {
         if e > from && self.b[e - 1] == b'\r' {
             e -= 1;
         }
+        while e > from && is_ws(self.b[e - 1]) {
+            e -= 1;
+        }
         e
     }
 
     /// Start of the line after the one whose content ends at `eol`.
     fn next_line(&self, eol: usize) -> usize {
         let mut p = eol;
+        while is_ws(self.at(p)) {
+            p += 1;
+        }
         if self.at(p) == b'\r' {
             p += 1;
         }
@@ -636,12 +644,7 @@ impl<'a> Lexer<'a> {
                     // `\{` starts text with a literal brace.
                     self.pos += 1;
                 }
-                if self.pos >= self.eol {
-                    // `tag ` with a single trailing space is a one-space text, as in pug.
-                    self.push(Text, p, p + 1);
-                } else {
-                    self.text_run(interp);
-                }
+                self.text_run(interp);
             }
             _ => {
                 self.unexpected_text(p);

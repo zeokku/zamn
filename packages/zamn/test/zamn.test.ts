@@ -16,6 +16,35 @@ test("compiles the brace example", () => {
   );
 });
 
+test("whitespace at the end of a line is ignored; a bare | is a space", () => {
+  const source = zamn`
+    p {
+      b this${"  "}
+      |${"  "}
+      | is
+      |
+      u cool
+    }
+    b some text${"  "}
+  `;
+  expect(compile(source).code).toBe("<p><b>this</b> is <u>cool</u></p><b>some text</b>");
+});
+
+test("braces after text are text", () => {
+  const source = zamn`
+    p(data-x=10) {
+      | some { paragraph }
+    }
+    p some paragraph { ok
+    p ends with {
+    p.a { ok }
+  `;
+  expect(compile(source).code).toBe(
+    '<p data-x="10">some { paragraph }</p><p>some paragraph { ok</p><p>ends with {</p>' +
+      '<p class="a">{ ok }</p>',
+  );
+});
+
 test("lex returns tokens with UTF-16 ranges", () => {
   const source = "p 😀 #[b x]";
   const { tokens, diagnostics } = lex(source);

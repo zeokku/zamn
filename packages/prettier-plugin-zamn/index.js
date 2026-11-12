@@ -6,7 +6,7 @@
 import { doc, util } from "prettier";
 import { lex, parse as check } from "zamn";
 
-const { hardline, literalline, indent, join, markAsRoot } = doc.builders;
+const { hardline, indent, join } = doc.builders;
 
 // ---------------------------------------------------------------------------
 // Tokens to a syntax tree
@@ -25,9 +25,12 @@ function syntaxError(message, loc) {
   return error;
 }
 
-/** Strip the common indentation from the lines of a text block. */
+/**
+ * Strip the common indentation from the lines of a text block, and the
+ * whitespace at the end of each, which means nothing.
+ */
 function dedent(raw) {
-  const lines = raw.split("\n");
+  const lines = raw.split("\n").map((l) => l.trimEnd());
   const base = Math.min(
     ...lines.filter((l) => l.trim() !== "").map((l) => l.match(/^[ \t]*/)[0].length),
   );
@@ -260,48 +263,6 @@ function parse(text) {
 // Syntax tree to a prettier doc
 // ---------------------------------------------------------------------------
 
-const endsInSpace = (s) => /[ \t]$/.test(s);
-
-function partsEndInSpace(parts) {
-  const last = parts.at(-1);
-  return typeof last === "string" && endsInSpace(last);
-}
-
-/**
- * Whether the last line a node prints ends in whitespace. With `own`, only
- * the node's first line is considered, not its children.
- */
-function endsWithSpace(node, own = false) {
-  switch (node.type) {
-    case "Comment":
-      if (!own && node.block) return endsInSpace(node.block.at(-1));
-      return endsInSpace(node.text);
-    case "TextBlock":
-      return node.block.length > 0 && endsInSpace(node.block.at(-1));
-    case "Pipe":
-      return partsEndInSpace(node.parts);
-    case "RawHtml":
-      if (!own && node.children.length) return endsWithSpace(node.children.at(-1));
-      return endsInSpace(node.value);
-    case "Element":
-      if (node.braced) return false;
-      if (!own && node.children.length) return endsWithSpace(node.children.at(-1));
-      if (node.block) return node.block.length > 0 && endsInSpace(node.block.at(-1));
-      if (node.expansion) return endsWithSpace(node.expansion);
-      return !!node.parts && partsEndInSpace(node.parts);
-    default:
-      return false;
-  }
-}
-
-/**
- * A line break. Whitespace at the end of a text line is part of the text
- * (`| a ` before `b c` is `a <b>c</b>`), but prettier trims it before a
- * `hardline`; a `literalline` keeps it and returns to the indentation of the
- * enclosing `markAsRoot`.
- */
-const newline = (keepTrailingSpace) => (keepTrailingSpace ? literalline : hardline);
-
 /** Formats one attribute as lines of text (values may span lines). */
 function attrLines(attr, options) {
   if (attr.eq === null) return [attr.name];
@@ -328,9 +289,22 @@ function attrLines(attr, options) {
 }
 
 /**
+ * The text after a tag (`p text`), as the text of a `|` line. Both start
+ * after one space, and `\{` is only needed, and only read, where a `{`
+ * would open a block.
+ */
+function pipeParts(parts) {
+  const [first, ...rest] = parts;
+  if (typeof first !== "string") return parts;
+  const text = first.slice(1).replace(/^\\\{/, "{");
+  return text ? [text, ...rest] : rest;
+}
+
+/**
  * Give every element that has children a brace block. A block can only open
- * straight after the tag, ids, classes and attributes, so an element with
- * anything else on its line (`p text`, `p= expr`) keeps its indentation.
+ * straight after the tag, ids, classes and attributes, so what else is on
+ * the line moves inside: `p text` becomes a `| text` line and `p= expr` an
+ * `= expr` line.
  */
 function brace(nodes) {
   for (const node of nodes) {
@@ -338,8 +312,21 @@ function brace(nodes) {
     if (node.type !== "Element") continue;
     if (node.expansion) brace([node.expansion]);
     brace(node.children);
-    const bare = !node.selfClosing && node.expr === null && !node.block && !node.parts;
-    if (node.children.length && bare) node.braced = true;
+    // `tag/` and `tag.` cannot have children.
+    if (!node.children.length || node.selfClosing || node.block) continue;
+    if (node.expr !== null) {
+      node.children.unshift({ type: "Expr", expr: node.expr });
+      node.expr = null;
+    } else if (node.parts) {
+      const parts = pipeParts(node.parts);
+      const [first] = node.children;
+      // Two `|` lines in a row are joined by a line break, which was not
+      // there, so the text goes on the line of the one that follows.
+      if (first.type === "Pipe") first.parts = [...parts, ...first.parts];
+      else node.children.unshift({ type: "Pipe", parts });
+      node.parts = null;
+    }
+    node.braced = true;
   }
 }
 
@@ -347,20 +334,13 @@ function print(path, options) {
   const { printWidth, tabWidth } = options;
 
   /** An indented block that starts on a new line. */
-  const block = (keepTrailingSpace, contents) =>
-    indent(markAsRoot([newline(keepTrailingSpace), contents]));
+  const block = (contents) => indent([hardline, contents]);
 
-  const textBlock = (lines, keepTrailingSpace = false) =>
-    lines.length
-      ? block(
-          keepTrailingSpace,
-          lines.map((line, i) => (i ? [newline(endsInSpace(lines[i - 1])), line] : line)),
-        )
-      : "";
+  const textBlock = (lines) => (lines.length ? block(join(hardline, lines)) : "");
 
   const siblings = (nodes, column) =>
     nodes.map((node, i) => [
-      i ? newline(endsWithSpace(nodes[i - 1])) : "",
+      i ? hardline : "",
       node.blankBefore ? hardline : "",
       statement(node, column),
     ]);
@@ -407,7 +387,7 @@ function print(path, options) {
   function statement(node, column, start = column, flat = false) {
     switch (node.type) {
       case "Comment":
-        return [node.text, node.block ? textBlock(node.block, endsInSpace(node.text)) : ""];
+        return [node.text, node.block ? textBlock(node.block) : ""];
       case "Doctype":
         return node.value ? `doctype ${node.value}` : "doctype";
       case "Expr":
@@ -420,7 +400,7 @@ function print(path, options) {
         return [
           node.value,
           node.children.length
-            ? block(endsInSpace(node.value), siblings(node.children, column + tabWidth))
+            ? block(siblings(node.children, column + tabWidth))
             : "",
         ];
       case "Element": {
@@ -437,14 +417,14 @@ function print(path, options) {
             node.children.length
               ? [
                   " {",
-                  block(false, siblings(node.children, column + tabWidth)),
-                  newline(endsWithSpace(node.children.at(-1))),
+                  block(siblings(node.children, column + tabWidth)),
+                  hardline,
                   "}",
                 ]
               : " {}",
           );
         } else if (node.children.length) {
-          out.push(block(endsWithSpace(node, true), siblings(node.children, column + tabWidth)));
+          out.push(block(siblings(node.children, column + tabWidth)));
         }
         return out;
       }
@@ -454,10 +434,7 @@ function print(path, options) {
   const { nodes } = path.node;
   if (!nodes.length) return "";
   if (options.zamnBlockStyle === "braces") brace(nodes);
-  // The final line break stays outside the root so that prettier can strip it
-  // when the template is embedded in another file.
-  const keep = endsWithSpace(nodes.at(-1));
-  return [markAsRoot([siblings(nodes, 0), keep ? literalline : ""]), keep ? "" : hardline];
+  return [siblings(nodes, 0), hardline];
 }
 
 // ---------------------------------------------------------------------------

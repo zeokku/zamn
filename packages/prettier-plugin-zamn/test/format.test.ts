@@ -167,7 +167,7 @@ test("text, text blocks and comments are kept as written", async () => {
           go();
 
         }
-      //   a comment${"   "}
+      //   a comment
         with a block
           that stays raw
       <div>
@@ -179,32 +179,43 @@ test("text, text blocks and comments are kept as written", async () => {
   expect(compile(out).code).toBe(compile(source).code);
 });
 
-test("whitespace at the end of a text line is kept", async () => {
+test("whitespace at the end of a line is removed", async () => {
   const source = zamn`
-    div {
+    div {${"  "}
         p text${" "}
-            b bold
-        span${" "}
+        span${"\t"}
         | piped${" "}
+        |${"  "}
         <i>x</i>${" "}
-        | last${" "}
-    }
+        // note${" "}
+          more${" "}
+        pre.${" "}
+          a${"  "}
+          ${"  "}
+          b
+    }${" "}
     p end${" "}
   `;
   const out = await format(source);
   expect(out).toBe(zamn`
     div {
-      p text${" "}
-        b bold
-      span${" "}
-      | piped${" "}
-      <i>x</i>${" "}
-      | last${" "}
+      p text
+      span
+      | piped
+      |
+      <i>x</i>
+      // note
+        more
+      pre.
+        a
+
+        b
     }
-    p end${" "}
+    p end
   `);
   expect(compile(out).code).toBe(compile(source).code);
-  expect(compile(out).code).toContain("<p>text <b>bold</b></p><span> </span>");
+  // A bare \`|\` is how a space is written.
+  expect(compile(out).code).toContain("<p>text</p><span></span>piped <i>x</i>");
 });
 
 test("blank lines between statements collapse to one", async () => {
@@ -326,10 +337,6 @@ test("zamnBlockStyle: every element with children gets braces", async () => {
         span Home
       li
         | piped
-      p text on the line
-        b cannot take braces
-      p= expr
-        b nor this
       script.
         let a = { b }
       // comment
@@ -347,10 +354,6 @@ test("zamnBlockStyle: every element with children gets braces", async () => {
       li {
         | piped
       }
-      p text on the line
-        b cannot take braces
-      p= expr
-        b nor this
       script.
         let a = { b }
       // comment
@@ -365,6 +368,61 @@ test("zamnBlockStyle: every element with children gets braces", async () => {
   // Left as written, and stable.
   const kept = await format(source, { zamnBlockStyle: "preserve" });
   expect(kept).toBe(source.replace('ul.list(\n  :class="{ on }"\n)', 'ul.list(:class="{ on }")'));
+});
+
+test("zamnBlockStyle: what is on the line of the tag moves into the braces", async () => {
+  const source = zamn`
+    p text on #[i the] line
+      b child
+    p= expr
+      b child
+    li: a Home
+      b child
+    p  two spaces
+      b child
+    p \\{
+      b child
+    p joined
+      | to this
+      | not this
+    p text
+      = expr
+  `;
+  const out = await format(source);
+  expect(out).toBe(zamn`
+    p {
+      | text on #[i the] line
+      b child
+    }
+    p {
+      = expr
+      b child
+    }
+    li: a {
+      | Home
+      b child
+    }
+    p {
+      |  two spaces
+      b child
+    }
+    p {
+      | {
+      b child
+    }
+    p {
+      | joinedto this
+      | not this
+    }
+    p {
+      | text
+      = expr
+    }
+  `);
+  expect(await format(out)).toBe(out);
+  expect(compile(out).code).toBe(compile(source).code);
+  expect(compile(out).code).toContain("<p> two spaces<b>child</b></p><p>{<b>");
+  expect(await format(source, { zamnBlockStyle: "preserve" })).toBe(source);
 });
 
 test("zamnBlockStyle: braces around attributes on several lines", async () => {

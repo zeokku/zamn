@@ -81,6 +81,12 @@ impl<'a> Parser<'a> {
         ));
     }
 
+    /// Whether the token at `i` is a `|` with nothing after it.
+    fn bare_pipe(&self, i: usize) -> bool {
+        let kind = |i: usize| self.toks.get(i).map_or(Eos, |t| t.kind);
+        kind(i) == Pipe && !matches!(kind(i + 1), Text | InterpStart)
+    }
+
     /// Statements up to the end of the enclosing block.
     fn items(&mut self, out: &mut Vec<Node>) {
         let mut last_pipe = false;
@@ -89,8 +95,9 @@ impl<'a> Parser<'a> {
                 Eos | Outdent | BraceClose | InterpEnd => break,
                 Newline => {
                     let t = self.next();
-                    // Consecutive `|` lines are joined with a line break.
-                    if last_pipe && self.peek() == Pipe {
+                    // Consecutive `|` lines are joined with a line break,
+                    // unless one of them is a bare `|`, which is a space.
+                    if last_pipe && self.peek() == Pipe && !self.bare_pipe(self.i) {
                         out.push(Node::Text(ast::Text {
                             value: "\n".into(),
                             span: t.span,
@@ -109,8 +116,8 @@ impl<'a> Parser<'a> {
                 }
                 kind => {
                     let before = self.i;
+                    last_pipe = kind == Pipe && !self.bare_pipe(before);
                     self.statement(out);
-                    last_pipe = kind == Pipe;
                     if self.i == before {
                         self.unexpected();
                     }
@@ -165,7 +172,16 @@ impl<'a> Parser<'a> {
             }
             Eq => self.interpolation(out),
             Pipe => {
-                self.next();
+                let bare = self.bare_pipe(self.i);
+                let pipe = self.next();
+                if bare {
+                    // Whitespace at the end of a line is ignored, so this is
+                    // how a space between two lines is written.
+                    out.push(Node::Text(ast::Text {
+                        value: " ".into(),
+                        span: pipe.span,
+                    }));
+                }
                 self.inline(out);
             }
             RawHtml => {
@@ -516,6 +532,44 @@ mod tests {
         assert_eq!(x.children.len(), 2);
         assert_eq!(el(&x.children[0]).name, "button");
         assert!(el(&x.children[1]).braced);
+    }
+
+    #[test]
+    fn whitespace_at_the_end_of_a_line_is_ignored() {
+        let a = parse("p text \t\n  | piped  \nb \n");
+        assert!(a.diagnostics.is_empty(), "{:?}", a.diagnostics);
+        let texts = |n: &Node| -> Vec<String> {
+            el(n)
+                .children
+                .iter()
+                .map(|c| match c {
+                    Node::Text(t) => t.value.clone(),
+                    other => panic!("not text: {other:?}"),
+                })
+                .collect()
+        };
+        assert_eq!(texts(&a.ast.nodes[0]), ["text", "piped"]);
+        assert!(el(&a.ast.nodes[1]).children.is_empty());
+    }
+
+    #[test]
+    fn a_bare_pipe_is_a_space() {
+        // No line break joins a bare `|` to the `|` lines around it.
+        let a = parse("p\n  b this\n  |  \n  | is\n  |\n  u cool\n  | a\n  | b\n");
+        assert!(a.diagnostics.is_empty(), "{:?}", a.diagnostics);
+        let shape: Vec<String> = el(&a.ast.nodes[0])
+            .children
+            .iter()
+            .map(|c| match c {
+                Node::Text(t) => format!("{:?}", t.value),
+                Node::Element(e) => e.name.clone(),
+                other => panic!("unexpected: {other:?}"),
+            })
+            .collect();
+        assert_eq!(
+            shape,
+            ["b", "\" \"", "\"is\"", "\" \"", "u", "\"a\"", "\"\\n\"", "\"b\""]
+        );
     }
 
     #[test]

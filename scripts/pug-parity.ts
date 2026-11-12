@@ -1,5 +1,11 @@
 // Differential test against real pug: every fixture in tests/fixtures/pug must
-// compile to exactly the HTML pug produces.
+// compile to exactly the HTML pug produces, with zamn's two differences in
+// whitespace allowed for:
+//
+// - whitespace at the end of a line means nothing to zamn, so pug is given
+//   the source without it;
+// - a bare `|` is a space in zamn and an empty line of text in pug, so a
+//   fixture that has one is compared with runs of whitespace collapsed.
 //
 //   bun scripts/pug-parity.ts            check
 //   bun scripts/pug-parity.ts --write    also (re)write the expected .html files
@@ -21,7 +27,9 @@ let failed = 0;
 const files = [...new Glob("*.pug").scanSync(dir)].sort();
 for (const name of files) {
   const file = resolve(dir, name);
-  const source = await Bun.file(file).text();
+  const source = (await Bun.file(file).text()).replace(/[ \t]+$/gm, "");
+  const barePipe = /^[ \t]*\|$/m.test(source);
+  const comparable = (html: string) => (barePipe ? html.replace(/\s+/g, " ") : html);
   let expected: string;
   try {
     expected = pug.render(source, { filename: file });
@@ -39,7 +47,7 @@ for (const name of files) {
     if (survey >= 0) continue;
     failed++;
     console.log(`FAIL ${name}: zamn reports errors\n${run.stderr}`);
-  } else if (actual !== expected) {
+  } else if (comparable(actual) !== comparable(expected)) {
     failed++;
     console.log(`DIFF ${name}\n  pug:  ${JSON.stringify(expected)}\n  zamn: ${JSON.stringify(actual)}`);
   } else {

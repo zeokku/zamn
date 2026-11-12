@@ -35,8 +35,8 @@ bunx prettier --write "src/**/*.zamn"
   `{ }` blocks, text blocks (`p.`) and comment blocks.
 - Gives every element that has children a `{ }` block, unless
   `zamnBlockStyle` is `"preserve"`. A block can only open straight after the
-  tag and its attributes, so an element with text or `= expr` on its line keeps
-  its children indented under it.
+  tag and its attributes, so text or `= expr` on the line of such an element
+  moves into the block, as a `| text` or `= expr` line.
 - Writes attributes as `name="value"`. Quotes follow `singleQuote`, unless the
   other quote needs fewer escapes. Attributes may be written with spaces or
   commas between them; they are printed with what `zamnAttributeSeparator`
@@ -65,8 +65,8 @@ div(
 )
 ```
 
-Whitespace at the end of a text line is part of the text (`| a ` followed by
-`b c` is `a <b>c</b>`), so it is kept.
+Whitespace at the end of a line means nothing in zamn, so it is removed. A
+space between two lines is a `|` on its own, which is kept.
 
 A template with errors is not formatted: the first diagnostic is thrown as a
 syntax error.
