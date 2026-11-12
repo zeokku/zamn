@@ -44,6 +44,7 @@ div
 | `crates/zamn` | `compile()`, include resolution, the `zamn` CLI |
 | `crates/zamn_wasm` | WebAssembly bindings |
 | `packages/zamn` | npm package: sync `lex`, `parse`, `compile` |
+| `packages/prettier-plugin-zamn` | Prettier plugin: formats `.zamn` files |
 | `tests/fixtures` | shared fixtures; `pug/` holds pug's own test cases |
 
 The lexer and parser never fail: they report every problem as a diagnostic

@@ -1,0 +1,239 @@
+import { expect, test } from "bun:test";
+import { Glob } from "bun";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import * as prettier from "prettier";
+import { compile, fsResolver } from "zamn";
+import * as plugin from "../index.js";
+
+const fixtures = resolve(import.meta.dir, "../../../tests/fixtures");
+
+const format = (source: string, options: prettier.Options = {}) =>
+  prettier.format(source, { parser: "zamn", plugins: [plugin], ...options });
+
+const lines = (...l: string[]) => l.join("\n") + "\n";
+
+for (const file of new Glob("{braces,zamn}/**/*.zamn").scanSync(fixtures)) {
+  test(`fixture ${file}: stable, and compiles to the same HTML`, async () => {
+    const filename = resolve(fixtures, file);
+    const source = readFileSync(filename, "utf8");
+    const html = (s: string) => compile(s, { filename, resolve: fsResolver() }).code;
+    const formatted = await format(source);
+    expect(await format(formatted)).toBe(formatted);
+    expect(html(formatted)).toBe(html(source));
+  });
+}
+
+test("is inferred from the .zamn extension", async () => {
+  const out = await prettier.format("p(  a='b' )", { filepath: "x.zamn", plugins: [plugin] });
+  expect(out).toBe('p(a="b")\n');
+});
+
+test("re-indents braces and indentation blocks", async () => {
+  const source = lines(
+    "    html {",
+    "body.page {",
+    "        nav#top",
+    "            ul {",
+    "             li: a(href='/') Home",
+    "            }",
+    "        section {",
+    "        }",
+    "        p { }",
+    "}",
+    "    }",
+  );
+  expect(await format(source)).toBe(
+    lines(
+      "html {",
+      "  body.page {",
+      "    nav#top",
+      "      ul {",
+      '        li: a(href="/") Home',
+      "      }",
+      "    section {}",
+      "    p {}",
+      "  }",
+      "}",
+    ),
+  );
+  expect(await format(source, { useTabs: true })).toContain('\n\t\t\t\tli: a(href="/") Home\n');
+});
+
+test("attributes: spacing, separators and quotes", async () => {
+  const source = `a( href = '/x' ,title="say \\"hi\\"", alt='it\\'s'  data-x!='<b>' disabled n=1 )/`;
+  expect(await format(source)).toBe(
+    `a(href="/x" title='say "hi"' alt="it's" data-x!="<b>" disabled n=1)/\n`,
+  );
+  expect(await format(source, { singleQuote: true })).toBe(
+    `a(href='/x' title='say "hi"' alt="it's" data-x!='<b>' disabled n=1)/\n`,
+  );
+  expect(compile(await format(source)).code).toBe(compile(source).code);
+});
+
+test("attributes break one per line when the head is too wide", async () => {
+  const source = lines(
+    "ul",
+    '  li: a.link.link-external(href="https://example.com/a/rather/long/url" target="_blank" rel="noopener") Text',
+    '  a(href="/") Text after the head never counts towards the print width, however long it gets',
+    '  p here #[a.link.link-external(href="https://example.com/a/rather/long/url" target="_blank") stays] inline',
+  );
+  const out = await format(source);
+  expect(out).toBe(
+    lines(
+      "ul",
+      "  li: a.link.link-external(",
+      '    href="https://example.com/a/rather/long/url"',
+      '    target="_blank"',
+      '    rel="noopener"',
+      "  ) Text",
+      '  a(href="/") Text after the head never counts towards the print width, however long it gets',
+      '  p here #[a.link.link-external(href="https://example.com/a/rather/long/url" target="_blank") stays] inline',
+    ),
+  );
+  expect(await format(out)).toBe(out);
+  expect(compile(out).code).toBe(compile(source).code);
+});
+
+test("multi-line attribute values are re-indented with the attribute", async () => {
+  const source = lines(
+    "main {",
+    '  div(:class="{',
+    "          a: b,",
+    "",
+    "          c: d",
+    '        }" @click="go") {',
+    "    p hi",
+    "  }",
+    "}",
+  );
+  const out = await format(source);
+  expect(out).toBe(
+    lines(
+      "main {",
+      "  div(",
+      '    :class="{',
+      "      a: b,",
+      "",
+      "      c: d",
+      '    }"',
+      '    @click="go"',
+      "  ) {",
+      "    p hi",
+      "  }",
+      "}",
+    ),
+  );
+  expect(await format(out)).toBe(out);
+});
+
+test("text, text blocks and comments are kept as written", async () => {
+  const source = lines(
+    "div {",
+    "      p Hello   #[em( title = 'x' )  world], \\#[escaped] {{ a }}",
+    "      p \\{",
+    "      |no space",
+    "      |",
+    "      script.",
+    "",
+    "            if (a) {",
+    "              go();",
+    "",
+    "            }",
+    "      //   a comment   ",
+    "          with a block",
+    "            that stays raw",
+    "      <div>",
+    "          b bold",
+    "      </div>",
+    "}",
+  );
+  const out = await format(source);
+  expect(out).toBe(
+    lines(
+      "div {",
+      "  p Hello   #[em(title=\"x\")  world], \\#[escaped] {{ a }}",
+      "  p \\{",
+      "  | no space",
+      "  |",
+      "  script.",
+      "    if (a) {",
+      "      go();",
+      "",
+      "    }",
+      "  //   a comment   ",
+      "    with a block",
+      "      that stays raw",
+      "  <div>",
+      "    b bold",
+      "  </div>",
+      "}",
+    ),
+  );
+  expect(await format(out)).toBe(out);
+  expect(compile(out).code).toBe(compile(source).code);
+});
+
+test("whitespace at the end of a text line is kept", async () => {
+  const source = lines(
+    "div {",
+    "    p text ",
+    "        b bold",
+    "    span ",
+    "    | piped ",
+    "    <i>x</i> ",
+    "    | last ",
+    "}",
+    "p end ",
+  );
+  const out = await format(source);
+  expect(out).toBe(
+    lines(
+      "div {",
+      "  p text ",
+      "    b bold",
+      "  span ",
+      "  | piped ",
+      "  <i>x</i> ",
+      "  | last ",
+      "}",
+      "p end ",
+    ),
+  );
+  expect(compile(out).code).toBe(compile(source).code);
+  expect(compile(out).code).toContain("<p>text <b>bold</b></p><span> </span>");
+});
+
+test("blank lines between statements collapse to one", async () => {
+  const source = "\n\ndoctype   html\n\n\n\nhtml\n\n  head\n  body\n\n\n    p a\n    p b\n\n";
+  expect(await format(source)).toBe("doctype html\n\nhtml\n  head\n  body\n    p a\n    p b\n");
+  expect(await format("")).toBe("");
+});
+
+test("CRLF input", async () => {
+  expect(await format("div {\r\n    p a\r\n}\r\n")).toBe("div {\n  p a\n}\n");
+});
+
+test("a template with errors is rejected with a location", async () => {
+  try {
+    await format("p ok\nif x\n  p no");
+    throw new Error("should have thrown");
+  } catch (e: any) {
+    expect(e).toBeInstanceOf(SyntaxError);
+    expect(e.message).toContain("`if` (control flow) is not supported");
+    expect(e.loc.start).toEqual({ line: 2, column: 1 });
+  }
+});
+
+test("formats <template lang=\"zamn\"> in Vue files", async () => {
+  const source = lines(
+    '<template lang="zamn">',
+    "div {",
+    "      p(  a='b' ) hi",
+    "}",
+    "</template>",
+  );
+  expect(await prettier.format(source, { parser: "vue", plugins: [plugin] })).toBe(
+    lines('<template lang="zamn">', "div {", '  p(a="b") hi', "}", "</template>"),
+  );
+});

@@ -1,0 +1,29 @@
+{
+  "name": "prettier-plugin-zamn",
+  "version": "0.1.0",
+  "description": "Prettier plugin for zamn templates.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
+  "files": ["index.js", "index.d.ts"],
+  "keywords": ["prettier", "plugin", "zamn"],
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "zamn": "workspace:*"
+  },
+  "peerDependencies": {
+    "prettier": "^3.0.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0"
+  }
+}

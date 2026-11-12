@@ -1,0 +1,56 @@
+# prettier-plugin-zamn
+
+Formats [zamn](../../README.md) templates with [Prettier](https://prettier.io) 3.
+
+```sh
+bun add -d prettier prettier-plugin-zamn
+```
+
+```json
+// .prettierrc
+{ "plugins": ["prettier-plugin-zamn"] }
+```
+
+```sh
+bunx prettier --write "src/**/*.zamn"
+```
+
+`.zamn` files are picked up by extension. In Vue single-file components,
+`<template lang="zamn">` is formatted too.
+
+## What it does
+
+- Re-indents everything with `tabWidth` / `useTabs`, including the contents of
+  `{ }` blocks, text blocks (`p.`) and comment blocks. Whether an element uses
+  braces or indentation is left as written.
+- Writes attributes as `name="value"` separated by spaces. Quotes follow
+  `singleQuote`, unless the other quote needs fewer escapes.
+- Puts attributes one per line when the tag, ids, classes and attributes do not
+  fit in `printWidth`. Text after the tag does not count and is never wrapped.
+- Keeps at most one blank line between statements.
+- Writes an empty brace block as `{}`.
+
+The compiled HTML does not change, with one exception: the continuation lines
+of an attribute value that spans several lines are re-indented with the
+attribute.
+
+```
+div(:class="{
+        active: isActive
+    }" @click="go")
+```
+
+```
+div(
+  :class="{
+    active: isActive
+  }"
+  @click="go"
+)
+```
+
+Whitespace at the end of a text line is part of the text (`| a ` followed by
+`b c` is `a <b>c</b>`), so it is kept.
+
+A template with errors is not formatted: the first diagnostic is thrown as a
+syntax error.
