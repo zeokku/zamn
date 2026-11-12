@@ -1,8 +1,8 @@
-import { fileURLToPath, URL } from 'node:url'
+import { fileURLToPath, URL } from "node:url"
 
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import { compile } from 'zamn'
+import { defineConfig } from "vite"
+import vue from "@vitejs/plugin-vue"
+import { compile } from "zamn"
 
 // What Vue's compiler asks of a template preprocessor: the template in, HTML
 // out through a callback.
@@ -14,7 +14,7 @@ const zamn = {
   ) {
     try {
       // `doctype: 'html'` writes boolean attributes as `disabled`.
-      done(null, compile(source, { filename: options.filename, doctype: 'html' }).code)
+      done(null, compile(source, { filename: options.filename, doctype: "html" }).code)
     } catch (error) {
       done(error)
     }
@@ -27,13 +27,13 @@ export default defineConfig({
     vue({
       template: {
         // Compiles <template lang="zamn">.
-        preprocessCustomRequire: (lang) => (lang === 'zamn' ? zamn : undefined),
+        preprocessCustomRequire: (lang) => (lang === "zamn" ? zamn : undefined),
       },
     }),
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
 })

@@ -45,6 +45,19 @@ test("re-indents braces and indentation blocks", async () => {
   expect(await format(source)).toBe(zamn`
     html {
       body.page {
+        nav#top {
+          ul {
+            li: a(href="/") Home
+          }
+        }
+        section {}
+        p {}
+      }
+    }
+  `);
+  expect(await format(source, { zamnBlockStyle: "preserve" })).toBe(zamn`
+    html {
+      body.page {
         nav#top
           ul {
             li: a(href="/") Home
@@ -77,7 +90,7 @@ test("attributes break one per line when the head is too wide", async () => {
   `;
   const out = await format(source);
   expect(out).toBe(zamn`
-    ul
+    ul {
       li: a.link.link-external(
         href="https://example.com/a/rather/long/url"
         target="_blank"
@@ -85,6 +98,7 @@ test("attributes break one per line when the head is too wide", async () => {
       ) Text
       a(href="/") Text after the head never counts towards the print width, however long it gets
       p here #[a.link.link-external(href="https://example.com/a/rather/long/url" target="_blank") stays] inline
+    }
   `);
   expect(await format(out)).toBe(out);
   expect(compile(out).code).toBe(compile(source).code);
@@ -215,11 +229,13 @@ test("blank lines between statements collapse to one", async () => {
   expect(await format(source)).toBe(zamn`
     doctype html
 
-    html
+    html {
       head
-      body
+      body {
         p a
         p b
+      }
+    }
   `);
   expect(await format("")).toBe("");
 });
@@ -298,5 +314,71 @@ test("zamnAttributeSeparator: one attribute per line, and in Vue files", async (
       disabled
     )
     </template>
+  `);
+});
+
+test("zamnBlockStyle: every element with children gets braces", async () => {
+  const source = zamn`
+    ul.list(
+      :class="{ on }"
+    )
+      li: a(href="/")
+        span Home
+      li
+        | piped
+      p text on the line
+        b cannot take braces
+      p= expr
+        b nor this
+      script.
+        let a = { b }
+      // comment
+        block
+      <div>
+        span raw
+      </div>
+  `;
+  const out = await format(source);
+  expect(out).toBe(zamn`
+    ul.list(:class="{ on }") {
+      li: a(href="/") {
+        span Home
+      }
+      li {
+        | piped
+      }
+      p text on the line
+        b cannot take braces
+      p= expr
+        b nor this
+      script.
+        let a = { b }
+      // comment
+        block
+      <div>
+        span raw
+      </div>
+    }
+  `);
+  expect(await format(out)).toBe(out);
+  expect(compile(out).code).toBe(compile(source).code);
+  // Left as written, and stable.
+  const kept = await format(source, { zamnBlockStyle: "preserve" });
+  expect(kept).toBe(source.replace('ul.list(\n  :class="{ on }"\n)', 'ul.list(:class="{ on }")'));
+});
+
+test("zamnBlockStyle: braces around attributes on several lines", async () => {
+  const source = zamn`
+    a.link.link-external(href="https://example.com/a/rather/long/url" target="_blank" rel="noopener")
+      span Text
+  `;
+  expect(await format(source)).toBe(zamn`
+    a.link.link-external(
+      href="https://example.com/a/rather/long/url"
+      target="_blank"
+      rel="noopener"
+    ) {
+      span Text
+    }
   `);
 });

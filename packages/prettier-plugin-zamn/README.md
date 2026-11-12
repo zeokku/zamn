@@ -22,6 +22,8 @@ bunx prettier --write "src/**/*.zamn"
 
 | Option | Values | |
 |---|---|---|
+| `zamnBlockStyle` | `"braces"` (default) | every element that has children holds them in `{ }` |
+| | `"preserve"` | braces or indentation, as each element is written |
 | `zamnAttributeSeparator` | `"space"` (default) | `a(href="/" target="_blank")` |
 | | `"comma"` | `a(href="/", target="_blank")` |
 
@@ -30,8 +32,11 @@ bunx prettier --write "src/**/*.zamn"
 ## What it does
 
 - Re-indents everything with `tabWidth` / `useTabs`, including the contents of
-  `{ }` blocks, text blocks (`p.`) and comment blocks. Whether an element uses
-  braces or indentation is left as written.
+  `{ }` blocks, text blocks (`p.`) and comment blocks.
+- Gives every element that has children a `{ }` block, unless
+  `zamnBlockStyle` is `"preserve"`. A block can only open straight after the
+  tag and its attributes, so an element with text or `= expr` on its line keeps
+  its children indented under it.
 - Writes attributes as `name="value"`. Quotes follow `singleQuote`, unless the
   other quote needs fewer escapes. Attributes may be written with spaces or
   commas between them; they are printed with what `zamnAttributeSeparator`

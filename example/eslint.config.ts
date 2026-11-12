@@ -1,28 +1,28 @@
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath } from "node:url"
 
-import { globalIgnores } from 'eslint/config'
-import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
-import pluginVue from 'eslint-plugin-vue'
-import skipFormatting from 'eslint-config-prettier/flat'
+import { globalIgnores } from "eslint/config"
+import { defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescript"
+import pluginVue from "eslint-plugin-vue"
+import skipFormatting from "eslint-config-prettier/flat"
 
 const zamnTokenizer = fileURLToPath(
-  import.meta.resolve('vue-eslint-parser-template-tokenizer-zamn'),
+  import.meta.resolve("vue-eslint-parser-template-tokenizer-zamn"),
 )
 
 export default defineConfigWithVueTs(
   {
-    name: 'app/files-to-lint',
-    files: ['**/*.{vue,ts,mts,tsx}'],
+    name: "app/files-to-lint",
+    files: ["**/*.{vue,ts,mts,tsx}"],
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  globalIgnores(["**/dist/**", "**/dist-ssr/**", "**/coverage/**"]),
 
-  ...pluginVue.configs['flat/recommended'],
+  ...pluginVue.configs["flat/recommended"],
   vueTsConfigs.recommended,
 
   {
-    name: 'app/zamn-templates',
-    files: ['**/*.vue'],
+    name: "app/zamn-templates",
+    files: ["**/*.vue"],
     languageOptions: {
       parserOptions: {
         // Lets the rules above read <template lang="zamn">. Given as a path

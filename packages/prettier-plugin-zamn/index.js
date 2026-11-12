@@ -327,6 +327,22 @@ function attrLines(attr, options) {
   return [attr.name + attr.eq + first, ...(rest.length ? dedent(rest.join("\n")) : [])];
 }
 
+/**
+ * Give every element that has children a brace block. A block can only open
+ * straight after the tag, ids, classes and attributes, so an element with
+ * anything else on its line (`p text`, `p= expr`) keeps its indentation.
+ */
+function brace(nodes) {
+  for (const node of nodes) {
+    if (node.type === "RawHtml") brace(node.children);
+    if (node.type !== "Element") continue;
+    if (node.expansion) brace([node.expansion]);
+    brace(node.children);
+    const bare = !node.selfClosing && node.expr === null && !node.block && !node.parts;
+    if (node.children.length && bare) node.braced = true;
+  }
+}
+
 function print(path, options) {
   const { printWidth, tabWidth } = options;
 
@@ -437,6 +453,7 @@ function print(path, options) {
 
   const { nodes } = path.node;
   if (!nodes.length) return "";
+  if (options.zamnBlockStyle === "braces") brace(nodes);
   // The final line break stays outside the root so that prettier can strip it
   // when the template is embedded in another file.
   const keep = endsWithSpace(nodes.at(-1));
@@ -457,6 +474,16 @@ export const languages = [
 ];
 
 export const options = {
+  zamnBlockStyle: {
+    category: "zamn",
+    type: "choice",
+    default: "braces",
+    description: "How to write the children of an element.",
+    choices: [
+      { value: "braces", description: "In { }, for every element that has children." },
+      { value: "preserve", description: "In { } or by indentation, as each element is written." },
+    ],
+  },
   zamnAttributeSeparator: {
     category: "zamn",
     type: "choice",

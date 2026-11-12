@@ -11,12 +11,12 @@ cd example
 bun dev
 ```
 
-| Script | What | Set up in |
-|---|---|---|
-| `bun dev`, `bun run build` | Vite compiles `<template lang="zamn">` with `zamn` | [vite.config.ts](vite.config.ts) |
-| `bun run type-check` | `vue-tsc` checks the templates through `vue-language-plugin-zamn`; the editor uses the same plugin | [tsconfig.app.json](tsconfig.app.json) |
-| `bun run lint` | ESLint and eslint-plugin-vue read the templates through `vue-eslint-parser-template-tokenizer-zamn` | [eslint.config.ts](eslint.config.ts) |
-| `bun run format` | Prettier formats the templates with `prettier-plugin-zamn` | [prettier.config.ts](prettier.config.ts) |
+| Script                     | What                                                                                                | Set up in                                |
+| -------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `bun dev`, `bun run build` | Vite compiles `<template lang="zamn">` with `zamn`                                                  | [vite.config.ts](vite.config.ts)         |
+| `bun run type-check`       | `vue-tsc` checks the templates through `vue-language-plugin-zamn`; the editor uses the same plugin  | [tsconfig.app.json](tsconfig.app.json)   |
+| `bun run lint`             | ESLint and eslint-plugin-vue read the templates through `vue-eslint-parser-template-tokenizer-zamn` | [eslint.config.ts](eslint.config.ts)     |
+| `bun run format`           | Prettier formats the templates with `prettier-plugin-zamn`                                          | [prettier.config.ts](prettier.config.ts) |
 
 To see them at work, change `h1.green= msg` in
 [src/components/HelloWorld.vue](src/components/HelloWorld.vue) to `= mgs` and

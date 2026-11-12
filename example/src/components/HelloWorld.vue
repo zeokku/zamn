@@ -7,10 +7,11 @@ defineProps<{
 <template lang="zamn">
 .greetings {
   h1.green= msg
-  h3
+  h3 {
     | You’ve successfully created a project with
-    | #[a(href='https://vite.dev/' target='_blank' rel='noopener') Vite] +
-    | #[a(href='https://vuejs.org/' target='_blank' rel='noopener') Vue 3].
+    | #[a(href="https://vite.dev/" target="_blank" rel="noopener") Vite] +
+    | #[a(href="https://vuejs.org/" target="_blank" rel="noopener") Vue 3].
+  }
 }
 </template>
 

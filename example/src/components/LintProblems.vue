@@ -3,15 +3,15 @@
 // ESLint and the Vue language tools report problems inside a zamn template.
 // It is not used by the app. Delete it to make `bun run lint` and
 // `bun run type-check` pass again.
-import { ref } from 'vue'
-import HelloWorld from './HelloWorld.vue'
+import { ref } from "vue"
+import HelloWorld from "./HelloWorld.vue"
 
 const items = ref([
-  { id: 1, name: 'one' },
-  { id: 2, name: 'two' },
+  { id: 1, name: "one" },
+  { id: 2, name: "two" },
 ])
 const count = ref(0)
-const html = ref('<b>bold</b>')
+const html = ref("<b>bold</b>")
 const increment = (by: number) => (count.value += by)
 // ESLint: assigned but never used. Using it in the template would fix it.
 const unused = 1

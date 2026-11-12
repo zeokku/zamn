@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import HelloWorld from "./components/HelloWorld.vue"
+import TheWelcome from "./components/TheWelcome.vue"
 </script>
 
 <template lang="zamn">
 header {
-  img.logo(alt='Vue logo' src='./assets/logo.svg' width='125' height='125')
+  img.logo(alt="Vue logo" src="./assets/logo.svg" width="125" height="125")
 
-  .wrapper
-    HelloWorld(msg='You did it!')
+  .wrapper {
+    HelloWorld(msg="You did it!")
+  }
 }
 
-main
+main {
   TheWelcome
+}
 </template>
 
 <style scoped>
