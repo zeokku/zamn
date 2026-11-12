@@ -1,0 +1,4 @@
+import type { VueLanguagePlugin } from "@vue/language-core";
+
+declare const plugin: VueLanguagePlugin;
+export default plugin;

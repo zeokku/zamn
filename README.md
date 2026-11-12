@@ -46,6 +46,9 @@ div
 | `crates/zamn_wasm` | WebAssembly bindings |
 | `packages/zamn` | npm package: sync `lex`, `parse`, `compile` |
 | `packages/prettier-plugin-zamn` | Prettier plugin: formats `.zamn` files |
+| `packages/vue-language-plugin-zamn` | Vue language tools (Volar) plugin: type checking and editor support for `<template lang="zamn">` |
+| `packages/vue-eslint-parser-template-tokenizer-zamn` | ESLint: lets vue-eslint-parser read `<template lang="zamn">` |
+| `example` | Vue's starter app in zamn, with Vite, vue-tsc, ESLint and Prettier set up |
 | `tests/fixtures` | shared fixtures; `pug/` holds pug's own test cases |
 
 The lexer and parser never fail: they report every problem as a diagnostic
