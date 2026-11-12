@@ -1,3 +1,4 @@
+/// <reference types="prettier-plugin-zamn" />
 import type { Config } from "prettier"
 
 export default {
