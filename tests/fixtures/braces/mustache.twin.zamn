@@ -1,0 +1,7 @@
+ul.list
+  li(v-for="item in items" :key="item.id") {{ item.name }}
+  li {{ a }} and {{ b }}
+  li \{ literal brace
+  li \{
+  li
+    | { piped brace }

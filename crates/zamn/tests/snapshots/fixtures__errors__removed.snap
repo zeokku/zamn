@@ -1,0 +1,30 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: "report.join(\"\\n\")"
+---
+removed.zamn:1:1: error[UNSUPPORTED_SYNTAX]: Unbuffered code (`- ...`) is not supported
+  hint: zamn has no JavaScript; move the logic into your component
+removed.zamn:2:1: error[UNSUPPORTED_SYNTAX]: `if` (control flow) is not supported
+  hint: zamn has no control flow; use your framework's directives, e.g. `div(v-if="cond")`
+removed.zamn:4:1: error[UNSUPPORTED_SYNTAX]: `else` (control flow) is not supported
+  hint: zamn has no control flow; use your framework's directives, e.g. `div(v-if="cond")`
+removed.zamn:6:1: error[UNSUPPORTED_SYNTAX]: `each` (control flow) is not supported
+  hint: zamn has no control flow; use your framework's directives, e.g. `div(v-if="cond")`
+removed.zamn:8:1: error[UNSUPPORTED_SYNTAX]: `mixin` (mixins) is not supported
+  hint: use `include` or a component instead
+removed.zamn:10:1: error[UNSUPPORTED_SYNTAX]: A mixin call is not supported
+  hint: use `include` or a component instead
+removed.zamn:11:1: error[UNSUPPORTED_SYNTAX]: `extends` (template inheritance) is not supported
+  hint: use `include` instead
+removed.zamn:12:1: error[UNSUPPORTED_SYNTAX]: `block` (template inheritance) is not supported
+  hint: use `include` instead
+removed.zamn:14:2: error[UNSUPPORTED_SYNTAX]: Unescaped buffered code (`!=`) is not supported
+  hint: use `=` for `{{ }}` interpolation, or `v-html` for raw HTML
+removed.zamn:15:4: error[UNSUPPORTED_SYNTAX]: `&attributes` is not supported
+  hint: zamn has no JavaScript; list the attributes explicitly
+removed.zamn:16:1: error[UNSUPPORTED_SYNTAX]: A filter is not supported
+  hint: zamn has no filters
+removed.zamn:18:1: error[UNSUPPORTED_SYNTAX]: An interpolated tag name (`#{...}`) is not supported
+  hint: write the tag name literally
+removed.zamn:19:1: error[UNSUPPORTED_SYNTAX]: An include filter is not supported
+  hint: zamn has no filters; include the file directly

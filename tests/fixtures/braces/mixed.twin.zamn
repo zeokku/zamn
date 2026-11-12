@@ -1,0 +1,22 @@
+doctype html
+html
+  head
+    title Braces
+    meta(charset="utf-8")
+  body.page
+    // base indentation inside braces is free
+    nav#top
+      ul
+        li: a(href="/") Home
+        li
+          a(href="/about") About
+    main
+      p.
+        A text block
+          keeps working }
+      pre
+        | line one
+        | line two
+      section
+      footer
+    p after

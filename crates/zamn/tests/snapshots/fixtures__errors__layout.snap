@@ -1,0 +1,19 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: "report.join(\"\\n\")"
+---
+layout.zamn:4:1: error[INVALID_INDENTATION]: Unexpected indentation after a closing `}`
+  hint: children of a braced element go inside its braces
+layout.zamn:5:1: error[UNMATCHED_BRACE]: This `}` does not close any `{`
+layout.zamn:8:1: error[INCONSISTENT_INDENTATION]: Inconsistent indentation. Expecting either 0 or 4 spaces/tabs.
+layout.zamn:11:1: error[SELF_CLOSING_CONTENT]: img is a self closing element: <img/> but contains nested content.
+layout.zamn:13:5: error[UNEXPECTED_TEXT]: unexpected text "junk"
+layout.zamn:14:1: error[INVALID_CLASS_NAME]: Class names must contain at least one letter or underscore.
+layout.zamn:15:1: error[UNEXPECTED_TEXT]: unexpected text "#"
+layout.zamn:16:2: error[INVALID_ID]: `#` must be followed by a valid ID
+layout.zamn:17:2: error[MISSING_EXPANSION]: `:` must be followed by a tag or text
+layout.zamn:18:1: error[MISSING_EXPRESSION]: `=` must be followed by an expression
+layout.zamn:19:3: error[NO_END_BRACKET]: End of line was reached with no closing bracket for interpolation.
+layout.zamn:21:1: error[UNEXPECTED_INDENT]: unexpected indentation: the line above cannot have children
+layout.zamn:22:9: error[UNCLOSED_BRACE]: This `{` is never closed
+  hint: add a `}` on its own line

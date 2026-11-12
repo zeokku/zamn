@@ -1,0 +1,21 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+insta = "1"
+zamn_lexer = { path = "crates/zamn_lexer" }
+zamn_parser = { path = "crates/zamn_parser" }
+zamn_codegen = { path = "crates/zamn_codegen" }
+zamn = { path = "crates/zamn" }
+
+[profile.release]
+opt-level = "s"
+lto = true

@@ -1,0 +1,17 @@
+---
+source: crates/zamn_lexer/tests/tokens.rs
+expression: dump
+---
+Tag 0..3 "div"
+Indent 4..6 "  "
+Class 6..18 ".another-div"
+BraceOpen 19..20 "{"
+Tag 25..31 "button"
+Text 32..36 "Text"
+Newline 37..41 "    "
+Tag 41..42 "p"
+BraceOpen 43..44 "{"
+BraceClose 45..46 "}"
+BraceClose 49..50 "}"
+Outdent 51..51 ""
+Eos 51..51 ""

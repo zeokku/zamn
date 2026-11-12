@@ -1,0 +1,24 @@
+{
+  "name": "zamn",
+  "version": "0.1.0",
+  "description": "A static, pug-flavoured way to write HTML. Lexer, parser and compiler with source maps.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "browser": "./browser.js",
+      "default": "./index.js"
+    }
+  },
+  "files": ["index.js", "browser.js", "api.js", "index.d.ts", "pkg"],
+  "scripts": {
+    "build": "bun build.ts",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@jridgewell/trace-mapping": "^0.3.25"
+  }
+}

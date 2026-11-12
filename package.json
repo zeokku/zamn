@@ -4,9 +4,18 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "pug": "^3.0.4"
   },
   "peerDependencies": {
     "typescript": "^7"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "cargo build --workspace && bun run --cwd packages/zamn build",
+    "test": "cargo test --workspace && bun run --cwd packages/zamn test",
+    "parity": "bun scripts/pug-parity.ts"
   }
 }

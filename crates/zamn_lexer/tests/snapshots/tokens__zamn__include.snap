@@ -1,0 +1,19 @@
+---
+source: crates/zamn_lexer/tests/tokens.rs
+expression: dump
+---
+Tag 0..4 "main"
+BraceOpen 5..6 "{"
+Include 9..16 "include"
+Path 17..30 "partials/item"
+Newline 31..33 "  "
+Include 33..40 "include"
+Path 41..59 "partials/item.zamn"
+Newline 60..62 "  "
+Tag 62..67 "style"
+Indent 68..72 "    "
+Include 72..79 "include"
+Path 80..98 "partials/style.css"
+Outdent 99..99 ""
+BraceClose 99..100 "}"
+Eos 101..101 ""

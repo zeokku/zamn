@@ -1,0 +1,20 @@
+- var x = 1
+if x
+  p yes
+else
+  p no
+each item in items
+  li= item
+mixin card
+  .card
++card
+extends layout
+block content
+  p hi
+p!= html
+div&attributes(attrs)
+:markdown
+  # hi
+#{tag} text
+include:md readme.md
+p kept

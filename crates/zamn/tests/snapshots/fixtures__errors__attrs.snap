@@ -1,0 +1,16 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: "report.join(\"\\n\")"
+---
+attrs.zamn:1:8: error[JS_EXPRESSION]: JavaScript expressions are not supported in attribute values
+  hint: zamn has no JavaScript; attribute values are quoted strings, numbers or bare words
+attrs.zamn:2:9: error[JS_EXPRESSION]: JavaScript expressions are not supported in attribute values
+  hint: zamn has no JavaScript; attribute values are quoted strings, numbers or bare words
+attrs.zamn:3:9: error[JS_EXPRESSION]: JavaScript expressions are not supported in attribute values
+  hint: zamn has no JavaScript; attribute values are quoted strings, numbers or bare words
+attrs.zamn:4:9: error[JS_EXPRESSION]: JavaScript expressions are not supported in attribute values
+  hint: zamn has no JavaScript; attribute values are quoted strings, numbers or bare words
+attrs.zamn:5:8: error[MISSING_ATTRIBUTE_VALUE]: missing attribute value
+attrs.zamn:6:12: error[DUPLICATE_ATTRIBUTE]: Duplicate attribute "href" is not allowed.
+attrs.zamn:7:3: error[DUPLICATE_ATTRIBUTE]: Duplicate attribute "id" is not allowed.
+attrs.zamn:8:2: error[NO_END_BRACKET]: The end of the file was reached with no closing bracket `)` found.

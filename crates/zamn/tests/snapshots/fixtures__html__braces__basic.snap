@@ -1,0 +1,5 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: html(&file)
+---
+<div><div class="another-div"><button>Text</button><p></p></div></div>

@@ -1,0 +1,5 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: html(&file)
+---
+<ul class="list"><li v-for="item in items" :key="item.id">{{ item.name }}</li><li>{{ a }} and {{ b }}</li><li>{ literal brace</li><li>{</li><li>{ piped brace }</li></ul>

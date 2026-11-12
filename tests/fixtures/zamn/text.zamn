@@ -1,0 +1,19 @@
+p Hello #[em world], \#[escaped]
+p
+  | piped
+  | text
+<div class="raw">
+  <span>html</span>
+  b bold
+</div>
+script.
+  if (a < b) {
+    go();
+  }
+
+// a comment
+//- a silent comment
+//
+  block comment
+    stays raw
+p ünïcödé 😀 #[b ok]
