@@ -1,9 +1,16 @@
 import { expect, test } from "bun:test";
 import { originalPositionFor, TraceMap } from "@jridgewell/trace-mapping";
 import { compile, lex, parse, ZamnError } from "../index.js";
+import { zamn } from "../../../tests/zamn.ts";
 
 test("compiles the brace example", () => {
-  const source = "div\n  .another-div {\n    button Text\n    p { }\n  }\n";
+  const source = zamn`
+    div
+      .another-div {
+        button Text
+        p { }
+      }
+  `;
   expect(compile(source).code).toBe(
     '<div><div class="another-div"><button>Text</button><p></p></div></div>',
   );
@@ -20,7 +27,12 @@ test("lex returns tokens with UTF-16 ranges", () => {
 });
 
 test("parse returns an AST and keeps going after errors", () => {
-  const { ast, diagnostics } = parse("if x\n  p no\n.a(href=b + c)\np ok");
+  const { ast, diagnostics } = parse(zamn`
+    if x
+      p no
+    .a(href=b + c)
+    p ok
+  `);
   expect(diagnostics.map((d) => d.code)).toEqual(["UNSUPPORTED_SYNTAX", "JS_EXPRESSION"]);
   expect(diagnostics[0]!.loc.start).toEqual({ line: 1, column: 0 });
   expect(ast.type).toBe("Root");
@@ -29,7 +41,11 @@ test("parse returns an AST and keeps going after errors", () => {
 
 test("compile throws a ZamnError with a location", () => {
   try {
-    compile("p ok\n- var x", { filename: "bad.zamn" });
+    const source = zamn`
+      p ok
+      - var x
+    `;
+    compile(source, { filename: "bad.zamn" });
     throw new Error("should have thrown");
   } catch (e) {
     expect(e).toBeInstanceOf(ZamnError);
@@ -40,7 +56,11 @@ test("compile throws a ZamnError with a location", () => {
 });
 
 test("options: doctype and interpolation delimiters", () => {
-  expect(compile("input(disabled)\np= x", { doctype: "html", interpolation: ["${", "}"] }).code).toBe(
+  const source = zamn`
+    input(disabled)
+    p= x
+  `;
+  expect(compile(source, { doctype: "html", interpolation: ["${", "}"] }).code).toBe(
     "<input disabled><p>${ x }</p>",
   );
 });
@@ -58,12 +78,12 @@ function trace(result: { code: string; map: any }, needle: string) {
 }
 
 test("source map points at tags, attributes, text and expressions", () => {
-  const source = [
-    "div {",
-    "  a.link(href='/x' title=\"t\") Héllo 😀 #[b bold]",
-    "  p= msg",
-    "}",
-  ].join("\n");
+  const source = zamn`
+    div {
+      a.link(href='/x' title="t") Héllo 😀 #[b bold]
+      p= msg
+    }
+  `;
   const result = compile(source, { filename: "a.zamn", sourceMap: true });
   expect(result.map!.sources).toEqual(["a.zamn"]);
   expect(result.map!.sourcesContent).toEqual([source]);
