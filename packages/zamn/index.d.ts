@@ -28,7 +28,7 @@ export type TokenType =
   | "AttrsOpen" | "AttrName" | "AttrEq" | "AttrEqRaw" | "AttrValue" | "AttrsClose"
   | "Text" | "Pipe" | "Dot" | "TextBlockStart" | "TextNewline" | "TextBlockEnd"
   | "InterpStart" | "InterpEnd" | "Colon" | "Slash" | "Eq" | "Expr"
-  | "Comment" | "SilentComment" | "Doctype" | "Include" | "Path" | "RawHtml";
+  | "Comment" | "SilentComment" | "Doctype" | "RawHtml";
 
 export interface Token extends Located {
   type: TokenType;
@@ -84,28 +84,15 @@ export interface Doctype extends Located {
   type: "Doctype";
   value: string;
 }
-export interface Include extends Located {
-  type: "Include";
-  path: string;
-  pathSpan: Located;
-}
-export type Node = Element | Text | Interpolation | RawHtml | Comment | Doctype | Include;
+export type Node = Element | Text | Interpolation | RawHtml | Comment | Doctype;
 
 export interface Root extends Located {
   type: "Root";
   nodes: Node[];
 }
 
-export interface ResolvedFile {
-  /** Canonical name: used in source maps and as `from` for nested includes. */
-  filename: string;
-  source: string;
-}
-
 export interface CompileOptions {
   filename?: string;
-  /** Loads the target of an `include`. Without it, includes are an error. */
-  resolve?: (path: string, from: string) => ResolvedFile | null | undefined;
   sourceMap?: boolean;
   /** Embed sources in the map. Defaults to true. */
   sourcesContent?: boolean;
@@ -129,8 +116,6 @@ export interface SourceMap {
 export interface CompileResult {
   code: string;
   map: SourceMap | null;
-  /** Files pulled in through `include`, for watch mode. */
-  dependencies: string[];
 }
 
 export class ZamnError extends Error {
@@ -146,5 +131,3 @@ export function lex(source: string): { tokens: Token[]; diagnostics: Diagnostic[
 export function parse(source: string): { ast: Root; diagnostics: Diagnostic[] };
 /** Throws a `ZamnError` if the template has errors. */
 export function compile(source: string, options?: CompileOptions): CompileResult;
-/** Node only: an include resolver backed by the file system. */
-export function fsResolver(options?: { basedir?: string }): NonNullable<CompileOptions["resolve"]>;

@@ -102,9 +102,6 @@ class Builder {
         return { type: "Comment", text: this.next().value, block: this.textBlock() };
       case "Doctype":
         return { type: "Doctype", value: this.next().value.slice("doctype".length).trim() };
-      case "Include":
-        this.next();
-        return { type: "Include", path: this.expect("Path").value };
       case "Eq":
         this.next();
         return { type: "Expr", expr: this.expect("Expr").value };
@@ -393,8 +390,6 @@ function print(path, options) {
         return [node.text, node.block ? textBlock(node.block, endsInSpace(node.text)) : ""];
       case "Doctype":
         return node.value ? `doctype ${node.value}` : "doctype";
-      case "Include":
-        return `include ${node.path}`;
       case "Expr":
         return `= ${node.expr}`;
       case "Pipe":

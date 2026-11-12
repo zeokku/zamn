@@ -26,20 +26,9 @@ export function makeApi(wasm) {
     },
 
     compile(source, options = {}) {
-      const { resolve, ...rest } = options;
-      const resolver =
-        resolve &&
-        ((path, from) => {
-          try {
-            const file = resolve(path, from);
-            return JSON.stringify(file ?? { error: "file not found" });
-          } catch (e) {
-            return JSON.stringify({ error: String(e?.message ?? e) });
-          }
-        });
-      const result = JSON.parse(wasm.compile(source, JSON.stringify(rest), resolver));
+      const result = JSON.parse(wasm.compile(source, JSON.stringify(options)));
       if (result.diagnostics.length) throw new ZamnError(result.diagnostics);
-      return { code: result.code, map: result.map, dependencies: result.dependencies };
+      return { code: result.code, map: result.map };
     },
   };
 }

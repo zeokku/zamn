@@ -5,9 +5,6 @@ pub mod sourcemap;
 use zamn_lexer::Diagnostic;
 use zamn_parser::ast::*;
 
-/// Index of a source file, as assigned by the caller.
-pub type FileId = u32;
-
 #[derive(Clone, Debug)]
 pub struct Options {
     /// Delimiters for `= expr`. Defaults to `{{` and `}}`.
@@ -27,52 +24,26 @@ impl Default for Options {
     }
 }
 
-/// A point in the output that corresponds to a point in a source file.
+/// A point in the output that corresponds to a point in the source.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Mapping {
     /// Byte offset in the generated HTML.
     pub generated: u32,
-    pub file: FileId,
-    /// Byte offset in the source file.
+    /// Byte offset in the source.
     pub source: u32,
 }
 
 pub struct Output {
     pub html: String,
     pub mappings: Vec<Mapping>,
-    pub diagnostics: Vec<(FileId, Diagnostic)>,
+    pub diagnostics: Vec<Diagnostic>,
 }
 
-/// What an `include` resolved to.
-pub enum Included<'a> {
-    Template { file: FileId, nodes: &'a [Node] },
-    Raw { file: FileId, text: &'a str },
-}
-
-pub trait Includes {
-    fn get(&self, file: FileId, include: &Include) -> Option<Included<'_>>;
-}
-
-/// Ignores every include.
-pub struct NoIncludes;
-
-impl Includes for NoIncludes {
-    fn get(&self, _: FileId, _: &Include) -> Option<Included<'_>> {
-        None
-    }
-}
-
-pub fn generate(
-    nodes: &[Node],
-    file: FileId,
-    includes: &dyn Includes,
-    options: &Options,
-) -> Output {
+pub fn generate(nodes: &[Node], options: &Options) -> Output {
     let mut g = Generator {
         out: String::new(),
         mappings: Vec::new(),
         diags: Vec::new(),
-        includes,
         options,
         terse: false,
         xml: false,
@@ -80,7 +51,7 @@ pub fn generate(
     if let Some(doctype) = &options.doctype {
         g.set_doctype(doctype);
     }
-    g.nodes(nodes, file);
+    g.nodes(nodes);
     Output {
         html: g.out,
         mappings: g.mappings,
@@ -123,8 +94,7 @@ fn escape_into(out: &mut String, s: &str) {
 struct Generator<'a> {
     out: String,
     mappings: Vec<Mapping>,
-    diags: Vec<(FileId, Diagnostic)>,
-    includes: &'a dyn Includes,
+    diags: Vec<Diagnostic>,
     options: &'a Options,
     /// HTML5 doctype: void tags as `<br>`, boolean attributes as `checked`.
     terse: bool,
@@ -132,10 +102,9 @@ struct Generator<'a> {
 }
 
 impl Generator<'_> {
-    fn map(&mut self, file: FileId, source: u32) {
+    fn map(&mut self, source: u32) {
         self.mappings.push(Mapping {
             generated: self.out.len() as u32,
-            file,
             source,
         });
     }
@@ -147,36 +116,36 @@ impl Generator<'_> {
         doctype
     }
 
-    fn nodes(&mut self, nodes: &[Node], file: FileId) {
+    fn nodes(&mut self, nodes: &[Node]) {
         for node in nodes {
-            self.node(node, file);
+            self.node(node);
         }
     }
 
-    fn node(&mut self, node: &Node, file: FileId) {
+    fn node(&mut self, node: &Node) {
         match node {
-            Node::Element(el) => self.element(el, file),
+            Node::Element(el) => self.element(el),
             Node::Text(t) => {
-                self.map(file, t.span.start);
+                self.map(t.span.start);
                 self.out.push_str(&t.value);
             }
             Node::RawHtml(t) => {
-                self.map(file, t.span.start);
+                self.map(t.span.start);
                 self.out.push_str(&t.value);
             }
             Node::Interpolation(i) => {
-                self.map(file, i.span.start);
+                self.map(i.span.start);
                 self.out.push_str(&self.options.interpolation.0);
                 self.out.push(' ');
-                self.map(file, i.expr_span.start);
+                self.map(i.expr_span.start);
                 self.out.push_str(&i.expr);
-                self.map(file, i.expr_span.end);
+                self.map(i.expr_span.end);
                 self.out.push(' ');
                 self.out.push_str(&self.options.interpolation.1);
             }
             Node::Comment(c) => {
                 if c.buffered {
-                    self.map(file, c.span.start);
+                    self.map(c.span.start);
                     self.out.push_str("<!--");
                     self.out.push_str(&c.value);
                     if let Some(block) = &c.block {
@@ -187,31 +156,18 @@ impl Generator<'_> {
             }
             Node::Doctype(d) => {
                 let doctype = self.set_doctype(&d.value);
-                self.map(file, d.span.start);
+                self.map(d.span.start);
                 self.out.push_str(&doctype);
             }
-            Node::Include(inc) => match self.includes.get(file, inc) {
-                Some(Included::Template { file, nodes }) => self.nodes(nodes, file),
-                Some(Included::Raw { file, text }) => {
-                    // One mapping per line of the included file.
-                    let mut offset = 0;
-                    for line in text.split_inclusive('\n') {
-                        self.map(file, offset);
-                        self.out.push_str(line);
-                        offset += line.len() as u32;
-                    }
-                }
-                None => {}
-            },
         }
     }
 
-    fn element(&mut self, el: &Element, file: FileId) {
+    fn element(&mut self, el: &Element) {
         let void = el.self_closing || (!self.xml && VOID.contains(&el.name.as_str()));
-        self.map(file, el.span.start);
+        self.map(el.span.start);
         self.out.push('<');
         self.out.push_str(&el.name);
-        self.attrs(&el.attrs, file);
+        self.attrs(&el.attrs);
         if void {
             self.out.push_str(if self.terse && !el.self_closing {
                 ">"
@@ -224,29 +180,26 @@ impl Generator<'_> {
             });
             if has_content {
                 let span = el.name_span.unwrap_or(el.span);
-                self.diags.push((
-                    file,
-                    Diagnostic::new(
-                        "SELF_CLOSING_CONTENT",
-                        format!(
-                            "{0} is a self closing element: <{0}/> but contains nested content.",
-                            el.name
-                        ),
-                        span,
+                self.diags.push(Diagnostic::new(
+                    "SELF_CLOSING_CONTENT",
+                    format!(
+                        "{0} is a self closing element: <{0}/> but contains nested content.",
+                        el.name
                     ),
+                    span,
                 ));
             }
             return;
         }
         self.out.push('>');
-        self.nodes(&el.children, file);
-        self.map(file, el.span.end);
+        self.nodes(&el.children);
+        self.map(el.span.end);
         self.out.push_str("</");
         self.out.push_str(&el.name);
         self.out.push('>');
     }
 
-    fn attrs(&mut self, attrs: &[Attribute], file: FileId) {
+    fn attrs(&mut self, attrs: &[Attribute]) {
         // Classes are merged into a single attribute, written first (as pug does).
         let mut first = true;
         for attr in attrs.iter().filter(|a| a.name == "class") {
@@ -257,13 +210,13 @@ impl Generator<'_> {
                 continue;
             }
             if first {
-                self.map(file, attr.span.start);
+                self.map(attr.span.start);
                 self.out.push_str(" class=\"");
                 first = false;
             } else {
                 self.out.push(' ');
             }
-            self.map(file, value_start(attr));
+            self.map(value_start(attr));
             self.value(value, attr.escaped);
         }
         if !first {
@@ -275,7 +228,7 @@ impl Generator<'_> {
                 AttrValue::Bool(false) => {}
                 AttrValue::Bool(true) => {
                     self.out.push(' ');
-                    self.map(file, attr.name_span.start);
+                    self.map(attr.name_span.start);
                     self.out.push_str(&attr.name);
                     if !self.terse {
                         self.out.push_str("=\"");
@@ -288,10 +241,10 @@ impl Generator<'_> {
                         continue;
                     }
                     self.out.push(' ');
-                    self.map(file, attr.name_span.start);
+                    self.map(attr.name_span.start);
                     self.out.push_str(&attr.name);
                     self.out.push_str("=\"");
-                    self.map(file, value_start(attr));
+                    self.map(value_start(attr));
                     self.value(value, attr.escaped);
                     self.out.push('"');
                 }

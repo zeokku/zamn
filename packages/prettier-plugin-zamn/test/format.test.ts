@@ -3,7 +3,7 @@ import { Glob } from "bun";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as prettier from "prettier";
-import { compile, fsResolver } from "zamn";
+import { compile } from "zamn";
 import * as plugin from "../index.js";
 
 const fixtures = resolve(import.meta.dir, "../../../tests/fixtures");
@@ -17,7 +17,7 @@ for (const file of new Glob("{braces,zamn}/**/*.zamn").scanSync(fixtures)) {
   test(`fixture ${file}: stable, and compiles to the same HTML`, async () => {
     const filename = resolve(fixtures, file);
     const source = readFileSync(filename, "utf8");
-    const html = (s: string) => compile(s, { filename, resolve: fsResolver() }).code;
+    const html = (s: string) => compile(s, { filename }).code;
     const formatted = await format(source);
     expect(await format(formatted)).toBe(formatted);
     expect(html(formatted)).toBe(html(source));

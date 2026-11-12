@@ -163,28 +163,6 @@ impl<'a> Parser<'a> {
                     span: t.span,
                 }));
             }
-            Include => {
-                let t = self.next();
-                if let Some(path) = self.accept(Path) {
-                    out.push(Node::Include(ast::Include {
-                        path: self.text(path).to_string(),
-                        path_span: path.span,
-                        span: t.span.to(path.span),
-                    }));
-                }
-                if let Some(indent) = self.accept(Indent) {
-                    self.diags.push(
-                        Diagnostic::new(
-                            "UNSUPPORTED_SYNTAX",
-                            "An include cannot have a block",
-                            indent.span,
-                        )
-                        .with_hint("zamn has no `yield`; included files are inserted as they are"),
-                    );
-                    self.items(&mut Vec::new());
-                    self.accept(Outdent);
-                }
-            }
             Eq => self.interpolation(out),
             Pipe => {
                 self.next();

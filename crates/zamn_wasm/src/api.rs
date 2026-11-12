@@ -3,7 +3,7 @@
 use serde::Deserialize;
 use serde_json::{json, Value};
 use zamn::lexer::{Diagnostic, LineIndex, Span};
-use zamn::{CompileOptions, Resolved, Resolver};
+use zamn::CompileOptions;
 
 fn located(index: &LineIndex<'_>, span: Span) -> Value {
     json!({ "range": index.range(span), "loc": index.loc(span) })
@@ -91,7 +91,7 @@ struct Options {
     doctype: Option<String>,
 }
 
-pub fn compile(source: &str, options: &str, resolver: Option<&dyn Resolver>) -> Value {
+pub fn compile(source: &str, options: &str) -> Value {
     let o: Options = serde_json::from_str(options).unwrap_or_default();
     let mut options = CompileOptions {
         source_map: o.source_map,
@@ -108,7 +108,7 @@ pub fn compile(source: &str, options: &str, resolver: Option<&dyn Resolver>) -> 
     }
     options.codegen.doctype = o.doctype;
 
-    let out = zamn::compile(source, &options, resolver);
+    let out = zamn::compile(source, &options);
     let map: Value = out
         .map
         .map_or(Value::Null, |m| serde_json::from_str(&m).unwrap());
@@ -116,22 +116,7 @@ pub fn compile(source: &str, options: &str, resolver: Option<&dyn Resolver>) -> 
         "code": out.code,
         "map": map,
         "diagnostics": out.diagnostics,
-        "dependencies": out.dependencies,
     })
-}
-
-pub fn parse_resolved(json: &str) -> Result<Resolved, String> {
-    #[derive(Deserialize)]
-    struct Reply {
-        filename: Option<String>,
-        source: Option<String>,
-        error: Option<String>,
-    }
-    let reply: Reply = serde_json::from_str(json).map_err(|e| e.to_string())?;
-    match (reply.filename, reply.source) {
-        (Some(filename), Some(source)) => Ok(Resolved { filename, source }),
-        _ => Err(reply.error.unwrap_or_else(|| "file not found".into())),
-    }
 }
 
 #[cfg(test)]
@@ -153,7 +138,7 @@ mod tests {
 
     #[test]
     fn compile_returns_map_object() {
-        let v = compile("p hi", r#"{"sourceMap":true,"filename":"a.zamn"}"#, None);
+        let v = compile("p hi", r#"{"sourceMap":true,"filename":"a.zamn"}"#);
         assert_eq!(v["code"], "<p>hi</p>");
         assert_eq!(v["map"]["sources"], json!(["a.zamn"]));
         let v = lex("p hi");

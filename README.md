@@ -3,8 +3,9 @@
 A static, pug-flavoured way to write HTML, written in Rust.
 
 Same syntax as [pug](https://pugjs.org) for tags, classes, ids, attributes,
-text, comments, doctypes and includes, but with no JavaScript and no control
-flow. Existing static pug compiles to the same HTML.
+text, comments and doctypes, but with no JavaScript, no control flow and no
+includes: a template is a single file. Existing static pug compiles to the
+same HTML.
 
 ```
 div
@@ -31,8 +32,8 @@ div
   escaping. Vue-style names work: `:to`, `@click`, `#slot`, `v-model.trim`.
 - **`#{...}`** in text is not special.
 - **Removed**, each with its own error: `- code`, `!=`, `if`/`else`/`unless`,
-  `case`/`when`, `each`/`for`/`while`, mixins, `extends`/`block`, filters,
-  `&attributes`.
+  `case`/`when`, `each`/`for`/`while`, mixins, `include`, `extends`/`block`,
+  filters, `&attributes`.
 
 ## Layout
 
@@ -41,7 +42,7 @@ div
 | `crates/zamn_lexer` | source to tokens, spans, diagnostics |
 | `crates/zamn_parser` | tokens to AST |
 | `crates/zamn_codegen` | AST to HTML and source map v3 |
-| `crates/zamn` | `compile()`, include resolution, the `zamn` CLI |
+| `crates/zamn` | `compile()`, the `zamn` CLI |
 | `crates/zamn_wasm` | WebAssembly bindings |
 | `packages/zamn` | npm package: sync `lex`, `parse`, `compile` |
 | `packages/prettier-plugin-zamn` | Prettier plugin: formats `.zamn` files |
@@ -57,13 +58,12 @@ cargo run -p zamn -- page.zamn -o page.html --map page.html.map
 ```
 
 ```ts
-import { compile, parse, fsResolver } from "zamn";
+import { compile, parse } from "zamn";
 
-const { code, map, dependencies } = compile(source, {
+const { code, map } = compile(source, {
   filename: "page.zamn",
   sourceMap: true,
-  doctype: "html",        // terse output without emitting a doctype (use for Vue)
-  resolve: fsResolver(),  // how `include` finds files
+  doctype: "html", // terse output without emitting a doctype (use for Vue)
 });
 
 const { ast, diagnostics } = parse(source); // ranges and locs are UTF-16, ESLint style

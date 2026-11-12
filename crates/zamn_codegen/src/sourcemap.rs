@@ -29,16 +29,16 @@ fn vlq(out: &mut String, value: i64) {
     }
 }
 
-/// Build the source map JSON for `html`. `sources[i]` is the file with id `i`;
-/// `mappings` must be ordered by generated offset (as `generate` returns them).
+/// Build the source map JSON for `html`. `mappings` must be ordered by
+/// generated offset (as `generate` returns them).
 pub fn build(
     html: &str,
     mappings: &[Mapping],
-    sources: &[Source<'_>],
+    source: Source<'_>,
     file: Option<&str>,
     sources_content: bool,
 ) -> String {
-    let indexes: Vec<LineIndex<'_>> = sources.iter().map(|s| LineIndex::new(s.content)).collect();
+    let index = LineIndex::new(source.content);
     let mut out = String::new();
 
     // Position in the generated file, advanced incrementally.
@@ -47,11 +47,10 @@ pub fn build(
     let mut first_in_line = true;
     let mut last_generated = None;
     // Previous values, for delta encoding.
-    let (mut prev_column, mut prev_file, mut prev_line, mut prev_src_column) =
-        (0i64, 0i64, 0i64, 0i64);
+    let (mut prev_column, mut prev_line, mut prev_src_column) = (0i64, 0i64, 0i64);
 
     for m in mappings {
-        if last_generated == Some(m.generated) || m.file as usize >= sources.len() {
+        if last_generated == Some(m.generated) {
             continue;
         }
         last_generated = Some(m.generated);
@@ -67,18 +66,18 @@ pub fn build(
         }
         offset = m.generated as usize;
 
-        let pos = indexes[m.file as usize].position(m.source);
+        let pos = index.position(m.source);
         let (line, src_column) = (pos.line as i64 - 1, pos.column as i64);
         if !first_in_line {
             out.push(',');
         }
         first_in_line = false;
         vlq(&mut out, column - prev_column);
-        vlq(&mut out, m.file as i64 - prev_file);
+        // Source index: there is only one, so the delta is always 0.
+        vlq(&mut out, 0);
         vlq(&mut out, line - prev_line);
         vlq(&mut out, src_column - prev_src_column);
         prev_column = column;
-        prev_file = m.file as i64;
         prev_line = line;
         prev_src_column = src_column;
     }
@@ -88,15 +87,9 @@ pub fn build(
     if let Some(file) = file {
         map.insert("file".into(), file.into());
     }
-    map.insert(
-        "sources".into(),
-        sources.iter().map(|s| s.name).collect::<Vec<_>>().into(),
-    );
+    map.insert("sources".into(), vec![source.name].into());
     if sources_content {
-        map.insert(
-            "sourcesContent".into(),
-            sources.iter().map(|s| s.content).collect::<Vec<_>>().into(),
-        );
+        map.insert("sourcesContent".into(), vec![source.content].into());
     }
     map.insert("names".into(), Vec::<String>::new().into());
     map.insert("mappings".into(), out.into());

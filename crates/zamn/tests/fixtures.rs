@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use zamn::{compile, CompileOptions, Compiled, FsResolver};
+use zamn::{compile, CompileOptions, Compiled};
 
 fn fixtures(dir: &str, ext: &str) -> Vec<PathBuf> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -24,7 +24,7 @@ fn compile_file(file: &Path) -> Compiled {
         filename: file.to_string_lossy().into_owned(),
         ..Default::default()
     };
-    compile(&source, &options, Some(&FsResolver::default()))
+    compile(&source, &options)
 }
 
 fn html(file: &Path) -> String {
@@ -103,28 +103,6 @@ fn error_snapshots() {
 fn doctype_option_is_terse() {
     let mut options = CompileOptions::default();
     options.codegen.doctype = Some("html".into());
-    let out = compile("input(disabled)\nbr", &options, None);
+    let out = compile("input(disabled)\nbr", &options);
     assert_eq!(out.code, "<input disabled><br>");
-}
-
-#[test]
-fn include_errors() {
-    let out = compile("include a", &CompileOptions::default(), None);
-    assert_eq!(out.diagnostics[0].code, "INCLUDE_FAILED");
-
-    struct Loop;
-    impl zamn::Resolver for Loop {
-        fn resolve(&self, path: &str, _: &str) -> Result<zamn::Resolved, String> {
-            Ok(zamn::Resolved {
-                filename: path.into(),
-                source: "include a".into(),
-            })
-        }
-    }
-    let out = compile("include a", &CompileOptions::default(), Some(&Loop));
-    assert!(
-        out.diagnostics[0].message.contains("includes itself"),
-        "{:?}",
-        out.diagnostics
-    );
 }

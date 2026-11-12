@@ -1,10 +1,6 @@
 import { expect, test } from "bun:test";
 import { originalPositionFor, TraceMap } from "@jridgewell/trace-mapping";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { compile, fsResolver, lex, parse, ZamnError } from "../index.js";
-
-const fixtures = resolve(import.meta.dir, "../../../tests/fixtures");
+import { compile, lex, parse, ZamnError } from "../index.js";
 
 test("compiles the brace example", () => {
   const source = "div\n  .another-div {\n    button Text\n    p { }\n  }\n";
@@ -79,26 +75,4 @@ test("source map points at tags, attributes, text and expressions", () => {
   // Columns are UTF-16: the emoji before `#[b` counts as two.
   expect(at("<b>")).toEqual({ source: "a.zamn", line: 2, column: 41 });
   expect(at("msg")).toEqual({ source: "a.zamn", line: 3, column: 5 });
-});
-
-test("includes: resolver, dependencies and multi-source maps", () => {
-  const filename = resolve(fixtures, "zamn/include.zamn");
-  const source = readFileSync(filename, "utf8");
-  const result = compile(source, { filename, resolve: fsResolver(), sourceMap: true });
-  expect(result.code).toContain('<li class="item">{{ name }}</li>');
-  expect(result.dependencies).toEqual([
-    resolve(fixtures, "zamn/partials/item.zamn"),
-    resolve(fixtures, "zamn/partials/style.css"),
-  ]);
-  expect(trace(result, "{{ name }}")).toEqual({
-    source: resolve(fixtures, "zamn/partials/item.zamn"),
-    line: 2,
-    column: 2,
-  });
-  expect(trace(result, "a { color")).toEqual({
-    source: resolve(fixtures, "zamn/partials/style.css"),
-    line: 1,
-    column: 0,
-  });
-  expect(() => compile(source, { filename })).toThrow(/no include resolver/);
 });

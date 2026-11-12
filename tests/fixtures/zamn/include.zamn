@@ -1,6 +1,0 @@
-main {
-  include partials/item
-  include partials/item.zamn
-  style
-    include partials/style.css
-}

@@ -1,6 +1,0 @@
----
-source: crates/zamn/tests/fixtures.rs
-expression: html(&file)
----
-<main><li class="item">{{ name }}</li><li class="item">{{ name }}</li><style>a { color: red }
-</style></main>

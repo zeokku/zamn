@@ -16,5 +16,6 @@ div&attributes(attrs)
 :markdown
   # hi
 #{tag} text
+include partials/item
 include:md readme.md
 p kept

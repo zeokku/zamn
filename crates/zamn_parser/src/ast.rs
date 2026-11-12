@@ -15,7 +15,6 @@ pub enum Node {
     RawHtml(RawHtml),
     Comment(Comment),
     Doctype(Doctype),
-    Include(Include),
 }
 
 impl Node {
@@ -27,7 +26,6 @@ impl Node {
             Node::RawHtml(n) => n.span,
             Node::Comment(n) => n.span,
             Node::Doctype(n) => n.span,
-            Node::Include(n) => n.span,
         }
     }
 }
@@ -112,13 +110,5 @@ pub struct Comment {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Doctype {
     pub value: String,
-    pub span: Span,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Include {
-    pub path: String,
-    pub path_span: Span,
     pub span: Span,
 }

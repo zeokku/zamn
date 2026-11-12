@@ -5,12 +5,7 @@ use std::path::Path;
 #[test]
 fn ast_snapshots() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures");
-    for (dir, name) in [
-        ("zamn", "vue"),
-        ("zamn", "text"),
-        ("zamn", "include"),
-        ("braces", "basic"),
-    ] {
+    for (dir, name) in [("zamn", "vue"), ("zamn", "text"), ("braces", "basic")] {
         let file = root.join(dir).join(format!("{name}.zamn"));
         let src = std::fs::read_to_string(&file).unwrap();
         let result = zamn_parser::parse(&src);

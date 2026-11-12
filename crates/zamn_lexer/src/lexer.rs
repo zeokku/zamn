@@ -63,6 +63,7 @@ const NO_JS: &str =
     "zamn has no JavaScript; attribute values are quoted strings, numbers or bare words";
 const NO_CONTROL_FLOW: &str =
     "zamn has no control flow; use your framework's directives, e.g. `div(v-if=\"cond\")`";
+const NO_FILES: &str = "a zamn template is a single file; compose with components instead";
 
 fn is_ws(c: u8) -> bool {
     c == b' ' || c == b'\t'
@@ -97,12 +98,13 @@ fn removed_keyword(rest: &str) -> Option<(&'static str, &'static str)> {
         }
         "else" if space || end => Some(("control flow", NO_CONTROL_FLOW)),
         "default" if end || after.starts_with(':') => Some(("control flow", NO_CONTROL_FLOW)),
-        "mixin" if space => Some(("mixins", "use `include` or a component instead")),
+        "mixin" if space => Some(("mixins", "use a component instead")),
         "extends" | "extend" | "append" | "prepend" if space => {
-            Some(("template inheritance", "use `include` instead"))
+            Some(("template inheritance", NO_FILES))
         }
-        "block" if space || end => Some(("template inheritance", "use `include` instead")),
-        "yield" if end => Some(("template inheritance", "use `include` instead")),
+        "block" if space || end => Some(("template inheritance", NO_FILES)),
+        "yield" if end => Some(("template inheritance", NO_FILES)),
+        "include" if space || end || after.starts_with(':') => Some(("includes", NO_FILES)),
         _ => None,
     }
 }
@@ -374,30 +376,6 @@ impl<'a> Lexer<'a> {
                     return;
                 }
             }
-            if let Some(after) = rest.strip_prefix("include") {
-                if after.starts_with(':') {
-                    self.unsupported(
-                        "An include filter",
-                        "zamn has no filters; include the file directly",
-                        s,
-                        self.eol,
-                    );
-                    self.pos = self.eol;
-                    return;
-                }
-                if after.is_empty() || after.starts_with([' ', '\t']) {
-                    self.push(Include, s, s + 7);
-                    let path = after.trim();
-                    if path.is_empty() {
-                        self.error("NO_INCLUDE_PATH", "missing path for include", s, self.eol);
-                    } else {
-                        let start = s + 7 + (after.len() - after.trim_start().len());
-                        self.push(Path, start, start + path.len());
-                    }
-                    self.pos = self.eol;
-                    return;
-                }
-            }
             if let Some((what, hint)) = removed_keyword(rest) {
                 let what = format!(
                     "`{}` ({what})",
@@ -428,12 +406,7 @@ impl<'a> Lexer<'a> {
                 self.bail(interp);
             }
             b'+' => {
-                self.unsupported(
-                    "A mixin call",
-                    "use `include` or a component instead",
-                    s,
-                    self.eol,
-                );
+                self.unsupported("A mixin call", "use a component instead", s, self.eol);
                 self.skip_or_bail(indent, interp);
             }
             b':' => {

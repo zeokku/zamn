@@ -1,7 +1,6 @@
-use std::path::PathBuf;
 use std::process::ExitCode;
 
-use zamn::{compile, CompileOptions, FileDiagnostic, FsResolver};
+use zamn::{compile, CompileOptions, FileDiagnostic};
 
 const USAGE: &str = "\
 Usage: zamn [options] <file>
@@ -12,14 +11,13 @@ Options:
   -o, --out <file>     write the HTML to a file
       --map <file>     write a source map
       --doctype <name> assume a doctype without emitting it (e.g. html)
-      --basedir <dir>  root for absolute include paths
       --tokens         print the token stream as JSON instead
       --ast            print the AST as JSON instead
   -h, --help           show this help";
 
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
-    let (mut file, mut out, mut map, mut doctype, mut basedir) = (None, None, None, None, None);
+    let (mut file, mut out, mut map, mut doctype) = (None, None, None, None);
     let (mut tokens, mut ast) = (false, false);
     while let Some(arg) = args.next() {
         let mut value = |name: &str| {
@@ -36,7 +34,6 @@ fn main() -> ExitCode {
             "-o" | "--out" => out = Some(value("--out")),
             "--map" => map = Some(value("--map")),
             "--doctype" => doctype = Some(value("--doctype")),
-            "--basedir" => basedir = Some(PathBuf::from(value("--basedir"))),
             "--tokens" => tokens = true,
             "--ast" => ast = true,
             _ if arg.starts_with('-') => {
@@ -81,7 +78,7 @@ fn main() -> ExitCode {
         ..Default::default()
     };
     options.codegen.doctype = doctype;
-    let compiled = compile(&source, &options, Some(&FsResolver { basedir }));
+    let compiled = compile(&source, &options);
     if !compiled.diagnostics.is_empty() {
         return report(compiled.diagnostics);
     }
