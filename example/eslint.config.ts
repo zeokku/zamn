@@ -1,13 +1,8 @@
-import { fileURLToPath } from "node:url"
-
 import { globalIgnores } from "eslint/config"
 import { defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescript"
 import pluginVue from "eslint-plugin-vue"
+import pluginVueZamn from "eslint-plugin-vue-zamn"
 import skipFormatting from "eslint-config-prettier/flat"
-
-const zamnTokenizer = fileURLToPath(
-  import.meta.resolve("vue-eslint-parser-template-tokenizer-zamn"),
-)
 
 export default defineConfigWithVueTs(
   {
@@ -20,16 +15,14 @@ export default defineConfigWithVueTs(
   ...pluginVue.configs["flat/recommended"],
   vueTsConfigs.recommended,
 
+  // Lets the rules above read <template lang="zamn">, turns off the ones
+  // that only make sense for HTML, and reports zamn's own syntax errors.
+  ...pluginVueZamn.configs.recommended,
   {
-    name: "app/zamn-templates",
+    name: "app/zamn-rules",
     files: ["**/*.vue"],
-    languageOptions: {
-      parserOptions: {
-        // Lets the rules above read <template lang="zamn">. Given as a path
-        // so that vue-eslint-parser finds it from wherever it is installed,
-        // and so that the config can be serialized for `--cache`.
-        templateTokenizer: { zamn: zamnTokenizer },
-      },
+    rules: {
+      "vue-zamn/component-name-in-template-casing": "error",
     },
   },
 

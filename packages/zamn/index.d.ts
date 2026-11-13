@@ -28,7 +28,7 @@ export type TokenType =
   | "AttrsOpen" | "AttrName" | "AttrEq" | "AttrEqRaw" | "AttrValue" | "AttrsClose"
   | "Text" | "Pipe" | "Dot" | "TextBlockStart" | "TextNewline" | "TextBlockEnd"
   | "InterpStart" | "InterpEnd" | "Colon" | "Slash" | "Eq" | "Expr"
-  | "Comment" | "SilentComment" | "Doctype" | "RawHtml";
+  | "Comment" | "SilentComment" | "Doctype";
 
 export interface Token extends Located {
   type: TokenType;
@@ -69,10 +69,6 @@ export interface Interpolation extends Located {
   expr: string;
   exprSpan: Located;
 }
-export interface RawHtml extends Located {
-  type: "RawHtml";
-  value: string;
-}
 export interface Comment extends Located {
   type: "Comment";
   /** `false` for `//-` comments, which are not emitted. */
@@ -84,7 +80,7 @@ export interface Doctype extends Located {
   type: "Doctype";
   value: string;
 }
-export type Node = Element | Text | Interpolation | RawHtml | Comment | Doctype;
+export type Node = Element | Text | Interpolation | Comment | Doctype;
 
 export interface Root extends Located {
   type: "Root";

@@ -13,9 +13,6 @@
       "include": "#unsupported"
     },
     {
-      "include": "#raw-html"
-    },
-    {
       "include": "#pipe"
     },
     {
@@ -48,17 +45,19 @@
             "2": {
               "name": "punctuation.definition.comment.zamn"
             }
-          }
+          },
+          "comment": "left out of the output"
         },
         {
           "begin": "^([ \\t]*)(//)",
           "end": "^(?!\\1[ \\t]+|[ \\t]*$)",
-          "name": "comment.block.zamn",
+          "name": "string.comment.buffered.block.zamn",
           "beginCaptures": {
             "2": {
               "name": "punctuation.definition.comment.zamn"
             }
-          }
+          },
+          "comment": "emitted as an HTML comment, so it is not coloured as one: the scope pug gives its own"
         }
       ]
     },
@@ -75,7 +74,7 @@
       }
     },
     "unsupported": {
-      "comment": "pug syntax that zamn rejects",
+      "comment": "pug syntax that zamn rejects, lines of HTML among it",
       "patterns": [
         {
           "match": "^[ \\t]*((?:if|unless|while|case|when|each|for|mixin|extends?|append|prepend)(?=[ \\t])|(?:else|block)(?=[ \\t]|$)|include(?=[ \\t:]|$)|default(?=[ \\t]*$|:))",
@@ -86,25 +85,12 @@
           }
         },
         {
-          "match": "^[ \\t]*([-+]|:[\\w-]|#\\{).*$",
+          "match": "^[ \\t]*([-+<]|:[\\w-]|#\\{).*$",
           "name": "invalid.illegal.unsupported.zamn"
         },
         {
           "match": "&attributes\\b",
           "name": "invalid.illegal.unsupported.zamn"
-        }
-      ]
-    },
-    "raw-html": {
-      "begin": "^[ \\t]*(?=<)",
-      "end": "$",
-      "name": "meta.embedded.html.zamn",
-      "patterns": [
-        {
-          "include": "#mustache"
-        },
-        {
-          "include": "text.html.basic"
         }
       ]
     },

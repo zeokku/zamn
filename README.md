@@ -55,7 +55,8 @@ div
 - **`#{...}`** in text is not special.
 - **Removed**, each with its own error: `- code`, `!=`, `if`/`else`/`unless`,
   `case`/`when`, `each`/`for`/`while`, mixins, `include`, `extends`/`block`,
-  filters, `&attributes`.
+  filters, `&attributes`, and lines of HTML (`<b>bold</b>` on a line of its
+  own: write `b bold`, or `| <b>bold</b>`, since text is not escaped).
 
 ## Layout
 
@@ -70,6 +71,7 @@ div
 | `packages/prettier-plugin-zamn` | Prettier plugin: formats `.zamn` files |
 | `packages/vue-language-plugin-zamn` | Vue language tools (Volar) plugin: type checking and editor support for `<template lang="zamn">` |
 | `packages/vue-eslint-parser-template-tokenizer-zamn` | ESLint: lets vue-eslint-parser read `<template lang="zamn">` |
+| `packages/eslint-plugin-vue-zamn` | ESLint plugin: a config that sets up the tokenizer and eslint-plugin-vue for zamn, and rules of its own |
 | `packages/vscode-zamn` | VS Code extension: syntax highlighting for `.zamn` files and `<template lang="zamn">` |
 | `example` | Vue's starter app in zamn, with Vite, vue-tsc, ESLint and Prettier set up |
 | `tests/fixtures` | shared fixtures; `pug/` holds pug's own test cases |

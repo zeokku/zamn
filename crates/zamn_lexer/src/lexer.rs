@@ -440,8 +440,13 @@ impl<'a> Lexer<'a> {
                 self.text_run(interp);
             }
             b'<' if !interp => {
-                self.push(RawHtml, s, self.eol);
-                self.pos = self.eol;
+                self.unsupported(
+                    "A line of HTML",
+                    "write it as a tag, or as text after `|`",
+                    s,
+                    self.eol,
+                );
+                self.skip_block(indent);
             }
             b'.' if !interp && rest[1..].trim().is_empty() => {
                 self.push(Dot, s, s + 1);

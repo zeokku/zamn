@@ -112,68 +112,44 @@ expression: json
       }
     },
     {
-      "type": "RawHtml",
-      "value": "<div class=\"raw\">",
-      "span": {
-        "start": 54,
-        "end": 71
-      }
-    },
-    {
-      "type": "Text",
-      "value": "\n",
-      "span": {
-        "start": 71,
-        "end": 74
-      }
-    },
-    {
-      "type": "RawHtml",
-      "value": "<span>html</span>",
-      "span": {
-        "start": 74,
-        "end": 91
-      }
-    },
-    {
       "type": "Element",
-      "name": "b",
+      "name": "p",
       "nameSpan": {
-        "start": 94,
-        "end": 95
+        "start": 54,
+        "end": 55
       },
       "attrs": [],
       "children": [
         {
           "type": "Text",
-          "value": "bold",
+          "value": "<b>html</b> in text",
           "span": {
-            "start": 96,
-            "end": 100
+            "start": 56,
+            "end": 75
           }
         }
       ],
       "braced": false,
       "selfClosing": false,
       "span": {
-        "start": 94,
-        "end": 100
+        "start": 54,
+        "end": 75
       }
     },
     {
-      "type": "RawHtml",
-      "value": "</div>",
+      "type": "Text",
+      "value": "<i>stays</i> as it is",
       "span": {
-        "start": 101,
-        "end": 107
+        "start": 78,
+        "end": 99
       }
     },
     {
       "type": "Element",
       "name": "script",
       "nameSpan": {
-        "start": 108,
-        "end": 114
+        "start": 100,
+        "end": 106
       },
       "attrs": [],
       "children": [
@@ -181,56 +157,56 @@ expression: json
           "type": "Text",
           "value": "if (a < b) {",
           "span": {
-            "start": 118,
-            "end": 130
+            "start": 110,
+            "end": 122
           }
         },
         {
           "type": "Text",
           "value": "\n",
           "span": {
-            "start": 130,
-            "end": 131
+            "start": 122,
+            "end": 123
           }
         },
         {
           "type": "Text",
           "value": "  go();",
           "span": {
-            "start": 133,
-            "end": 140
+            "start": 125,
+            "end": 132
           }
         },
         {
           "type": "Text",
           "value": "\n",
           "span": {
-            "start": 140,
-            "end": 141
+            "start": 132,
+            "end": 133
           }
         },
         {
           "type": "Text",
           "value": "}",
           "span": {
-            "start": 143,
-            "end": 144
+            "start": 135,
+            "end": 136
           }
         },
         {
           "type": "Text",
           "value": "\n",
           "span": {
-            "start": 144,
-            "end": 145
+            "start": 136,
+            "end": 137
           }
         }
       ],
       "braced": false,
       "selfClosing": false,
       "span": {
-        "start": 108,
-        "end": 145
+        "start": 100,
+        "end": 137
       }
     },
     {
@@ -239,8 +215,8 @@ expression: json
       "value": " a comment",
       "block": null,
       "span": {
-        "start": 146,
-        "end": 158
+        "start": 138,
+        "end": 150
       }
     },
     {
@@ -249,8 +225,8 @@ expression: json
       "value": " a silent comment",
       "block": null,
       "span": {
-        "start": 159,
-        "end": 179
+        "start": 151,
+        "end": 171
       }
     },
     {
@@ -259,16 +235,16 @@ expression: json
       "value": "",
       "block": "block comment\n  stays raw",
       "span": {
-        "start": 180,
-        "end": 212
+        "start": 172,
+        "end": 204
       }
     },
     {
       "type": "Element",
       "name": "p",
       "nameSpan": {
-        "start": 213,
-        "end": 214
+        "start": 205,
+        "end": 206
       },
       "attrs": [],
       "children": [
@@ -276,16 +252,16 @@ expression: json
           "type": "Text",
           "value": "ünïcödé 😀 ",
           "span": {
-            "start": 215,
-            "end": 232
+            "start": 207,
+            "end": 224
           }
         },
         {
           "type": "Element",
           "name": "b",
           "nameSpan": {
-            "start": 234,
-            "end": 235
+            "start": 226,
+            "end": 227
           },
           "attrs": [],
           "children": [
@@ -293,24 +269,24 @@ expression: json
               "type": "Text",
               "value": "ok",
               "span": {
-                "start": 236,
-                "end": 238
+                "start": 228,
+                "end": 230
               }
             }
           ],
           "braced": false,
           "selfClosing": false,
           "span": {
-            "start": 234,
-            "end": 238
+            "start": 226,
+            "end": 230
           }
         }
       ],
       "braced": false,
       "selfClosing": false,
       "span": {
-        "start": 213,
-        "end": 239
+        "start": 205,
+        "end": 231
       }
     }
   ]

@@ -15,7 +15,7 @@ bun dev
 | -------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------- |
 | `bun dev`, `bun run build` | Vite compiles `<template lang="zamn">` with `zamn`                                                  | [vite.config.ts](vite.config.ts)         |
 | `bun run type-check`       | `vue-tsc` checks the templates through `vue-language-plugin-zamn`; the editor uses the same plugin  | [tsconfig.app.json](tsconfig.app.json)   |
-| `bun run lint`             | ESLint and eslint-plugin-vue read the templates through `vue-eslint-parser-template-tokenizer-zamn` | [eslint.config.ts](eslint.config.ts)     |
+| `bun run lint`             | ESLint and eslint-plugin-vue read the templates, set up by `eslint-plugin-vue-zamn`                  | [eslint.config.ts](eslint.config.ts)     |
 | `bun run format`           | Prettier formats the templates with `prettier-plugin-zamn`                                          | [prettier.config.ts](prettier.config.ts) |
 
 To see them at work, change `h1.green= msg` in
@@ -31,3 +31,11 @@ language tools or zamn should report there. Open it with the Vue - Official and
 ESLint extensions installed. The app does not use it; while it exists,
 `bun run lint`, `bun run type-check` and `bun run build` fail (`bunx vite build`
 still works). Delete it to get them passing again.
+
+## Prettier in VS Code
+
+The Prettier extension loads [prettier.config.ts](prettier.config.ts) once and
+keeps using that copy: Node caches imported modules, and the extension cannot
+clear that cache. After editing the config, run "Developer: Restart Extension
+Host" (or reload the window); the Prettier output channel shows the options it
+actually used. `bun run format` always reads the current file.

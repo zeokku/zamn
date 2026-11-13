@@ -30,3 +30,7 @@ removed.zamn:19:1: error[UNSUPPORTED_SYNTAX]: `include` (includes) is not suppor
   hint: a zamn template is a single file; compose with components instead
 removed.zamn:20:1: error[UNSUPPORTED_SYNTAX]: `include` (includes) is not supported
   hint: a zamn template is a single file; compose with components instead
+removed.zamn:21:1: error[UNSUPPORTED_SYNTAX]: A line of HTML is not supported
+  hint: write it as a tag, or as text after `|`
+removed.zamn:23:1: error[UNSUPPORTED_SYNTAX]: A line of HTML is not supported
+  hint: write it as a tag, or as text after `|`

@@ -189,15 +189,27 @@ test("rules see the template", async () => {
   ]);
 });
 
-test("zamn's diagnostics and expression errors are parsing errors", async () => {
+test("zamn's diagnostics are errors of the template, with a code of their own", async () => {
   const code = sfc(zamn`
     div
       if x
       p(:a="1 +")
       p {{ b c }}
   `);
+  const errors = parse(code).errors.map((e: any) => [e.code, e.message, e.hint, e.range ? code.slice(...e.range) : ""]);
+  expect(errors).toEqual([
+    [
+      "zamn/UNSUPPORTED_SYNTAX",
+      "\`if\` (control flow) is not supported",
+      "zamn has no control flow; use your framework's directives, e.g. \`div(v-if=\"cond\")\`",
+      "if x",
+    ],
+    [undefined, "Unexpected end of expression.", undefined, ""],
+    [undefined, "Unexpected token c", undefined, ""],
+  ]);
+  // vue/no-parsing-error skips a code it does not know: zamn's diagnostics
+  // are reported by vue-zamn/no-parsing-error.
   expect(await lint(code, { "vue/no-parsing-error": "error" })).toEqual([
-    "3:3 vue/no-parsing-error: Parsing error: `if` (control flow) is not supported.",
     "4:12 vue/no-parsing-error: Parsing error: Unexpected end of expression.",
     "5:10 vue/no-parsing-error: Parsing error: Unexpected token c.",
   ]);

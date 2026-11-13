@@ -1,0 +1,30 @@
+{
+  "name": "eslint-plugin-vue-zamn",
+  "version": "0.1.0",
+  "description": "ESLint plugin for zamn templates in Vue single-file components: a config for eslint-plugin-vue, and rules of its own.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "files": ["index.js", "index.d.ts", "rules"],
+  "keywords": ["eslint", "eslintplugin", "eslint-plugin", "vue", "zamn"],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "vue-eslint-parser-template-tokenizer-zamn": "workspace:*"
+  },
+  "peerDependencies": {
+    "eslint": "^9.0.0 || ^10.0.0",
+    "eslint-plugin-vue": "^10.0.0",
+    "vue-eslint-parser": "^10.4.0"
+  },
+  "devDependencies": {
+    "eslint": "^10.0.0",
+    "eslint-plugin-vue": "^10.12.0",
+    "vue-eslint-parser": "^10.4.0"
+  }
+}

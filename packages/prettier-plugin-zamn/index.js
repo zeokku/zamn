@@ -113,14 +113,6 @@ class Builder {
         if (this.src[cursor] === " ") cursor++;
         return { type: "Pipe", parts: this.inline(cursor) };
       }
-      case "RawHtml": {
-        const node = { type: "RawHtml", value: this.next().value, children: [] };
-        if (this.accept("Indent")) {
-          node.children = this.items();
-          this.expect("Outdent");
-        }
-        return node;
-      }
       case "Dot":
         this.next();
         return { type: "TextBlock", block: this.textBlock() ?? [] };
@@ -186,8 +178,8 @@ class Builder {
       if (type === "Tag" || type === "Id" || type === "Class") {
         el.head.push(this.next().value);
       } else if (type === "AttrsOpen") {
-        const attrs = this.attrs();
-        if (attrs.length) el.head.push({ attrs });
+        const group = this.attrs();
+        if (group.attrs.length) el.head.push(group);
       } else {
         break;
       }
@@ -229,7 +221,12 @@ class Builder {
     return el;
   }
 
+  /**
+   * A `(...)` group: its attributes, and whether it is written on more than
+   * one line. A line break inside a value does not count.
+   */
   attrs() {
+    const first = this.i;
     this.next();
     const attrs = [];
     while (this.peek() === "AttrName") {
@@ -241,7 +238,11 @@ class Builder {
       attrs.push(attr);
     }
     this.expect("AttrsClose");
-    return attrs;
+    let wrapped = false;
+    for (let i = first + 1; i < this.i && !wrapped; i++) {
+      wrapped = this.src.slice(this.toks[i - 1].range[1], this.toks[i].range[0]).includes("\n");
+    }
+    return { attrs, wrapped };
   }
 }
 
@@ -308,7 +309,6 @@ function pipeParts(parts) {
  */
 function brace(nodes) {
   for (const node of nodes) {
-    if (node.type === "RawHtml") brace(node.children);
     if (node.type !== "Element") continue;
     if (node.expansion) brace([node.expansion]);
     brace(node.children);
@@ -346,9 +346,10 @@ function print(path, options) {
     ]);
 
   /**
-   * Tag, ids, classes and attributes. Attributes go one per line when the
-   * head is wider than the print width; text after the head never counts.
-   * Returns the doc and the column after it.
+   * Tag, ids, classes and attributes. Attributes go on the line of the tag
+   * or one per line, as `zamnMaxAttributesPerLine` says; text after the head
+   * never counts towards the print width. Returns the doc and the column
+   * after it.
    */
   function head(el, column, start, flat) {
     const comma = options.zamnAttributeSeparator === "comma";
@@ -358,10 +359,17 @@ function print(path, options) {
     const multiline = pieces.some((p) => typeof p !== "string" && p.some((a) => a.length > 1));
     const text = pieces.map((p) => (typeof p === "string" ? p : `(${p.join(comma ? ", " : " ")})`)).join("");
     const width = util.getStringWidth(text);
-    const hasAttrs = pieces.some((p) => typeof p !== "string");
-    if (!hasAttrs || (!multiline && (flat || start + width <= printWidth))) {
-      return [text, start + width];
-    }
+    const groups = el.head.filter((piece) => typeof piece !== "string");
+    const count = groups.reduce((n, group) => n + group.attrs.length, 0);
+    const max = options.zamnMaxAttributesPerLine;
+    let wrap;
+    // A value that spans lines cannot share a line with another attribute.
+    if (multiline) wrap = true;
+    // `#[...]` has to stay on its line.
+    else if (flat || max === false) wrap = false;
+    else if (max === -1) wrap = groups.some((group) => group.wrapped);
+    else wrap = count > max || start + width > printWidth;
+    if (!count || !wrap) return [text, start + width];
     // One attribute per line; a comma follows each but the last.
     const attr = (lines, i, all) =>
       join(hardline, comma && i < all.length - 1 ? lines.with(-1, `${lines.at(-1)},`) : lines);
@@ -396,13 +404,6 @@ function print(path, options) {
         return ["|", node.parts.length ? " " : "", inline(node.parts)];
       case "TextBlock":
         return [".", textBlock(node.block)];
-      case "RawHtml":
-        return [
-          node.value,
-          node.children.length
-            ? block(siblings(node.children, column + tabWidth))
-            : "",
-        ];
       case "Element": {
         const [headDoc, end] = head(node, column, start, flat);
         const out = [headDoc];
@@ -460,6 +461,17 @@ export const options = {
       { value: "braces", description: "In { }, for every element that has children." },
       { value: "preserve", description: "In { } or by indentation, as each element is written." },
     ],
+  },
+  zamnMaxAttributesPerLine: {
+    category: "zamn",
+    type: "int",
+    default: 3,
+    range: { start: -1, end: Infinity, step: 1 },
+    // `false` is not an integer.
+    exception: (value) => value === false,
+    description:
+      "How many attributes a tag may have on its line before they go one per line. " +
+      "0: always one per line. -1: as written. false: always on the line of the tag.",
   },
   zamnAttributeSeparator: {
     category: "zamn",

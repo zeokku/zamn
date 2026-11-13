@@ -2,10 +2,8 @@ p Hello #[em world], \#[escaped]
 p
   | piped
   | text
-<div class="raw">
-  <span>html</span>
-  b bold
-</div>
+p <b>html</b> in text
+| <i>stays</i> as it is
 script.
   if (a < b) {
     go();

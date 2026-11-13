@@ -60,8 +60,6 @@ pub enum TokenKind {
     SilentComment,
     /// The whole `doctype ...` line.
     Doctype,
-    /// A line of literal HTML (starts with `<`).
-    RawHtml,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]

@@ -184,29 +184,6 @@ impl<'a> Parser<'a> {
                 }
                 self.inline(out);
             }
-            RawHtml => {
-                let t = self.next();
-                // Consecutive HTML lines keep their line breaks.
-                if let Some(Node::RawHtml(prev)) = out.last() {
-                    let gap = Span {
-                        start: prev.span.end,
-                        end: t.span.start,
-                    };
-                    out.push(Node::Text(ast::Text {
-                        value: "\n".into(),
-                        span: gap,
-                    }));
-                }
-                out.push(Node::RawHtml(ast::RawHtml {
-                    value: self.text(t).to_string(),
-                    span: t.span,
-                }));
-                // Lines indented under an HTML line are its siblings.
-                if self.accept(Indent).is_some() {
-                    self.items(out);
-                    self.accept(Outdent);
-                }
-            }
             Dot => {
                 self.next();
                 self.text_block(out);

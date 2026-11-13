@@ -24,6 +24,10 @@ bunx prettier --write "src/**/*.zamn"
 |---|---|---|
 | `zamnBlockStyle` | `"braces"` (default) | every element that has children holds them in `{ }` |
 | | `"preserve"` | braces or indentation, as each element is written |
+| `zamnMaxAttributesPerLine` | `3` (default), or any number | up to that many attributes stay on the line of the tag; more go one per line |
+| | `0` | always one per line |
+| | `-1` | as written: on one line, or one per line if the `(...)` spans lines |
+| | `false` | always on the line of the tag |
 | `zamnAttributeSeparator` | `"space"` (default) | `a(href="/" target="_blank")` |
 | | `"comma"` | `a(href="/", target="_blank")` |
 
@@ -41,10 +45,30 @@ bunx prettier --write "src/**/*.zamn"
   other quote needs fewer escapes. Attributes may be written with spaces or
   commas between them; they are printed with what `zamnAttributeSeparator`
   says.
-- Puts attributes one per line when the tag, ids, classes and attributes do not
-  fit in `printWidth`. Text after the tag does not count and is never wrapped.
+- Puts attributes one per line when there are more of them than
+  `zamnMaxAttributesPerLine`, or when the tag, ids, classes and attributes do
+  not fit in `printWidth`. Text after the tag does not count and is never
+  wrapped. With `-1` and `false` the print width is not looked at. Whatever
+  the option says, attributes inside `#[...]` stay on their line, and a value
+  that spans several lines puts every attribute on its own.
 - Keeps at most one blank line between statements.
 - Writes an empty brace block as `{}`.
+
+With `zamnMaxAttributesPerLine: 2`:
+
+```
+input(type="text" required)
+input(type="text" required name="login")
+```
+
+```
+input(type="text" required)
+input(
+  type="text"
+  required
+  name="login"
+)
+```
 
 The compiled HTML does not change, with one exception: the continuation lines
 of an attribute value that spans several lines are re-indented with the

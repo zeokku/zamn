@@ -60,7 +60,6 @@ class Writer {
       case "Element":
         return this.element(node);
       case "Text":
-      case "RawHtml":
         // Line breaks the parser puts between lines are not source text.
         if (this.source.slice(...node.range) === node.value) this.copy(node.value, node.range[0]);
         else this.emit(node.value);

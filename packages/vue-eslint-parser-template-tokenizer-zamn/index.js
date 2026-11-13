@@ -54,10 +54,22 @@ export default class ZamnTokenizer {
 
     const { ast, diagnostics } = parse(this.source);
     for (const d of diagnostics) {
-      // No `code`: vue/no-parsing-error skips codes it does not know.
+      // vue/no-parsing-error skips codes it does not know, so these are left
+      // to vue-zamn/no-parsing-error, which reports the whole range and the
+      // hint.
       const error = new SyntaxError(d.message);
-      const { line, column } = this.position(d.range[0]);
-      this.errors.push(Object.assign(error, { index: this.base + d.range[0], lineNumber: line, column }));
+      const { range, loc } = this.located(...d.range);
+      this.errors.push(
+        Object.assign(error, {
+          code: `zamn/${d.code}`,
+          hint: d.hint,
+          index: range[0],
+          lineNumber: loc.start.line,
+          column: loc.start.column,
+          range,
+          loc,
+        }),
+      );
     }
 
     /** The lexer's tokens, layout included. */
@@ -130,7 +142,7 @@ export default class ZamnTokenizer {
   *nodes(nodes) {
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i];
-      if (node.type !== "Text" && node.type !== "RawHtml") {
+      if (node.type !== "Text") {
         yield* this.node(node);
         continue;
       }
@@ -140,7 +152,7 @@ export default class ZamnTokenizer {
       let end = -1;
       for (; i < nodes.length; i++) {
         const { type, value, range } = nodes[i];
-        if (type !== "Text" && type !== "RawHtml") break;
+        if (type !== "Text") break;
         // Line breaks the parser adds between lines are not in the source.
         if (this.source.slice(...range) !== value) continue;
         if (start !== -1 && this.source.slice(end, range[0]).trim() !== "") break;

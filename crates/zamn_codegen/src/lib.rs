@@ -129,10 +129,6 @@ impl Generator<'_> {
                 self.map(t.span.start);
                 self.out.push_str(&t.value);
             }
-            Node::RawHtml(t) => {
-                self.map(t.span.start);
-                self.out.push_str(&t.value);
-            }
             Node::Interpolation(i) => {
                 self.map(i.span.start);
                 self.out.push_str(&self.options.interpolation.0);

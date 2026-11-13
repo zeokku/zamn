@@ -12,7 +12,6 @@ pub enum Node {
     Element(Element),
     Text(Text),
     Interpolation(Interpolation),
-    RawHtml(RawHtml),
     Comment(Comment),
     Doctype(Doctype),
 }
@@ -23,7 +22,6 @@ impl Node {
             Node::Element(n) => n.span,
             Node::Text(n) => n.span,
             Node::Interpolation(n) => n.span,
-            Node::RawHtml(n) => n.span,
             Node::Comment(n) => n.span,
             Node::Doctype(n) => n.span,
         }
@@ -87,12 +85,6 @@ pub struct Text {
 pub struct Interpolation {
     pub expr: String,
     pub expr_span: Span,
-    pub span: Span,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-pub struct RawHtml {
-    pub value: String,
     pub span: Span,
 }
 

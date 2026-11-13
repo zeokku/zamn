@@ -228,9 +228,9 @@ test("comments, text blocks and pipes end where the indentation does", async () 
   `;
   expect(await tokens(source)).toEqual([
     "div  entity.name.tag",
-    "//  comment.block punctuation.definition.comment",
-    " note  comment.block",
-    "    more .note  comment.block",
+    "//  string.comment.buffered.block punctuation.definition.comment",
+    " note  string.comment.buffered.block",
+    "    more .note  string.comment.buffered.block",
     "//-  comment.block.silent punctuation.definition.comment",
     " silent  comment.block.silent",
     "p  entity.name.tag",
@@ -269,11 +269,7 @@ test("doctype, HTML lines and what zamn does not support", async () => {
   expect(await tokens(source)).toEqual([
     "doctype  meta.tag.sgml.doctype entity.name.tag.doctype",
     "html  meta.tag.sgml.doctype string.unquoted.doctype",
-    '<div :a="b">  meta.embedded.html',
-    "{{  meta.embedded.html meta.interpolation.expression punctuation.definition.interpolation.begin",
-    " c   meta.embedded.html meta.interpolation.expression source.ts.embedded",
-    "}}  meta.embedded.html meta.interpolation.expression punctuation.definition.interpolation.end",
-    "</div>  meta.embedded.html",
+    '<div :a="b">{{ c }}</div>  invalid.illegal.unsupported',
     "if  invalid.illegal.unsupported",
     " user",
     "- var x = 1  invalid.illegal.unsupported",
@@ -311,4 +307,10 @@ test("is injected into <template lang=\"zamn\"> of a Vue file, and only there", 
     "</template",
     ">",
   ]);
+});
+
+test("the comment of the language is the one left out of the output", async () => {
+  const { comments } = await Bun.file(resolve(syntaxes, "../language-configuration.json")).json();
+  // A string: tools that read it, Better Comments among them, skip the object form.
+  expect(comments).toEqual({ lineComment: "//-" });
 });

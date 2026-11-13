@@ -72,13 +72,14 @@ test("re-indents braces and indentation blocks", async () => {
 
 test("attributes: spacing, separators and quotes", async () => {
   const source = `a( href = '/x' ,title="say \\"hi\\"", alt='it\\'s'  data-x!='<b>' disabled n=1 )/`;
-  expect(await format(source)).toBe(
+  const options = { zamnMaxAttributesPerLine: 6 };
+  expect(await format(source, options)).toBe(
     `a(href="/x" title='say "hi"' alt="it's" data-x!="<b>" disabled n=1)/\n`,
   );
-  expect(await format(source, { singleQuote: true })).toBe(
+  expect(await format(source, { ...options, singleQuote: true })).toBe(
     `a(href='/x' title='say "hi"' alt="it's" data-x!='<b>' disabled n=1)/\n`,
   );
-  expect(compile(await format(source)).code).toBe(compile(source).code);
+  expect(compile(await format(source, options)).code).toBe(compile(source).code);
 });
 
 test("attributes break one per line when the head is too wide", async () => {
@@ -150,9 +151,6 @@ test("text, text blocks and comments are kept as written", async () => {
           //   a comment${"   "}
               with a block
                 that stays raw
-          <div>
-              b bold
-          </div>
     }
   `;
   const out = await format(source);
@@ -170,9 +168,6 @@ test("text, text blocks and comments are kept as written", async () => {
       //   a comment
         with a block
           that stays raw
-      <div>
-        b bold
-      </div>
     }
   `);
   expect(await format(out)).toBe(out);
@@ -186,7 +181,7 @@ test("whitespace at the end of a line is removed", async () => {
         span${"\t"}
         | piped${" "}
         |${"  "}
-        <i>x</i>${" "}
+        | <i>x</i>${" "}
         // note${" "}
           more${" "}
         pre.${" "}
@@ -203,7 +198,7 @@ test("whitespace at the end of a line is removed", async () => {
       span
       | piped
       |
-      <i>x</i>
+      | <i>x</i>
       // note
         more
       pre.
@@ -287,6 +282,114 @@ test("formats <template lang=\"zamn\"> in Vue files", async () => {
   `);
 });
 
+test("zamnMaxAttributesPerLine: three by default", async () => {
+  const source = zamn`
+    input(type="text")
+    input(type="text" required name="login")
+    input(type="text" required name="login" disabled)
+    input(
+      type="text"
+    )
+    p #[a(href="/" target="_blank" rel="noopener" title="t") stays] inline
+  `;
+  expect(await format(source)).toBe(zamn`
+    input(type="text")
+    input(type="text" required name="login")
+    input(
+      type="text"
+      required
+      name="login"
+      disabled
+    )
+    input(type="text")
+    p #[a(href="/" target="_blank" rel="noopener" title="t") stays] inline
+  `);
+});
+
+test("zamnMaxAttributesPerLine: a number, 0, -1 and false", async () => {
+  const source = zamn`
+    input(type="text")
+    input(type="text" required)
+    input(
+      type="text"
+    )
+    a.link(href="https://example.com/a/rather/long/url")(target="_blank" rel="noopener" title="A title")
+  `;
+  const with_ = (zamnMaxAttributesPerLine: number | false, more: prettier.Options = {}) =>
+    format(source, { zamnMaxAttributesPerLine, printWidth: 60, ...more });
+  const long = zamn`
+    a.link(
+      href="https://example.com/a/rather/long/url"
+    )(
+      target="_blank"
+      rel="noopener"
+      title="A title"
+    )
+  `;
+
+  expect(await with_(1, { zamnAttributeSeparator: "comma" })).toBe(zamn`
+    input(type="text")
+    input(
+      type="text",
+      required
+    )
+    input(type="text")
+    a.link(
+      href="https://example.com/a/rather/long/url"
+    )(
+      target="_blank",
+      rel="noopener",
+      title="A title"
+    )
+  `);
+  // Few enough, but wider than the print width.
+  const few = zamn`
+    input(type="text")
+    input(type="text" required)
+    input(type="text")
+  `;
+  expect(await with_(4)).toBe(few + long);
+  const each = zamn`
+    input(
+      type="text"
+    )
+    input(
+      type="text"
+      required
+    )
+    input(
+      type="text"
+    )
+  `;
+  expect(await with_(0)).toBe(each + long);
+  // As written, whatever the print width.
+  expect(await with_(-1)).toBe(source);
+  expect(await with_(false)).toBe(
+    few +
+      'a.link(href="https://example.com/a/rather/long/url")(target="_blank" rel="noopener" title="A title")\n',
+  );
+  for (const max of [1, 4, 0, -1, false] as const) {
+    const out = await with_(max);
+    expect(await format(out, { zamnMaxAttributesPerLine: max, printWidth: 60 })).toBe(out);
+    expect(compile(out).code).toBe(compile(source).code);
+  }
+});
+
+test("zamnMaxAttributesPerLine: a value on several lines always breaks", async () => {
+  const source = zamn`
+    div(:class="{
+      on
+    }")
+  `;
+  expect(await format(source, { zamnMaxAttributesPerLine: false })).toBe(zamn`
+    div(
+      :class="{
+        on
+      }"
+    )
+  `);
+});
+
 test("zamnAttributeSeparator: commas between attributes", async () => {
   const source = zamn`
     a(href='/' target="_blank"   disabled) Home
@@ -341,9 +444,6 @@ test("zamnBlockStyle: every element with children gets braces", async () => {
         let a = { b }
       // comment
         block
-      <div>
-        span raw
-      </div>
   `;
   const out = await format(source);
   expect(out).toBe(zamn`
@@ -358,9 +458,6 @@ test("zamnBlockStyle: every element with children gets braces", async () => {
         let a = { b }
       // comment
         block
-      <div>
-        span raw
-      </div>
     }
   `);
   expect(await format(out)).toBe(out);

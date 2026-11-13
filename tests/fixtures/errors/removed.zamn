@@ -18,4 +18,7 @@ div&attributes(attrs)
 #{tag} text
 include partials/item
 include:md readme.md
+<div class="raw">
+  <span>html</span>
+</div>
 p kept
