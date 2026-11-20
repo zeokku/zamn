@@ -1,0 +1,24 @@
+/* The zamn palette: near-white and near-black surfaces, one red-orange accent. */
+:root {
+  --zamn-c-accent: #e8401c;
+  --zamn-c-accent-2: #ff5a2e;
+  --zamn-c-accent-3: #c7310f;
+  --zamn-c-soft: rgba(232, 64, 28, 0.1);
+  --zamn-c-ink: #111214;
+  --zamn-c-paper: #f6f6f4;
+  --zamn-font-display: "Barlow Condensed", "Arial Narrow", var(--vp-font-family-base);
+}
+
+.dark {
+  --zamn-c-accent: #ff5a2e;
+  --zamn-c-accent-2: #ff7a55;
+  --zamn-c-accent-3: #e8401c;
+  --zamn-c-soft: rgba(255, 90, 46, 0.14);
+}
+
+.home-extra {
+  /* VitePress has no default styles for content below the home features. */
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 0 24px 64px;
+}

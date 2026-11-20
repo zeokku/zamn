@@ -1,0 +1,75 @@
+article.post
+  header.post-header
+    p.post-meta
+      time(datetime="2026-11-02") November 2, 2026
+      |
+      | &middot;
+      |
+      a(href="/authors/sam") Sam Park
+      |
+      | &middot; 7 min read
+    h1 Caching without tears
+    p.post-lead
+      | Most caching bugs come from one question nobody asked: who is allowed to
+      | say that a value is stale? This post walks through three answers.
+  nav.toc(aria-label="Contents")
+    h2 Contents
+    ol
+      li: a(href="#ttl") Time to live
+      li: a(href="#events") Invalidation by event
+      li: a(href="#versions") Versioned keys
+  section#ttl
+    h2 Time to live
+    p
+      | The simplest cache forgets everything after a fixed time. It is easy to
+      | reason about, and it is #[em always] a little wrong: a value can be stale
+      | for up to the full TTL.
+    pre: code.language-ts cache.set(key, value, { ttl: 60_000 });
+    p
+      | Pick the TTL from how long a stale value is #[strong acceptable], not from
+      | how long it takes to compute.
+  section#events
+    h2 Invalidation by event
+    p
+      | When the writer knows a value changed, it can tell the cache. This keeps
+      | entries fresh, but every writer now has to remember to do it.
+    aside.callout.callout-warning
+      p
+        strong Watch out:
+        |
+        | an invalidation sent before the write commits can be overtaken by a
+        | read that caches the old value again.
+  section#versions
+    h2 Versioned keys
+    p
+      | Put a version in the key and bump it on every write. Old entries are
+      | never read again and fall out on their own.
+    figure
+      img(src="/img/versioned-keys.svg" alt="Two versions of a key, the older one greyed out" width="640" height="240")
+      figcaption Readers only ever look up the current version.
+    table
+      thead
+        tr
+          th Approach
+          th Fresh
+          th Effort for writers
+      tbody
+        tr
+          td Time to live
+          td Eventually
+          td None
+        tr
+          td Events
+          td Yes
+          td Every write
+        tr
+          td Versioned keys
+          td Yes
+          td One counter
+  footer.post-footer
+    p
+      | Thanks to #[a(href="/authors/lee") Lee] and #[a(href="/authors/ana") Ana] for
+      | reading drafts of this post.
+    ul.tags
+      li: a(href="/tags/caching") caching
+      li: a(href="/tags/architecture") architecture

@@ -1,0 +1,46 @@
+form.signup(@submit.prevent="submit" novalidate)
+  h2 Create your account
+  p.subtitle
+    | Already have one?
+    |
+    RouterLink(to="/login") Log in
+  .field
+    label(for="name") Full name
+    input#name(v-model.trim="form.name" type="text" autocomplete="name" required :aria-invalid="!!errors.name")
+    p.error(v-if="errors.name" role="alert")= errors.name
+  .field
+    label(for="email") Work email
+    input#email(v-model.trim="form.email" type="email" autocomplete="email" required :aria-invalid="!!errors.email")
+    p.error(v-if="errors.email" role="alert")= errors.email
+  .field
+    label(for="password") Password
+    .input-group
+      input#password(v-model="form.password" :type="showPassword ? 'text' : 'password'" autocomplete="new-password" minlength="12" required)
+      button.toggle(type="button" @click="showPassword = !showPassword" :aria-pressed="showPassword")= showPassword ? "Hide" : "Show"
+    p.hint At least 12 characters.
+    p.error(v-if="errors.password" role="alert")= errors.password
+  .field
+    label(for="company-size") Company size
+    select#company-size(v-model="form.size")
+      option(value="" disabled) Choose one
+      option(v-for="size in sizes" :key="size.value" :value="size.value")= size.label
+  fieldset.field
+    legend What will you use it for?
+    label.check(v-for="goal in goals" :key="goal.id")
+      input(type="checkbox" :value="goal.id" v-model="form.goals")
+      span= goal.label
+  label.check
+    input(type="checkbox" v-model="form.terms" required)
+    span
+      | I agree to the
+      |
+      a(href="/terms" target="_blank") terms of service
+      |
+      | and the
+      |
+      a(href="/privacy" target="_blank") privacy policy
+      | .
+  button.btn.btn-primary.btn-block(type="submit" :disabled="submitting")
+    span(v-if="submitting") Creating your account&hellip;
+    span(v-else) Create account
+  p.error.form-error(v-if="errors.form" role="alert")= errors.form

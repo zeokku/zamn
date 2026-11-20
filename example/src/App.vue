@@ -5,7 +5,12 @@ import TheWelcome from "./components/TheWelcome.vue"
 
 <template lang="zamn">
 header {
-  img.logo(alt="Vue logo" src="./assets/logo.svg" width="125" height="125")
+  img.logo(
+    alt="Vue logo"
+    src="./assets/logo.svg"
+    width="125"
+    height="125"
+  )
 
   .wrapper {
     HelloWorld(msg="You did it!")

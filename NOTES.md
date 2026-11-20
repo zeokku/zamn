@@ -85,3 +85,40 @@ a config file or through the API.
   languages come after `//` anyway. The only way to get `//-` in front is to
   give `vue` itself the line comment `//-` through `better-comments.languages`,
   which the extension does with `configurationDefaults`.
+
+## zamn in the docs' code blocks
+
+The docs highlight ` ```zamn ` with the grammars of the VS Code extension,
+registered in `markdown.languages` of `docs/.vitepress/config.mts`. Shiki
+(4.6, through VitePress 2.0.0-alpha.21) needs three things there:
+
+- the registration's `name` is the language id used after the fence, so it
+  overrides the grammar's own `name` ("zamn" for `zamn.tmLanguage.json`);
+- every language a grammar `include`s (`source.ts`, `source.js`, `source.css`)
+  must be listed in its `embeddedLangs`, **and** loaded before it: list
+  `"typescript"`, `"javascript"`, `"css"` (and `"vue"` for the injection) as
+  plain strings ahead of the grammars in `markdown.languages`, or Shiki fails
+  with "Missing languages ... required by zamn";
+- the Vue injection grammar needs `injectTo: ["text.html.vue"]`, which in VS
+  Code comes from `package.json`, not from the grammar file.
+
+Inline code with `{{ }}` is compiled by Vue as an interpolation and fails the
+build, so the config adds `v-pre` to every inline `<code>`. Fenced blocks are
+`v-pre` already. Text that VitePress renders as HTML (the `details` of home
+page features) needs `&lt;` for a literal `<`, or hydration mismatches.
+
+## Counting Claude tokens
+
+`count_tokens` counts a whole message, which carries a few tokens of its own.
+`docs/scripts/token-stats.ts` subtracts that overhead, taken as the count of a
+message holding just `"a"` minus one. All forms of a page share the overhead,
+so the percentages don't depend on it; the absolute numbers are off by at most
+a token or so.
+
+## prettier-plugin-zamn with `tabWidth: 0`
+
+`tabWidth: 0` prints every brace block with no indentation, the flat form the
+token measurements use. It breaks text blocks (`p.`, `script.`), whose lines
+must stay indented deeper than their tag, and puts multi-line attribute values
+at column 0. The token corpus avoids both; `docs/test/corpus.test.ts` would
+catch it if a page used them.

@@ -1,0 +1,31 @@
+.todo-app
+  header.todo-header
+    h1 Todos
+    form(@submit.prevent="add")
+      input.new-todo(v-model.trim="draft" placeholder="What needs to be done?" autofocus aria-label="New todo")
+  section.main(v-show="todos.length")
+    input#toggle-all.toggle-all(type="checkbox" :checked="remaining === 0" @change="toggleAll")
+    label(for="toggle-all") Mark all as complete
+    TransitionGroup.todo-list(tag="ul" name="list")
+      li.todo(v-for="todo in filtered" :key="todo.id" :class="{ completed: todo.done, editing: todo === editing }")
+        .view(v-if="todo !== editing")
+          input.toggle(type="checkbox" v-model="todo.done")
+          label(@dblclick="edit(todo)")= todo.title
+          button.destroy(@click="remove(todo)" aria-label="Delete")
+        input.edit(v-else v-model="todo.title" v-focus @blur="done(todo)" @keyup.enter="done(todo)" @keyup.escape="cancel(todo)")
+  footer.footer(v-show="todos.length")
+    span.todo-count
+      strong= remaining
+      |
+      = remaining === 1 ? "item" : "items"
+      |
+      | left
+    ul.filters
+      li(v-for="(label, key) in filters" :key="key")
+        a(:href="`#/${key}`" :class="{ selected: visibility === key }")= label
+    button.clear-completed(v-show="todos.length > remaining" @click="clearCompleted") Clear completed
+  slot(name="footer" :count="todos.length")
+    p.info
+      | Double-click to edit a todo.
+      |
+      a(href="https://vuejs.org") Made with Vue

@@ -1,0 +1,246 @@
+{
+  "generated": "2026-11-21",
+  "tokenizers": {
+    "openai": "o200k_base (gpt-tokenizer)",
+    "claude": null
+  },
+  "files": [
+    {
+      "name": "article",
+      "counts": {
+        "zamnFlat": {
+          "chars": 2065,
+          "openai": 584,
+          "claude": null,
+          "sha": "4d46f12dd10e5bff"
+        },
+        "zamnIndent": {
+          "chars": 2185,
+          "openai": 626,
+          "claude": null,
+          "sha": "e7da22b711fe6134"
+        },
+        "zamnFormatted": {
+          "chars": 2663,
+          "openai": 691,
+          "claude": null,
+          "sha": "dc2ebc9248181924"
+        },
+        "htmlMinified": {
+          "chars": 2374,
+          "openai": 705,
+          "claude": null,
+          "sha": "824b4f8f36b392f4"
+        },
+        "htmlFormatted": {
+          "chars": 3062,
+          "openai": 893,
+          "claude": null,
+          "sha": "d2ba3f0ba9559faa"
+        }
+      }
+    },
+    {
+      "name": "dashboard-card",
+      "counts": {
+        "zamnFlat": {
+          "chars": 2034,
+          "openai": 593,
+          "claude": null,
+          "sha": "ca58e445b567b259"
+        },
+        "zamnIndent": {
+          "chars": 2060,
+          "openai": 589,
+          "claude": null,
+          "sha": "8d442686da811391"
+        },
+        "zamnFormatted": {
+          "chars": 2400,
+          "openai": 673,
+          "claude": null,
+          "sha": "a83931f31b249d5f"
+        },
+        "htmlMinified": {
+          "chars": 2179,
+          "openai": 627,
+          "claude": null,
+          "sha": "79881cf82a57aed8"
+        },
+        "htmlFormatted": {
+          "chars": 2738,
+          "openai": 778,
+          "claude": null,
+          "sha": "2ce3073c723cbfae"
+        }
+      }
+    },
+    {
+      "name": "data-table",
+      "counts": {
+        "zamnFlat": {
+          "chars": 2030,
+          "openai": 558,
+          "claude": null,
+          "sha": "9d0fb0cea505ffce"
+        },
+        "zamnIndent": {
+          "chars": 2118,
+          "openai": 574,
+          "claude": null,
+          "sha": "ccaf1cd438d100bb"
+        },
+        "zamnFormatted": {
+          "chars": 2808,
+          "openai": 670,
+          "claude": null,
+          "sha": "e604e7dc6f9e6cf4"
+        },
+        "htmlMinified": {
+          "chars": 2514,
+          "openai": 676,
+          "claude": null,
+          "sha": "66f2d86cf4224605"
+        },
+        "htmlFormatted": {
+          "chars": 3595,
+          "openai": 890,
+          "claude": null,
+          "sha": "fe488af1e2e9e278"
+        }
+      }
+    },
+    {
+      "name": "landing",
+      "counts": {
+        "zamnFlat": {
+          "chars": 3630,
+          "openai": 970,
+          "claude": null,
+          "sha": "63d539ef0c33a259"
+        },
+        "zamnIndent": {
+          "chars": 3939,
+          "openai": 1029,
+          "claude": null,
+          "sha": "a0b80b10eeb79c36"
+        },
+        "zamnFormatted": {
+          "chars": 5152,
+          "openai": 1152,
+          "claude": null,
+          "sha": "c418c6cdbbcbfbbc"
+        },
+        "htmlMinified": {
+          "chars": 4349,
+          "openai": 1208,
+          "claude": null,
+          "sha": "8e2acbb26d864520"
+        },
+        "htmlFormatted": {
+          "chars": 6202,
+          "openai": 1547,
+          "claude": null,
+          "sha": "ad21713d9bf0b426"
+        }
+      }
+    },
+    {
+      "name": "signup-form",
+      "counts": {
+        "zamnFlat": {
+          "chars": 1803,
+          "openai": 483,
+          "claude": null,
+          "sha": "6c084fe246a09f33"
+        },
+        "zamnIndent": {
+          "chars": 1845,
+          "openai": 507,
+          "claude": null,
+          "sha": "73d40db43181dff3"
+        },
+        "zamnFormatted": {
+          "chars": 2175,
+          "openai": 578,
+          "claude": null,
+          "sha": "1247e154ae4060c9"
+        },
+        "htmlMinified": {
+          "chars": 2162,
+          "openai": 573,
+          "claude": null,
+          "sha": "af506d3276a62b3b"
+        },
+        "htmlFormatted": {
+          "chars": 2661,
+          "openai": 736,
+          "claude": null,
+          "sha": "9679daa3780d826c"
+        }
+      }
+    },
+    {
+      "name": "vue-component",
+      "counts": {
+        "zamnFlat": {
+          "chars": 1328,
+          "openai": 362,
+          "claude": null,
+          "sha": "7d33c80a61387bba"
+        },
+        "zamnIndent": {
+          "chars": 1358,
+          "openai": 368,
+          "claude": null,
+          "sha": "ecfa89e1fc782f9f"
+        },
+        "zamnFormatted": {
+          "chars": 1724,
+          "openai": 441,
+          "claude": null,
+          "sha": "c1a91587a5e7b0b6"
+        },
+        "htmlMinified": {
+          "chars": 1581,
+          "openai": 431,
+          "claude": null,
+          "sha": "56a933ed613014fa"
+        },
+        "htmlFormatted": {
+          "chars": 2114,
+          "openai": 560,
+          "claude": null,
+          "sha": "0a30d8efc634468f"
+        }
+      }
+    }
+  ],
+  "totals": {
+    "zamnFlat": {
+      "chars": 12890,
+      "openai": 3550,
+      "claude": null
+    },
+    "zamnIndent": {
+      "chars": 13505,
+      "openai": 3693,
+      "claude": null
+    },
+    "zamnFormatted": {
+      "chars": 16922,
+      "openai": 4205,
+      "claude": null
+    },
+    "htmlMinified": {
+      "chars": 15159,
+      "openai": 4220,
+      "claude": null
+    },
+    "htmlFormatted": {
+      "chars": 20372,
+      "openai": 5404,
+      "claude": null
+    }
+  }
+}

@@ -43,3 +43,7 @@ packages/zamn/pkg
 
 # packaged VS Code extension
 *.vsix
+
+# docs build
+docs/.vitepress/dist
+docs/.vitepress/cache

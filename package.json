@@ -12,11 +12,16 @@
   },
   "workspaces": [
     "packages/*",
-    "example"
+    "example",
+    "docs"
   ],
   "scripts": {
     "build": "cargo build --workspace && bun run --cwd packages/zamn build",
-    "test": "cargo test --workspace && bun run --cwd packages/zamn test && bun run --cwd packages/prettier-plugin-zamn test && bun run --cwd packages/vue-language-plugin-zamn test && bun run --cwd packages/vue-eslint-parser-template-tokenizer-zamn test && bun run --cwd packages/eslint-plugin-vue-zamn test && bun run --cwd packages/vscode-zamn test",
-    "parity": "bun scripts/pug-parity.ts"
+    "test": "cargo test --workspace && bun run --cwd packages/zamn test && bun run --cwd packages/prettier-plugin-zamn test && bun run --cwd packages/vue-language-plugin-zamn test && bun run --cwd packages/vue-eslint-parser-template-tokenizer-zamn test && bun run --cwd packages/eslint-plugin-vue-zamn test && bun run --cwd packages/vscode-zamn test && bun run --cwd docs test",
+    "parity": "bun scripts/pug-parity.ts",
+    "docs:dev": "bun run --cwd docs dev",
+    "docs:build": "bun run --cwd docs build",
+    "docs:preview": "bun run --cwd docs preview",
+    "docs:tokens": "bun run --cwd docs tokens"
   }
 }

@@ -74,6 +74,9 @@ div
 | `packages/eslint-plugin-vue-zamn` | ESLint plugin: a config that sets up the tokenizer and eslint-plugin-vue for zamn, and rules of its own |
 | `packages/vscode-zamn` | VS Code extension: syntax highlighting for `.zamn` files and `<template lang="zamn">` |
 | `example` | Vue's starter app in zamn, with Vite, vue-tsc, ESLint and Prettier set up |
+| `docs` | the documentation site (VitePress), with the playground, the blog and the token measurements |
+| `agents` | rules to paste into an agent's context so it writes valid zamn |
+| `skills` | a Claude Code skill for writing zamn |
 | `tests/fixtures` | shared fixtures; `pug/` holds pug's own test cases |
 
 The lexer and parser never fail: they report every problem as a diagnostic
@@ -104,6 +107,7 @@ bun install
 bun run build     # Rust workspace + WASM package
 bun run test      # cargo test + package tests
 bun run parity    # diff against real pug on tests/fixtures/pug
+bun run docs:dev  # the documentation site; see docs/README.md
 ```
 
 The WASM build needs `rustup target add wasm32-unknown-unknown` and

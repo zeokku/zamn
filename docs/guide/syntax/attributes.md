@@ -1,0 +1,132 @@
+# Attributes
+
+Attributes go in parentheses after the tag, its classes and ids:
+
+```zamn
+a(href="/docs" target="_blank") Docs
+```
+
+```html
+<a href="/docs" target="_blank">Docs</a>
+```
+
+Separate them with spaces or with commas, as you like:
+
+```zamn
+a(href="/docs", target="_blank") Docs
+```
+
+```html
+<a href="/docs" target="_blank">Docs</a>
+```
+
+## Values
+
+A value is one of:
+
+| Value | Example | Output |
+|---|---|---|
+| a string in `"`, `'` or `` ` `` | `title='say "hi"'` | `title="say &quot;hi&quot;"` |
+| a number | `tabindex=-1` | `tabindex="-1"` |
+| a bare word: letters, digits, `_ - . %` | `target=_blank`, `width=50%` | `target="_blank"`, `width="50%"` |
+| `true`, or no value | `disabled`, `disabled=true` | `disabled="disabled"` |
+| `false`, `null` or `undefined` | `hidden=false` | the attribute is left out |
+
+```zamn
+input(type="checkbox" checked hidden=false tabindex=-1)
+```
+
+```html
+<input type="checkbox" checked="checked" tabindex="-1"/>
+```
+
+With the HTML doctype, a boolean attribute is written as just its name, which is
+what Vue expects:
+
+```zamn doctype=html
+input(type="checkbox" checked)
+```
+
+```html
+<input type="checkbox" checked>
+```
+
+Quoted strings take JavaScript escapes: `title="it\'s"` is `it's`, `"é"` is
+`é`. An empty `style=""` is left out.
+
+## Escaping
+
+Values are HTML-escaped: `&`, `<`, `>` and `"` become entities. Use `!=` to write a
+value as it is:
+
+```zamn
+p(title="a < b" data-html!="<b>bold</b>")
+```
+
+```html
+<p title="a &lt; b" data-html="<b>bold</b>"></p>
+```
+
+## No expressions
+
+A value is never evaluated: there is no JavaScript in zamn. Anything that looks like
+an expression (`href=url + "/x"`, `class=['a', 'b']`, `` title=`${x}` ``) is an error
+(`JS_EXPRESSION`):
+
+```zamn error=JS_EXPRESSION
+a(href=base + "/docs") Docs
+```
+
+In Vue, write a binding instead: its value is a string to zamn and an expression to
+Vue.
+
+```zamn
+a(:href="base + '/docs'") Docs
+```
+
+```html
+<a :href="base + '/docs'">Docs</a>
+```
+
+## Names
+
+Names can hold almost anything but spaces, `=`, `,` and `)`, so framework syntax
+works as written:
+
+```zamn
+MyInput(
+  v-model.trim="name"
+  :label="t('name')"
+  @update:model-value="save"
+  #prefix="{ icon }"
+)
+```
+
+```html
+<MyInput v-model.trim="name" :label="t('name')" @update:model-value="save" #prefix="{ icon }"></MyInput>
+```
+
+Quote a name to use other characters: `("odd name"="1")`. Each name may appear only
+once per element, except `class` (`DUPLICATE_ATTRIBUTE`).
+
+## Over several lines
+
+The parentheses may span lines. A value may too, and its line breaks are kept:
+
+```zamn
+div(
+  :class="{
+    active: isActive
+  }"
+  @click="select(item)"
+)
+```
+
+```html
+<div :class="{
+    active: isActive
+  }" @click="select(item)"></div>
+```
+
+A `(` without its `)` is an error (`NO_END_BRACKET`), as is a `=` with no value
+(`MISSING_ATTRIBUTE_VALUE`).

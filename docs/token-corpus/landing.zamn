@@ -1,0 +1,101 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    title Northwind: invoices that pay themselves
+    meta(name="description" content="Send invoices, chase payments and reconcile your books in one place.")
+    link(rel="stylesheet" href="/assets/site.css")
+    link(rel="icon" href="/favicon.svg" type="image/svg+xml")
+  body
+    header.site-header
+      nav.nav.container
+        a.logo(href="/")
+          img(src="/logo.svg" alt="Northwind" width="120" height="32")
+        ul.nav-links
+          li: a(href="/features") Features
+          li: a(href="/pricing") Pricing
+          li: a(href="/customers") Customers
+          li: a(href="/docs") Docs
+        .nav-actions
+          a.btn.btn-ghost(href="/login") Log in
+          a.btn.btn-primary(href="/signup") Start free trial
+    main
+      section.hero.container
+        .hero-copy
+          p.eyebrow New: automatic payment reminders
+          h1 Invoices that pay themselves
+          p.lead
+            | Northwind sends your invoices, follows up when they are late and
+            | matches every payment to your books, so you can get back to work.
+          .hero-actions
+            a.btn.btn-primary.btn-lg(href="/signup") Start your free trial
+            a.btn.btn-link(href="/demo") Watch the 2-minute demo &rarr;
+          p.fine-print No credit card required. Cancel any time.
+        figure.hero-shot
+          img(src="/img/dashboard.png" alt="The Northwind dashboard showing paid and overdue invoices" loading="lazy")
+      section.logos.container(aria-label="Customers")
+        p Trusted by 4,000 small businesses
+        ul.logo-row
+          li: img(src="/img/logos/acme.svg" alt="Acme")
+          li: img(src="/img/logos/globex.svg" alt="Globex")
+          li: img(src="/img/logos/initech.svg" alt="Initech")
+          li: img(src="/img/logos/umbrella.svg" alt="Umbrella")
+      section#features.features.container
+        h2 Everything between "sent" and "paid"
+        .feature-grid
+          article.feature
+            img.feature-icon(src="/img/icons/send.svg" alt="")
+            h3 Send in seconds
+            p Create an invoice from a template, add line items and send it by email or link.
+          article.feature
+            img.feature-icon(src="/img/icons/bell.svg" alt="")
+            h3 Polite reminders
+            p Northwind follows up on late invoices for you, on a schedule you choose.
+          article.feature
+            img.feature-icon(src="/img/icons/bank.svg" alt="")
+            h3 Automatic reconciliation
+            p Payments are matched to invoices as they land in your bank account.
+          article.feature
+            img.feature-icon(src="/img/icons/chart.svg" alt="")
+            h3 Cash flow at a glance
+            p See what is due this week, what is late and what you can expect next month.
+      section.testimonial.container
+        blockquote
+          p
+            | We used to spend every Friday chasing payments. Now we spend it on
+            | #[em actual] work.
+          footer
+            img.avatar(src="/img/people/maria.jpg" alt="" width="48" height="48")
+            cite
+              strong Maria Lopez
+              | , founder of Lopez Studio
+      section.cta.container
+        h2 Get paid faster, starting today
+        p Try every feature free for 14 days.
+        form.cta-form(action="/signup" method="get")
+          label.visually-hidden(for="cta-email") Work email
+          input#cta-email(type="email" name="email" placeholder="you@company.com" required)
+          button.btn.btn-primary(type="submit") Start free trial
+    footer.site-footer
+      .container.footer-grid
+        .footer-brand
+          img(src="/logo-mono.svg" alt="Northwind" width="100" height="26")
+          p &copy; 2026 Northwind Software, Inc.
+        nav(aria-label="Product")
+          h4 Product
+          ul
+            li: a(href="/features") Features
+            li: a(href="/pricing") Pricing
+            li: a(href="/changelog") Changelog
+        nav(aria-label="Company")
+          h4 Company
+          ul
+            li: a(href="/about") About
+            li: a(href="/careers") Careers
+            li: a(href="/contact") Contact
+        nav(aria-label="Legal")
+          h4 Legal
+          ul
+            li: a(href="/privacy") Privacy
+            li: a(href="/terms") Terms
