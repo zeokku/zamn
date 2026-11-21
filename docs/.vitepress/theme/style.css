@@ -14,9 +14,17 @@
   --vp-c-tip-3: var(--vp-c-brand-3);
   --vp-c-tip-soft: var(--vp-c-brand-soft);
 
-  --vp-c-bg: #ffffff;
-  --vp-c-bg-alt: var(--zamn-c-paper);
-  --vp-c-text-1: var(--zamn-c-ink);
+  --vp-c-bg: #f5f8f9;
+  --vp-c-bg-alt: transparent;
+  --vp-c-bg-elv: var(--zamn-glass-strong);
+
+  /* Frosted nav and sidebar. */
+  --vp-nav-bg-color: var(--zamn-glass);
+  --vp-nav-backdrop-filter: var(--zamn-blur);
+  --vp-nav-screen-bg-color: var(--zamn-glass-strong);
+  --vp-sidebar-bg-color: var(--zamn-glass);
+
+  --vp-code-block-bg: var(--zamn-glass-strong);
 
   --vp-button-brand-border: transparent;
   --vp-button-brand-text: #fff;
@@ -25,10 +33,13 @@
   --vp-button-brand-hover-text: #fff;
   --vp-button-brand-hover-bg: var(--zamn-c-accent-2);
   --vp-button-brand-active-bg: var(--zamn-c-accent-3);
+  --vp-button-alt-bg: var(--zamn-glass);
+  --vp-button-alt-border: var(--zamn-glass-edge);
+  --vp-button-alt-hover-bg: var(--zamn-glass-strong);
 
-  --vp-home-hero-name-color: var(--zamn-c-accent);
-  --vp-home-hero-image-background-image: linear-gradient(-60deg, var(--zamn-c-accent) 50%, transparent 50%);
-  --vp-home-hero-image-filter: blur(48px);
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: var(--zamn-gradient);
+  --vp-home-hero-image-background-image: none;
 
   --vp-custom-block-tip-border: transparent;
   --vp-custom-block-tip-text: var(--vp-c-text-1);
@@ -37,53 +48,226 @@
 }
 
 .dark {
-  --vp-c-bg: #0d0e10;
-  --vp-c-bg-alt: #141518;
-  --vp-c-bg-soft: #1a1b1f;
-  --vp-c-text-1: #f2f2f0;
+  --vp-c-bg: #0b1216;
+  --vp-c-bg-soft: rgba(255, 255, 255, 0.04);
   --vp-c-brand-1: var(--zamn-c-accent-2);
 }
 
-/* Sharp corners everywhere. */
-:root {
-  --vp-border-radius: 0;
+/* The colour behind the glass. */
+body {
+  background: var(--zamn-backdrop), var(--vp-c-bg);
+  background-attachment: fixed;
 }
-.VPButton,
+
+/* Glass panels. */
 .VPFeature,
+.vp-doc div[class*="language-"],
+.vp-code-group .tabs,
 .custom-block,
-div[class*="language-"],
 .vp-doc table,
 .VPLocalSearchBox .shell,
-.DocSearch-Button {
-  border-radius: 0 !important;
+.markdown-copy-buttons .dropdown-trigger,
+.markdown-copy-buttons .dropdown-menu {
+  background-color: var(--zamn-glass) !important;
+  backdrop-filter: var(--zamn-blur);
+  border: 1px solid var(--zamn-glass-border) !important;
+  box-shadow: var(--zamn-glass-shadow);
 }
 
-/* Condensed, heavy headings. */
-.VPHero .name,
-.VPHero .text,
+.VPFeature {
+  border-radius: var(--zamn-radius) !important;
+  /* VitePress's own rule only transitions colours; this one has to win. */
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease !important;
+  will-change: transform;
+}
+.VPFeature.link:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 44px rgba(13, 158, 154, 0.2);
+  border-color: var(--zamn-c-soft) !important;
+}
+.VPFeature.link:hover .icon {
+  transform: scale(1.08) rotate(-4deg);
+}
+.VPFeature .icon {
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.VPFeature .icon {
+  border-radius: 12px;
+  background: var(--zamn-c-soft);
+  color: var(--zamn-c-accent);
+}
+
+/* Code: rounded; a code group's tabs and block read as one card. */
+.vp-doc div[class*="language-"] {
+  border-radius: var(--zamn-radius) !important;
+}
+.vp-code-group .tabs {
+  border-radius: var(--zamn-radius) var(--zamn-radius) 0 0;
+  box-shadow: none;
+}
+.vp-code-group div[class*="language-"] {
+  border-radius: 0 0 var(--zamn-radius) var(--zamn-radius) !important;
+  border-top: 0 !important;
+}
+.vp-doc :not(pre) > code {
+  border-radius: 6px;
+}
+
+.custom-block {
+  border-radius: var(--zamn-radius) !important;
+}
+
+/* Tables: rounded, without the inner grid. */
+.vp-doc table {
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--zamn-radius);
+  overflow: hidden;
+}
+.vp-doc tr {
+  background: transparent;
+  border: 0;
+}
+.vp-doc tr:nth-child(2n) {
+  background: rgba(120, 160, 170, 0.06);
+}
+.vp-doc th,
+.vp-doc td {
+  border: 0;
+  border-bottom: 1px solid var(--zamn-glass-edge);
+}
+.vp-doc tr:last-child td {
+  border-bottom: 0;
+}
+.vp-doc th {
+  background: transparent;
+}
+
+/* Buttons are pills. */
+.VPButton {
+  border-radius: 999px !important;
+}
+/* The brand button keeps its gradient and text colour in every state; hover
+   brightens it, pressing sinks it a little. */
+.VPButton.brand,
+.VPButton.brand:hover,
+.VPButton.brand:active,
+.VPButton.brand:focus-visible {
+  border-color: transparent !important;
+  color: var(--zamn-button-text) !important;
+  background: var(--zamn-gradient) !important;
+}
+.VPButton.brand {
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.3);
+  transition:
+    filter 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s !important;
+}
+.VPButton.brand:hover {
+  filter: brightness(1.06) saturate(1.1);
+  box-shadow: 0 10px 28px rgba(6, 182, 212, 0.4);
+}
+.VPButton.brand:active {
+  filter: brightness(0.94);
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 3px 10px rgba(6, 182, 212, 0.3);
+}
+.VPButton.alt:active {
+  transform: translateY(1px) scale(0.98);
+}
+.VPButton.alt {
+  backdrop-filter: var(--zamn-blur);
+}
+
+/* Sidebar edge. */
+.VPSidebar {
+  backdrop-filter: var(--zamn-blur);
+  border-right: 1px solid var(--zamn-glass-edge);
+}
+.VPSidebarItem.is-active > .item .link > .text {
+  color: var(--zamn-c-accent);
+}
+
+/* Headings: Aileron, tight; page titles in the gradient. */
 .vp-doc h1,
 .vp-doc h2,
-.VPFeature .title {
+.vp-doc h3,
+.VPHero .text,
+.VPFeature .title,
+.playground-page h1 {
   font-family: var(--zamn-font-display);
-  font-weight: 700;
-  letter-spacing: 0.01em;
 }
-.vp-doc h1 {
-  text-transform: uppercase;
+.vp-doc h1,
+.playground-page h1 {
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  background: var(--zamn-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  width: fit-content;
 }
 .vp-doc h2 {
-  border-top: 2px solid var(--vp-c-text-1);
-  font-size: 28px;
+  border-top: 0;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+/* The hero: `.zamn` in mono, like a file extension. */
+.VPHero .name {
+  font-family: var(--vp-font-family-mono);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+}
+.VPHero .text {
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+/* `<angle="brackets">`: the words greyed out, the punctuation in mono, and the
+   `<` and `>` in the brand colour. */
+.VPHero .text .angle {
+  color: var(--vp-c-text-3);
+  font-family: var(--zamn-font-worn);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.VPHero .text .punct {
+  font-family: var(--vp-font-family-mono);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+.VPHero .text .bracket {
+  color: var(--zamn-c-accent);
+}
+.VPHero .tagline code,
+.VPFeature .details code {
+  font-size: 0.85em;
+  padding: 0.1em 0.4em;
+  border-radius: 8px;
+  background: var(--zamn-c-soft);
+  color: var(--zamn-c-accent);
+}
+.VPFeature .title {
+  font-weight: 600;
 }
 
-/* A diagonal accent bar on the home hero. */
-.VPHome {
-  background:
-    linear-gradient(160deg, transparent 0 62%, var(--zamn-c-soft) 62% 70%, transparent 70%),
-    var(--vp-c-bg);
+/* "Copy page": a glass pill with a rounded menu. */
+.markdown-copy-buttons .dropdown-trigger {
+  border-radius: 999px !important;
 }
-.VPFeature {
-  border-left: 3px solid var(--zamn-c-accent) !important;
+.markdown-copy-buttons .dropdown-menu {
+  border-radius: var(--zamn-radius-sm) !important;
+  background-color: var(--zamn-glass-strong) !important;
+}
+
+/* The fade under the outline would be an opaque strip over the backdrop. */
+.VPDoc .aside-curtain {
+  display: none;
 }
 
 /* The playground gets the full width of the page. */
@@ -93,13 +277,121 @@ div[class*="language-"],
   padding: 32px 24px 64px;
 }
 .playground-page h1 {
-  font-family: var(--zamn-font-display);
-  font-size: 32px;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-size: 36px;
 }
 .playground-page > p {
   margin: 12px 0 0;
   max-width: 72ch;
   color: var(--vp-c-text-2);
+}
+
+/* Search: a glass pill in the nav, a rounded panel when open. */
+.VPNavBarSearchButton {
+  border-radius: 999px !important;
+  border: 1px solid var(--zamn-glass-border) !important;
+  background-color: var(--zamn-glass) !important;
+  backdrop-filter: var(--zamn-blur);
+  transition:
+    border-color 0.25s,
+    box-shadow 0.25s;
+}
+.VPNavBarSearchButton:hover {
+  border-color: var(--zamn-c-accent) !important;
+  box-shadow: 0 0 0 4px var(--zamn-c-soft);
+}
+.VPNavBarSearchButton .keys kbd,
+.VPNavBarSearchButton kbd {
+  border-radius: 999px !important;
+}
+.VPLocalSearchBox .shell {
+  border-radius: 20px !important;
+}
+/* Denser glass than the panels: results must stay readable over the page. */
+.VPLocalSearchBox .shell.shell {
+  background-color: var(--zamn-glass-strong) !important;
+  backdrop-filter: saturate(160%) blur(28px) !important;
+}
+.VPLocalSearchBox .search-bar {
+  border-radius: 999px !important;
+}
+.VPLocalSearchBox .result {
+  border-radius: 12px !important;
+}
+
+/* Scrollbars: a slim, rounded teal thumb on a clear track. */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--zamn-scroll-thumb);
+  background-clip: content-box;
+  border: 3px solid transparent;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--zamn-scroll-thumb-hover);
+}
+/* Firefox has no ::-webkit-scrollbar; Chromium ignores it once these are set. */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--zamn-scroll-thumb) transparent;
+  }
+}
+
+::selection {
+  background: rgba(6, 182, 212, 0.22);
+}
+
+/* Home: the example ("Write this / Get this") comes before the feature cards.
+   VitePress renders the page's Markdown after the features, so reorder. */
+.VPHome {
+  display: flex;
+  flex-direction: column;
+}
+.VPHome .VPHomeContent {
+  order: 1;
+}
+.VPHome .VPHomeFeatures {
+  order: 2;
+  margin-top: 8px;
+}
+
+/* The example's headings: no doc-page gap above them. */
+.home-extra h2 {
+  margin: 24px 0 12px;
+  padding-top: 0;
+}
+.home-extra > h2:first-child {
+  margin-top: 0;
+}
+.home-extra h2 .header-anchor {
+  top: 0;
+}
+
+/* Below 960px VitePress pulls the hero image up by 76-108px, which suits its
+   large transparent image box but puts the placeholder logo under the nav bar. */
+@media (max-width: 959px) {
+  .VPHero.has-image .image {
+    margin: 0 0 24px;
+  }
+  .VPHero.has-image .image-container {
+    display: flex;
+    justify-content: center;
+    width: auto;
+    height: auto;
+  }
+}
+/* "Read the introduction or try it in the playground". */
+.home-extra > p:last-child {
+  text-align: center;
+}
+.VPFeature .details code {
+  font-family: var(--vp-font-family-mono);
+  white-space: nowrap;
 }

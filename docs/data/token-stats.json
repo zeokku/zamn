@@ -14,6 +14,12 @@
           "claude": null,
           "sha": "4d46f12dd10e5bff"
         },
+        "zamnOneLine": {
+          "chars": 2065,
+          "openai": 584,
+          "claude": null,
+          "sha": "4d46f12dd10e5bff"
+        },
         "zamnIndent": {
           "chars": 2185,
           "openai": 626,
@@ -48,6 +54,12 @@
           "openai": 593,
           "claude": null,
           "sha": "ca58e445b567b259"
+        },
+        "zamnOneLine": {
+          "chars": 2025,
+          "openai": 588,
+          "claude": null,
+          "sha": "b32476e2f875cd2e"
         },
         "zamnIndent": {
           "chars": 2060,
@@ -84,6 +96,12 @@
           "claude": null,
           "sha": "9d0fb0cea505ffce"
         },
+        "zamnOneLine": {
+          "chars": 1994,
+          "openai": 544,
+          "claude": null,
+          "sha": "3b6b94fdaa0d0928"
+        },
         "zamnIndent": {
           "chars": 2118,
           "openai": 574,
@@ -119,6 +137,12 @@
           "claude": null,
           "sha": "63d539ef0c33a259"
         },
+        "zamnOneLine": {
+          "chars": 3624,
+          "openai": 967,
+          "claude": null,
+          "sha": "de7a854eea95f014"
+        },
         "zamnIndent": {
           "chars": 3939,
           "openai": 1029,
@@ -149,6 +173,12 @@
       "name": "signup-form",
       "counts": {
         "zamnFlat": {
+          "chars": 1803,
+          "openai": 483,
+          "claude": null,
+          "sha": "6c084fe246a09f33"
+        },
+        "zamnOneLine": {
           "chars": 1803,
           "openai": 483,
           "claude": null,
@@ -189,6 +219,12 @@
           "claude": null,
           "sha": "7d33c80a61387bba"
         },
+        "zamnOneLine": {
+          "chars": 1319,
+          "openai": 357,
+          "claude": null,
+          "sha": "c2874a390b53cbe3"
+        },
         "zamnIndent": {
           "chars": 1358,
           "openai": 368,
@@ -220,6 +256,11 @@
     "zamnFlat": {
       "chars": 12890,
       "openai": 3550,
+      "claude": null
+    },
+    "zamnOneLine": {
+      "chars": 12830,
+      "openai": 3523,
       "claude": null
     },
     "zamnIndent": {

@@ -19,7 +19,8 @@ bun run --cwd docs test
 Every ` ```zamn ` block is checked by `test/examples.test.ts`: if the next code block
 is ` ```html `, the template must compile to exactly that HTML. Mark a block
 `doctype=html` to compile it as a Vue template would be, `error=CODE` when it should
-fail with that diagnostic, or `skip` for fragments.
+fail with that diagnostic, or `skip` for fragments. An ` ```html format ` block holds
+the output as Prettier formats it (`.vitepress/theme/format.ts`).
 
 `ai/rules.md` and `ai/skill.md` include `agents/zamn.md` and `skills/zamn/SKILL.md`
 from the repository root; edit those files, not the pages. They are also served for

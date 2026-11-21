@@ -2,6 +2,7 @@
 // Compiles zamn in the browser with the WebAssembly build of the `zamn`
 // package. The module is imported on mount, so it never runs during SSR.
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
+import { formatHtml } from "./format";
 
 type Api = typeof import("zamn");
 interface Problem {
@@ -21,18 +22,22 @@ const presets: Record<string, string> = {
   MyButton(@click="select(item)" :disabled="busy") Select
 }`,
   Page: `doctype html
-html(lang="en")
-  head
+html(lang="en") {
+  head {
     meta(charset="utf-8")
     title Hello
-  body
+  }
+  body {
     h1 Hello, #[em world]
-    p
+    p {
       | Text is not escaped, so
       |
       b HTML
       |
-      | works too.`,
+      | works too.
+    }
+  }
+}`,
   Whitespace: `p {
   b this
   |
@@ -49,6 +54,7 @@ p.5`,
 
 const source = ref(presets["Vue component"]!);
 const terse = ref(true);
+const formatted = ref(true);
 const api = shallowRef<Api | null>(null);
 const loadError = ref("");
 
@@ -60,6 +66,7 @@ onMounted(async () => {
     } catch {}
   }
   if (location.hash.includes("&doctype=0")) terse.value = false;
+  if (location.hash.includes("&raw=1")) formatted.value = false;
   try {
     const mod = await import("zamn");
     await (mod as unknown as { default: () => Promise<unknown> }).default();
@@ -82,10 +89,32 @@ const result = computed(() => {
   }
 });
 
+// The HTML as shown: laid out by Prettier unless "Formatted" is off. Only the
+// latest run may write, so a slow format never overwrites a newer one.
+const shown = ref("");
+let run = 0;
+watch(
+  [() => result.value.html, formatted],
+  async ([html, pretty]) => {
+    const mine = ++run;
+    let out = html;
+    if (pretty && html) {
+      try {
+        out = await formatHtml(html);
+      } catch {
+        // Prettier can't read it: show the compiler's output as it is.
+      }
+    }
+    if (mine === run) shown.value = out;
+  },
+  { immediate: true },
+);
+
 // Keep the source in the URL, so a playground can be shared by its link.
-watch([source, terse], () => {
+watch([source, terse, formatted], () => {
   const encoded = btoa(unescape(encodeURIComponent(source.value)));
-  history.replaceState(null, "", `#src=${encoded}${terse.value ? "" : "&doctype=0"}`);
+  const flags = (terse.value ? "" : "&doctype=0") + (formatted.value ? "" : "&raw=1");
+  history.replaceState(null, "", `#src=${encoded}${flags}`);
 });
 
 const copied = ref(false);
@@ -121,6 +150,10 @@ const sizes = computed(() => ({ zamn: source.value.length, html: result.value.ht
         <input v-model="terse" type="checkbox" />
         <code>doctype: "html"</code>
       </label>
+      <label title="Lay the HTML out with Prettier. The compiler writes it on one line.">
+        <input v-model="formatted" type="checkbox" />
+        Formatted
+      </label>
       <button type="button" @click="share">{{ copied ? "Link copied" : "Copy link" }}</button>
     </div>
     <div class="panes">
@@ -146,7 +179,7 @@ const sizes = computed(() => ({ zamn: source.value.length, html: result.value.ht
             <div v-if="p.hint" class="hint">{{ p.hint }}</div>
           </li>
         </ul>
-        <pre v-else><code>{{ result.html }}</code></pre>
+        <pre v-else><code>{{ shown }}</code></pre>
       </section>
     </div>
   </div>
@@ -154,30 +187,43 @@ const sizes = computed(() => ({ zamn: source.value.length, html: result.value.ht
 
 <style scoped>
 .playground {
-  margin-top: 16px;
+  margin-top: 20px;
 }
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   font-size: 14px;
+}
+.toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .toolbar select,
 .toolbar button {
-  border: 1px solid var(--vp-c-divider);
-  padding: 4px 10px;
-  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--zamn-glass-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: var(--zamn-glass);
+  backdrop-filter: var(--zamn-blur);
+  box-shadow: var(--zamn-glass-shadow);
   color: var(--vp-c-text-1);
+  transition: border-color 0.2s;
 }
+.toolbar select:hover,
 .toolbar button:hover {
-  border-color: var(--vp-c-brand-1);
+  border-color: var(--zamn-c-accent);
+}
+.toolbar input[type="checkbox"] {
+  accent-color: var(--zamn-c-accent);
 }
 .panes {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 20px;
 }
 @media (max-width: 760px) {
   .panes {
@@ -185,63 +231,77 @@ const sizes = computed(() => ({ zamn: source.value.length, html: result.value.ht
   }
 }
 section {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  border: 1px solid var(--vp-c-divider);
-  border-top: 3px solid var(--zamn-c-accent);
+  overflow: hidden;
+  border: 1px solid var(--zamn-glass-border);
+  border-radius: var(--zamn-radius);
+  background: var(--zamn-glass);
+  backdrop-filter: var(--zamn-blur);
+  box-shadow: var(--zamn-glass-shadow);
 }
 header {
   display: flex;
   justify-content: space-between;
-  padding: 6px 12px;
-  font-family: var(--zamn-font-display);
-  font-weight: 700;
+  align-items: center;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  background: var(--vp-c-bg-alt);
+  border-bottom: 1px solid var(--zamn-glass-edge);
 }
 header span {
-  font-family: var(--vp-font-family-base);
   font-weight: 400;
-  text-transform: none;
   font-size: 12px;
   color: var(--vp-c-text-2);
 }
 textarea,
 pre {
   flex: 1;
-  min-height: 420px;
+  min-height: 440px;
   margin: 0;
-  padding: 12px;
+  padding: 16px;
   font-family: var(--vp-font-family-mono);
   font-size: 13px;
-  line-height: 1.6;
-  background: var(--vp-c-bg);
+  line-height: 1.65;
+  background: transparent;
   color: var(--vp-c-text-1);
   border: 0;
   resize: vertical;
-  white-space: pre-wrap;
-  word-break: break-word;
+  white-space: pre;
+  overflow: auto;
   tab-size: 2;
 }
 textarea:focus {
-  outline: 2px solid var(--zamn-c-accent);
-  outline-offset: -2px;
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--zamn-c-soft);
 }
 .problems {
   margin: 0;
-  padding: 12px 12px 12px 28px;
+  padding: 16px 16px 16px 32px;
   font-size: 14px;
+}
+.problems li + li {
+  margin-top: 8px;
 }
 .problem {
   color: var(--vp-c-danger-1);
+}
+.problem code {
+  margin: 0 6px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--vp-c-danger-soft);
 }
 .hint {
   color: var(--vp-c-text-2);
   font-size: 13px;
 }
 .muted {
-  padding: 12px;
+  padding: 16px;
   color: var(--vp-c-text-2);
 }
 </style>

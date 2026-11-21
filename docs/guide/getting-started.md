@@ -37,13 +37,16 @@ Save this as `page.zamn`:
 
 ```zamn
 doctype html
-html(lang="en")
-  head
+html(lang="en") {
+  head {
     meta(charset="utf-8")
     title My page
-  body
+  }
+  body {
     h1 Hello
     p.lead Plain HTML, without the angle brackets.
+  }
+}
 ```
 
 Compile it from the command line:

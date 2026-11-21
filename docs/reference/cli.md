@@ -44,7 +44,7 @@ Every problem is printed to stderr, one per line, with its hint below it:
 ```text
 page.zamn:4:1: error[INCONSISTENT_INDENTATION]: Inconsistent indentation. Expecting either 2 or 4 spaces/tabs.
 page.zamn:7:14: error[JS_EXPRESSION]: JavaScript expressions are not supported in attribute values
-  hint: zamn has no JavaScript; attribute values are quoted strings, numbers or bare words
+  hint: zamn has no JavaScript; quote the value, or write a binding such as `:href` for your framework
 ```
 
 Lines are 1-based, columns are 1-based. No HTML is written when there are errors.

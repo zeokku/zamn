@@ -1,17 +1,19 @@
 # Introduction
 
 zamn is a static way to write HTML. A tag is its name, classes and ids are `.class`
-and `#id`, and nesting is indentation (or `{ }`, if you prefer). There are no closing
-tags, and nothing to keep in sync.
+and `#id`, and an element's children go in a `{ }` block. There are no closing tags,
+and nothing to keep in sync.
 
 ```zamn
-article.post#intro
+article.post#intro {
   h2.title Hello
-  p
+  p {
     | Written in
     |
     a(href="https://github.com/zeokku/zamn") zamn
     | .
+  }
+}
 ```
 
 ```html
@@ -41,7 +43,8 @@ and [Prettier](../ecosystem/prettier) all work on zamn templates.
 ## Why another syntax
 
 - **Less to read.** No `</div>` at the bottom of the screen to match up with the
-  top. Structure is visible at a glance.
+  top: a block ends with a `}`, and the indentation inside shows the structure at a
+  glance.
 - **Less to write.** For people, and for coding agents: the same page takes fewer
   tokens in zamn than in HTML. See [Writing zamn with AI agents](../ai/).
 - **Nothing hidden.** What you write is what you get: there's no runtime and no
@@ -49,7 +52,9 @@ and [Prettier](../ecosystem/prettier) all work on zamn templates.
 
 ::: tip Existing templates
 Existing pug templates that don't use unsupported features (JavaScript, control
-flow, mixins, includes, inheritance, filters) should work out of the box.
+flow, mixins, includes, inheritance, filters) should work out of the box. One thing
+to look for: text that starts with `{` and ends with `}`, as in `p {b}`, is a
+[brace block](./syntax/brace-blocks) in zamn. Write `p \{b}` for the text.
 :::
 
 ## Where to go next

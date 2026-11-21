@@ -14,9 +14,9 @@ compiles to exactly the same HTML. [How it was measured](./token-savings).
 ## The workflow
 
 1. **Generate terse zamn.** Every element with children holds them in `{ }`, with
-   no indentation at all, and attributes stay on the tag's line. It is the
-   smallest form that is still valid: a brace block can start at any indentation,
-   including none.
+   no indentation at all, and attributes stay on the tag's line: a brace block
+   can start at any indentation, including none. A block can also close on its
+   own line (`a(href="/"){img(src="/logo.svg")}`), but that saves little.
 2. **Check it.** `zamn file.zamn` (or `vue-tsc` and `eslint` in a Vue project)
    reports every problem with a code and a hint, which an agent can act on.
 3. **Format it for people.** `prettier --write` with
@@ -48,7 +48,9 @@ ul.nav {
 ```
 
 With OpenAI's tokenizer, flat braces came out a few percent smaller than
-indentation with one space. Both are far smaller than formatted HTML. Whichever an
+indentation with one space. Folding every block that can onto one line saved under
+1% more: most blocks hold text somewhere other than at the end, and text runs to
+the closing `}`, so they can't fold. Both are far smaller than formatted HTML. Whichever an
 agent writes, the formatter makes them identical.
 
 ## Give your agent the rules

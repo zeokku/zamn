@@ -33,13 +33,14 @@ holds the same page:
 | Form | How |
 |---|---|
 | zamn, flat braces | Prettier with `tabWidth: 0`: braces around every block, no indentation |
+| zamn, one-line blocks | flat braces, with every block that can close on its line written on one: `ul{li{a x}}` |
 | zamn, 1-space indentation | Prettier with `zamnBlockStyle: "preserve"` and `tabWidth: 1`: no braces |
 | zamn, formatted | Prettier with prettier-plugin-zamn's defaults |
 | HTML, minified | `compile(source, { doctype: "html" })` |
 | HTML, formatted | the minified HTML through Prettier's HTML formatter |
 
-The two terse zamn forms also set `zamnMaxAttributesPerLine: false` and an unlimited
-`printWidth`, so attributes stay on one line. A test checks that all three zamn forms
+The terse zamn forms also set `zamnMaxAttributesPerLine: false` and an unlimited
+`printWidth`, so attributes stay on one line. A test checks that all four zamn forms
 compile to identical HTML.
 
 Tokens are counted with:
@@ -56,6 +57,9 @@ Tokens are counted with:
   is much smaller, even after formatting.
 - **Against minified HTML**, formatted zamn is about even. The savings come from
   writing zamn tersely, so generate the terse form and format it afterwards.
+- **One-line blocks** save under 1% over flat braces. A block folds only when
+  every child but the last ends in `}` or `/`, because text runs to the closing
+  `}`, and most blocks hold text. A newline costs about what a space does.
 - **Utility classes** (`dashboard-card`) save the least: a long `class="..."` string
   costs the same in both. Semantic markup with `.class` shorthand saves the most.
 - Tokens are not the only cost. A model writes HTML it has seen millions of times;

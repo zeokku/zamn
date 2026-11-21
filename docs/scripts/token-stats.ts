@@ -15,15 +15,16 @@ import { createHash } from "node:crypto";
 import { basename, resolve } from "node:path";
 import * as prettier from "prettier";
 import * as zamnPrettier from "prettier-plugin-zamn";
-import { compile } from "zamn";
+import { compile, lex } from "zamn";
 
 const CLAUDE_MODEL = "claude-opus-5-5";
 const docs = resolve(import.meta.dir, "..");
 const out = resolve(docs, "data/token-stats.json");
 
-/** The forms each page is measured in. The first three compile to the same HTML. */
+/** The forms each page is measured in. The zamn ones compile to the same HTML. */
 export const variants = {
   zamnFlat: "zamn, flat braces",
+  zamnOneLine: "zamn, one-line blocks",
   zamnIndent: "zamn, 1-space indentation",
   zamnFormatted: "zamn, formatted",
   htmlMinified: "HTML, minified",
@@ -42,6 +43,8 @@ export async function render(source: string): Promise<Record<Variant, string>> {
     // Braces around every block, and no indentation at all: a brace block's
     // base indentation is free.
     zamnFlat: await zamn(source, { ...terse, tabWidth: 0 }),
+    // Flat braces, with every block that can close on its line written on one.
+    zamnOneLine: oneLine(await zamn(source, { ...terse, tabWidth: 0 })),
     // No braces, one space per level.
     zamnIndent: await zamn(source, { ...terse, tabWidth: 1, zamnBlockStyle: "preserve" }),
     // What prettier-plugin-zamn prints with its default options.
@@ -53,6 +56,42 @@ export async function render(source: string): Promise<Record<Variant, string>> {
       htmlWhitespaceSensitivity: "ignore",
     }),
   };
+}
+
+type Line = string | { head: string; children: Line[] };
+
+/**
+ * Folds the blocks of the flat-braces form onto one line where zamn allows it:
+ * `ul {` / `li{a x}` / `}` becomes `ul{li{a x}}`. Text and `= expr` run to the
+ * closing `}`, so a block folds only if every child but the last ends in `}`
+ * or `/`. The input must have no text blocks (`p.`) or values that span lines.
+ */
+export function oneLine(flat: string): string {
+  const lines = flat.replace(/\n$/, "").split("\n");
+  const opens = new Set<number>();
+  for (const token of lex(flat).tokens) {
+    if (token.type === "BraceOpen") opens.add(token.loc.start.line - 1);
+  }
+  const root: Line[] = [];
+  const stack = [root];
+  lines.forEach((line, i) => {
+    if (line === "}") stack.pop();
+    else if (opens.has(i)) {
+      const block = { head: line.slice(0, -1).trimEnd(), children: [] };
+      stack.at(-1)!.push(block);
+      stack.push(block.children);
+    } else stack.at(-1)!.push(line);
+  });
+  const print = (line: Line): string[] => {
+    if (typeof line === "string") return [line];
+    const children = line.children.map(print);
+    const folded = children.every((c) => c.length === 1) ? children.map((c) => c[0]) : null;
+    if (folded && folded.slice(0, -1).every((c) => /[}/]$/.test(c))) {
+      return [`${line.head}{${folded.join(" ")}}`];
+    }
+    return [`${line.head} {`, ...children.flat(), "}"];
+  };
+  return root.flatMap(print).join("\n") + "\n";
 }
 
 interface Count {

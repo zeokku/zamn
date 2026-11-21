@@ -3,12 +3,9 @@
 layout: home
 
 hero:
-  name: "zamn"
-  text: "HTML without the angle brackets"
-  tagline: A static, indentation-based way to write HTML. Easy to read, quick to write, and cheap for coding agents to generate.
-  image:
-    src: /logo.svg
-    alt: zamn
+  name: ".zamn"
+  text: "HTML without the <span class=\"angle\"><span class=\"punct bracket\">&lt;</span>angle<span class=\"punct\">=&quot;</span><wbr>brackets<span class=\"punct\">&quot;</span><span class=\"punct bracket\">&gt;</span></span>"
+  tagline: A static way to write HTML with <code>{ }</code> blocks instead of closing tags. Easy to read, quick to write, and cheap for coding agents to generate.
   actions:
     - theme: brand
       text: Get started
@@ -23,7 +20,7 @@ hero:
 features:
   - title: Readable
     icon: ▲
-    details: Tags, classes and ids on one line, nesting by indentation or braces. No closing tags to keep in sync.
+    details: "Tags, classes and ids on one line, children in <code>{ }</code> blocks. No closing tags to keep in sync."
     link: /guide/syntax/elements
   - title: Fewer tokens
     icon: ◆
@@ -31,7 +28,7 @@ features:
     link: /ai/token-savings
   - title: Vue tooling
     icon: ■
-    details: "&lt;template lang=\"zamn\"&gt; with Vite, vue-tsc type checking, ESLint, Prettier and VS Code highlighting."
+    details: "<code>&lt;template lang=\"zamn\"&gt;</code> with Vite, vue-tsc type checking, ESLint, Prettier and VS Code highlighting."
     link: /ecosystem/overview
   - title: Static by design
     icon: ●
@@ -53,11 +50,16 @@ nav.top {
 
 ## Get this
 
-```html
-<nav class="top"><a href="/">Home</a><a href="/docs" :class="{ active: onDocs }">Docs</a><button @click="toggleTheme">{{ themeLabel }}</button></nav>
+```html format
+<nav class="top">
+  <a href="/">Home</a>
+  <a href="/docs" :class="{ active: onDocs }">Docs</a>
+  <button @click="toggleTheme">{{ themeLabel }}</button>
+</nav>
 ```
 
-zamn compiles to plain HTML, so it works anywhere HTML does: a static page, an email
+zamn compiles to plain HTML (shown formatted here; the compiler writes it on one
+line), so it works anywhere HTML does: a static page, an email
 template, or the `<template>` of a Vue component. Directives such as `:class` and
 `@click` go through untouched, and `= expr` becomes `{{ expr }}`.
 

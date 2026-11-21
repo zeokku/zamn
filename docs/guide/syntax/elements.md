@@ -2,13 +2,14 @@
 
 ## Tags
 
-A line that starts with a name is an element. Its children are the lines indented
-under it.
+A line that starts with a name is an element. Its children go in a `{ }` block after
+it:
 
 ```zamn
-ul
+ul {
   li One
   li Two
+}
 ```
 
 ```html
@@ -33,7 +34,22 @@ my-card
 A tag can't hold a `.`: that starts a class. `Form.Input` is the tag `Form` with the
 class `Input`.
 
-## Indentation
+## Braces or indentation
+
+Braces are the recommended way to write children, and what
+[Prettier](../../ecosystem/prettier) prints: see [Brace blocks](./brace-blocks).
+Indentation alone works too, as long as the block is consistent. Children are then
+the lines indented under the element:
+
+```zamn
+ul
+  li One
+  li Two
+```
+
+```html
+<ul><li>One</li><li>Two</li></ul>
+```
 
 Indent with spaces or with tabs, but not both on the same line. Each block decides
 its own step: children indented by 2 or by 4 are both fine, as long as the lines of
@@ -53,8 +69,6 @@ footer
 
 A line indented less than its siblings, or in between two levels, is an error
 (`INCONSISTENT_INDENTATION`).
-
-You can also hold children in braces instead: see [Brace blocks](./brace-blocks).
 
 ## The implicit `div`
 

@@ -30,8 +30,9 @@ error[UNSUPPORTED_SYNTAX]: `each` (control flow) is not supported
 ### `JS_EXPRESSION`
 
 An attribute value, or what follows it, is JavaScript: `href=url + "/x"`,
-`` title=`${x}` ``, `class=['a', 'b']`. Values are strings, numbers or bare words.
-In Vue, use a binding (`:href="url + '/x'"`).
+`` title=`${x}` ``, `class=['a', 'b']`, `data-x={ a: 1 }`, or a `style={...}`
+whose values aren't all strings and numbers. Quote the value, or in Vue use a
+binding (`:href="url + '/x'"`).
 
 ```zamn error=JS_EXPRESSION
 a(href=base + "/docs") Docs
@@ -158,6 +159,15 @@ included. `class` may repeat: the values are merged.
 
 ```zamn error=DUPLICATE_ATTRIBUTE
 a(href="/a" href="/b")
+```
+
+### `INVALID_ATTRIBUTE_VALUE`
+
+An unquoted value holds a character HTML doesn't allow there: whitespace, `"`, `'`,
+`` ` ``, `=`, `<` or `>`. The hint: put the value in quotes.
+
+```zamn error=INVALID_ATTRIBUTE_VALUE
+a(href=/search?q=zamn) Search
 ```
 
 ### `MISSING_ATTRIBUTE_VALUE`

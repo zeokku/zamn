@@ -5,13 +5,16 @@
 // - ```zamn error=CODE must report that diagnostic code;
 // - any other ```zamn block must compile without errors;
 // - ```zamn doctype=html compiles with `doctype: "html"`, as Vue templates do;
+// - ```html format shows the output as Prettier lays it out (.vitepress/theme/format.ts);
 // - ```zamn skip is not checked (fragments, placeholders).
 //
 // The rules file and the skill are checked the same way.
 import { describe, expect, test } from "bun:test";
 import { Glob } from "bun";
 import { resolve } from "node:path";
+import * as prettier from "prettier";
 import { compile, ZamnError } from "zamn";
+import { htmlFormat } from "../.vitepress/theme/format";
 
 const root = resolve(import.meta.dir, "../..");
 const files = [
@@ -62,7 +65,7 @@ for (const file of files) {
       const error = option(block.meta, "error");
       const next = list[list.indexOf(block) + 1];
 
-      test(`line ${block.line}`, () => {
+      test(`line ${block.line}`, async () => {
         const run = () => compile(block.code, { filename: "example.zamn", doctype });
         if (error) {
           let codes: string[] = [];
@@ -75,7 +78,12 @@ for (const file of files) {
           return;
         }
         const { code } = run();
-        if (next?.lang === "html") expect(code).toBe(next.code);
+        if (next?.lang !== "html") return;
+        if (/\bformat\b/.test(next.meta)) {
+          expect((await prettier.format(code, htmlFormat)).trimEnd()).toBe(next.code);
+        } else {
+          expect(code).toBe(next.code);
+        }
       });
     }
   });

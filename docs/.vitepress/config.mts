@@ -1,6 +1,7 @@
 import { copyFileSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import browserslist from "browserslist";
 import { defineConfig, type DefaultTheme } from "vitepress";
 import llmstxt, { copyOrDownloadAsMarkdownButtons } from "vitepress-plugin-llms";
 
@@ -21,6 +22,27 @@ const zamnInVue = {
   injectTo: ["text.html.vue"],
   embeddedLangs: ["zamn"],
 };
+
+// Browsers the CSS is built for. Vite gives Lightning CSS, its CSS minifier,
+// targets from `build.cssTarget` only, in esbuild's format. Without targets,
+// VitePress's `backdrop-filter` came out as `-webkit-backdrop-filter` alone,
+// which Chromium ignores: no glass. See
+// https://github.com/parcel-bundler/lightningcss/issues/826. (Our own CSS
+// writes no `-webkit-backdrop-filter`: next to `backdrop-filter` with a
+// `var()` value, Lightning CSS keeps only the last of the two.)
+const esbuildBrowser: Record<string, string> = {
+  chrome: "chrome",
+  edge: "edge",
+  firefox: "firefox",
+  safari: "safari",
+  ios_saf: "ios",
+  opera: "opera",
+};
+const cssTarget = browserslist("defaults").flatMap((entry) => {
+  const [name, version] = entry.split(" ");
+  const browser = esbuildBrowser[name!];
+  return browser ? [`${browser}${version!.split("-")[0]}`] : [];
+});
 
 // Files outside docs/ served as downloads: published path -> repo path.
 const downloads: Record<string, string> = {
@@ -108,24 +130,14 @@ const ai: DefaultTheme.SidebarItem[] = [
 
 export default defineConfig({
   title: "zamn",
-  description: "A static, indentation-based way to write HTML. Readable for people, cheap for agents.",
+  description: "A static way to write HTML with { } blocks instead of closing tags. Readable for people, cheap for agents.",
   base: "/zamn/",
   cleanUrls: true,
   srcExclude: ["README.md", "data/**"],
   lastUpdated: true,
-  head: [
-    ["link", { rel: "icon", type: "image/svg+xml", href: "/zamn/logo.svg" }],
-    ["link", { rel: "preconnect", href: "https://fonts.googleapis.com" }],
-    ["link", { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" }],
-    [
-      "link",
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&display=swap" },
-    ],
-  ],
   sitemap: { hostname: `${site}/` },
 
   themeConfig: {
-    logo: "/logo.svg",
     nav: [
       { text: "Guide", link: "/guide/introduction", activeMatch: "/guide/" },
       { text: "Ecosystem", link: "/ecosystem/overview", activeMatch: "/ecosystem/" },
@@ -170,5 +182,6 @@ export default defineConfig({
   vite: {
     plugins: [llmstxt({ domain: "https://zeokku.github.io", ignoreFiles: ["blog/index.md"] }), downloadsPlugin()],
     server: { fs: { allow: [fromRoot("")] } },
+    build: { cssTarget },
   },
 });

@@ -110,5 +110,4 @@ p \{ not a block }
 <p>{</p><p>{ not a block }</p>
 ```
 
-In pug, `p {b}` is the text `{b}`. In zamn it is a block, so this is one place
-where static pug needs the escape: `p \{b}`.
+`p {b}` is a `p` holding a `<b>` element; `p \{b}` is the text `{b}`.

@@ -1,24 +1,69 @@
-/* The zamn palette: near-white and near-black surfaces, one red-orange accent. */
+/* The zamn palette: teal to cyan over soft, translucent glass. */
 :root {
-  --zamn-c-accent: #e8401c;
-  --zamn-c-accent-2: #ff5a2e;
-  --zamn-c-accent-3: #c7310f;
-  --zamn-c-soft: rgba(232, 64, 28, 0.1);
-  --zamn-c-ink: #111214;
-  --zamn-c-paper: #f6f6f4;
-  --zamn-font-display: "Barlow Condensed", "Arial Narrow", var(--vp-font-family-base);
+  --zamn-c-accent: #0d9e9a;
+  --zamn-c-accent-2: #14b8b0;
+  --zamn-c-accent-3: #0a8582;
+  --zamn-c-cyan: #06b6d4;
+  --zamn-c-sky: #38bdf8;
+  --zamn-c-soft: rgba(13, 158, 154, 0.12);
+  --zamn-gradient: linear-gradient(120deg, #0fa89f 0%, #06b6d4 60%, #38bdf8 100%);
+
+  /* Glass surfaces. */
+  --zamn-glass: rgba(255, 255, 255, 0.55);
+  --zamn-glass-strong: rgba(255, 255, 255, 0.74);
+  --zamn-glass-border: rgba(255, 255, 255, 0.7);
+  --zamn-glass-edge: rgba(15, 40, 50, 0.08);
+  --zamn-glass-shadow: 0 8px 32px rgba(10, 60, 70, 0.08), 0 1px 2px rgba(10, 60, 70, 0.04);
+  --zamn-blur: saturate(160%) blur(18px);
+
+  /* Type: Aileron for everything but code, Geist Mono for code, and
+     Redaction 50, a worn serif, for what zamn leaves behind. */
+  --vp-font-family-base: "Aileron", ui-sans-serif, system-ui, sans-serif;
+  --vp-font-family-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --zamn-font-display: "Aileron", var(--vp-font-family-base);
+  --zamn-font-worn: "Redaction 50", Georgia, serif;
+  --zamn-button-text: #ffffff;
+
+  /* Scrollbars. */
+  --zamn-scroll-thumb: rgba(13, 158, 154, 0.3);
+  --zamn-scroll-thumb-hover: rgba(13, 158, 154, 0.55);
+
+  --zamn-radius: 16px;
+  --zamn-radius-sm: 10px;
+
+  /* Soft colour behind everything, for the glass to show. */
+  --zamn-backdrop:
+    radial-gradient(42rem 32rem at 8% -6%, rgba(20, 184, 176, 0.18), transparent 70%),
+    radial-gradient(38rem 30rem at 96% 4%, rgba(6, 182, 212, 0.16), transparent 70%),
+    radial-gradient(46rem 36rem at 60% 110%, rgba(56, 189, 248, 0.14), transparent 70%);
 }
 
 .dark {
-  --zamn-c-accent: #ff5a2e;
-  --zamn-c-accent-2: #ff7a55;
-  --zamn-c-accent-3: #e8401c;
-  --zamn-c-soft: rgba(255, 90, 46, 0.14);
+  --zamn-c-accent: #2dd4bf;
+  --zamn-c-accent-2: #5eead4;
+  --zamn-c-accent-3: #14b8a6;
+  --zamn-c-soft: rgba(45, 212, 191, 0.14);
+  --zamn-gradient: linear-gradient(120deg, #2dd4bf 0%, #22d3ee 60%, #7dd3fc 100%);
+
+  --zamn-button-text: #04211f;
+  --zamn-scroll-thumb: rgba(45, 212, 191, 0.25);
+  --zamn-scroll-thumb-hover: rgba(45, 212, 191, 0.5);
+
+  --zamn-glass: rgba(16, 26, 32, 0.5);
+  --zamn-glass-strong: rgba(16, 26, 32, 0.74);
+  --zamn-glass-border: rgba(255, 255, 255, 0.08);
+  --zamn-glass-edge: rgba(255, 255, 255, 0.06);
+  --zamn-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
+
+  --zamn-backdrop:
+    radial-gradient(42rem 32rem at 8% -6%, rgba(20, 184, 166, 0.18), transparent 70%),
+    radial-gradient(38rem 30rem at 96% 4%, rgba(6, 182, 212, 0.14), transparent 70%),
+    radial-gradient(46rem 36rem at 60% 110%, rgba(56, 189, 248, 0.12), transparent 70%);
 }
 
 .home-extra {
-  /* VitePress has no default styles for content below the home features. */
+  /* The example between the hero and the features (see style.css). */
   max-width: 72ch;
   margin: 0 auto;
-  padding: 0 24px 64px;
+  padding: 0 24px 32px;
 }

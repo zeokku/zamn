@@ -28,7 +28,8 @@ A value is one of:
 |---|---|---|
 | a string in `"`, `'` or `` ` `` | `title='say "hi"'` | `title="say &quot;hi&quot;"` |
 | a number | `tabindex=-1` | `tabindex="-1"` |
-| a bare word: letters, digits, `_ - . %` | `target=_blank`, `width=50%` | `target="_blank"`, `width="50%"` |
+| unquoted, as in HTML: anything but whitespace, `"`, `'`, `` ` ``, `=`, `<`, `>`, `,` and `)` | `href=/docs/`, `target=_blank` | `href="/docs/"`, `target="_blank"` |
+| an object of strings and numbers, for `style` | `style={color: 'red', margin: 0}` | `style="color:red;margin:0;"` |
 | `true`, or no value | `disabled`, `disabled=true` | `disabled="disabled"` |
 | `false`, `null` or `undefined` | `hidden=false` | the attribute is left out |
 
@@ -52,7 +53,21 @@ input(type="checkbox" checked)
 ```
 
 Quoted strings take JavaScript escapes: `title="it\'s"` is `it's`, `"é"` is
-`é`. An empty `style=""` is left out.
+`é`. An empty `style=""` (or `style={}`) is left out.
+
+A comma or `)` ends an unquoted value, as they separate and close the attributes.
+Quote a value that holds one, or any of the characters HTML doesn't allow
+(`INVALID_ATTRIBUTE_VALUE`):
+
+```zamn
+a(href=/docs/, target=_blank) Docs
+a(href="/search?q=zamn") Search
+p(style={color: 'red', 'font-size': '12px'}) Red
+```
+
+```html
+<a href="/docs/" target="_blank">Docs</a><a href="/search?q=zamn">Search</a><p style="color:red;font-size:12px;">Red</p>
+```
 
 ## Escaping
 
@@ -70,8 +85,8 @@ p(title="a < b" data-html!="<b>bold</b>")
 ## No expressions
 
 A value is never evaluated: there is no JavaScript in zamn. Anything that looks like
-an expression (`href=url + "/x"`, `class=['a', 'b']`, `` title=`${x}` ``) is an error
-(`JS_EXPRESSION`):
+an expression (`href=url + "/x"`, `class=['a', 'b']`, `` title=`${x}` ``,
+`style={color: c}`) is an error (`JS_EXPRESSION`):
 
 ```zamn error=JS_EXPRESSION
 a(href=base + "/docs") Docs
@@ -86,6 +101,17 @@ a(:href="base + '/docs'") Docs
 
 ```html
 <a :href="base + '/docs'">Docs</a>
+```
+
+A binding (`:x`, `@x`, `#x`, `.x`, `v-*`) may also go without quotes, as HTML
+allows. A value in `{ }`, `[ ]` or `( )` is copied as written, spaces and all:
+
+```zamn
+RouterLink(:to=/about :class={ active: onAbout } @click=go()) About
+```
+
+```html
+<RouterLink :to="/about" :class="{ active: onAbout }" @click="go()">About</RouterLink>
 ```
 
 ## Names
