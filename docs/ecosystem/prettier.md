@@ -55,6 +55,8 @@ export default {
   `"preserve"`. A block can only open straight after the tag and its attributes, so
   text or `= expr` on the line of such an element moves into the block, as a
   `| text` or `= expr` line.
+- Prints a block written on one line (`ul{li{a x}}`) over several lines, in
+  either block style.
 - Writes attributes as `name="value"`. Quotes follow `singleQuote`, unless the other
   quote needs fewer escapes. Attributes are printed with the separator
   `zamnAttributeSeparator` asks for.

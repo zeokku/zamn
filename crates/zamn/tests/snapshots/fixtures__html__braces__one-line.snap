@@ -1,0 +1,5 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: html(&file)
+---
+<div class="cl"><div class="cl2"><b>text</b></div></div><div class="cl"><div class="cl2"><b>text</b></div></div><ul class="nav"><li><a href="/">Home</a></li><li><a href="/about">About</a></li></ul><p><b>{{ msg }}</b></p><p><span>{{ user ? {name: "}"}.name : "" }}</span></p><p><b>closes } and opens { literally</b></p><p><b>bold</b>and <i>more</i></p><p><img src="a.png"/><br/></p><p><a><b>x</b></a></p><p></p><section><header><h1>Title</h1></header><ul><li><p>a</p></li></ul></section>

@@ -37,12 +37,22 @@ test("braces after text are text", () => {
     }
     p some paragraph { ok
     p ends with {
-    p.a { ok }
+    p.a \\{ ok }
   `;
   expect(compile(source).code).toBe(
     '<p data-x="10">some { paragraph }</p><p>some paragraph { ok</p><p>ends with {</p>' +
       '<p class="a">{ ok }</p>',
   );
+});
+
+test("a block can open and close on one line", () => {
+  expect(compile(".cl{.cl2{b text}}").code).toBe(
+    '<div class="cl"><div class="cl2"><b>text</b></div></div>',
+  );
+  expect(compile("ul {li{a x} li{b y}}").code).toBe(
+    "<ul><li><a>x</a></li><li><b>y</b></li></ul>",
+  );
+  expect(parse("p{b x").diagnostics.map((d) => d.code)).toEqual(["UNCLOSED_BRACE"]);
 });
 
 test("lex returns tokens with UTF-16 ranges", () => {

@@ -56,7 +56,8 @@ error[INCONSISTENT_INDENTATION]: Inconsistent indentation. Expecting either 0 or
 ### `INVALID_INDENTATION`
 
 Tabs and spaces mixed in one line's indentation, or a line indented deeper right
-after a `}` (children of a braced element go inside its braces).
+after a `}`, including one that ends a line like `p{b x}` (children of a braced
+element go inside its braces).
 
 ```zamn error=INVALID_INDENTATION
 div {
@@ -81,6 +82,13 @@ A `{` with no `}`. The hint: add a `}` on its own line.
 ```zamn error=UNCLOSED_BRACE
 section {
   p Never closed
+```
+
+A block that opens with more on its line has to close on that line. Only the
+innermost `{` left open is reported:
+
+```zamn error=UNCLOSED_BRACE
+ul{li{a Home}
 ```
 
 ### `UNMATCHED_BRACE`

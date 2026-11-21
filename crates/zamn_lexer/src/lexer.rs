@@ -20,12 +20,25 @@ pub fn lex(src: &str) -> LexResult {
         base_set: false,
         after_brace: false,
         frames: Vec::new(),
+        unclosed: false,
     };
     lx.run();
     LexResult {
         tokens: lx.tokens,
         diagnostics: lx.diags,
     }
+}
+
+/// Where a statement is: what ends its text and expressions, and which
+/// constructs it may use.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Mode {
+    /// A line of its own; the end of the line ends it.
+    Line,
+    /// Inside `#[...]`; the closing `]` ends it.
+    Interp,
+    /// Inside a `{ }` block on one line; the closing `}` ends it.
+    Brace,
 }
 
 /// Indentation state saved while a `{ }` block is open.
@@ -57,6 +70,8 @@ struct Lexer<'a> {
     /// The previous line closed a brace block.
     after_brace: bool,
     frames: Vec<Frame>,
+    /// A `{ }` block on the current line was left open, and reported.
+    unclosed: bool,
 }
 
 const NO_JS: &str =
@@ -200,8 +215,12 @@ impl<'a> Lexer<'a> {
                 } else {
                     self.layout(i - line_start, line_start, i);
                     self.pos = i;
-                    self.statement(i - line_start, false);
+                    self.unclosed = false;
+                    self.statement(i - line_start, Mode::Line);
                     self.finish_line();
+                    // Children of an element closed on this line go inside
+                    // its braces, as after a `}` line.
+                    self.after_brace = self.tokens.last().is_some_and(|t| t.kind == BraceClose);
                 }
             }
             let next = self.next_line(self.eol);
@@ -295,14 +314,33 @@ impl<'a> Lexer<'a> {
     }
 
     /// Give up on the current statement.
-    fn bail(&mut self, interp: bool) {
-        if interp {
-            while self.pos < self.eol && self.b[self.pos] != b']' {
-                self.pos += 1;
+    fn bail(&mut self, mode: Mode) {
+        match mode {
+            Mode::Line => self.pos = self.eol,
+            Mode::Interp => {
+                while self.pos < self.eol && self.b[self.pos] != b']' {
+                    self.pos += 1;
+                }
             }
-        } else {
-            self.pos = self.eol;
+            Mode::Brace => self.pos = self.brace_end(self.pos),
         }
+    }
+
+    /// The `}` that closes the one-line block the offset `p` is in, or the
+    /// end of the line. Braces in between are counted.
+    fn brace_end(&self, mut p: usize) -> usize {
+        let mut depth = 0usize;
+        while p < self.eol {
+            match self.b[p] {
+                b'\\' if matches!(self.at(p + 1), b'{' | b'}') => p += 1,
+                b'{' => depth += 1,
+                b'}' if depth == 0 => break,
+                b'}' => depth -= 1,
+                _ => {}
+            }
+            p += 1;
+        }
+        p.min(self.eol)
     }
 
     fn close_brace(&mut self, at: usize) {
@@ -326,21 +364,19 @@ impl<'a> Lexer<'a> {
         self.finish_line();
     }
 
-    /// If a `{` block opens at the cursor, consume it.
-    fn brace_open(&mut self) -> bool {
+    /// If a `{` block opens at the cursor, consume it. A `{` at the end of
+    /// a line opens a block over the lines below; with anything after it on
+    /// the line, the block closes on that line.
+    fn brace_open(&mut self, mode: Mode) -> bool {
         let mut j = self.pos;
         while j < self.eol && is_ws(self.b[j]) {
             j += 1;
         }
-        if self.at(j) != b'{' || j >= self.eol || self.at(j + 1) == b'{' {
+        if j >= self.eol || self.b[j] != b'{' || self.at(j + 1) == b'{' {
             return false;
         }
-        let mut k = j + 1;
-        while k < self.eol && is_ws(self.b[k]) {
-            k += 1;
-        }
-        if k == self.eol {
-            self.push(BraceOpen, j, j + 1);
+        self.push(BraceOpen, j, j + 1);
+        if mode == Mode::Line && self.src[j + 1..self.eol].trim().is_empty() {
             self.frames.push(Frame {
                 stack: std::mem::take(&mut self.stack),
                 open: Span::new(j, j + 1),
@@ -349,23 +385,61 @@ impl<'a> Lexer<'a> {
             self.pos = self.eol;
             return true;
         }
-        if self.b[k] == b'}' && self.src[k + 1..self.eol].trim().is_empty() {
-            self.push(BraceOpen, j, j + 1);
-            self.push(BraceClose, k, k + 1);
-            self.pos = self.eol;
-            return true;
-        }
-        false
+        self.pos = j + 1;
+        self.one_line_block(j);
+        true
     }
 
-    fn statement(&mut self, indent: usize, interp: bool) {
+    /// The statements of a `{ }` block on one line, after the `{` at `open`,
+    /// up to and including its `}`. A statement that ends at a `}` may be
+    /// followed by another.
+    fn one_line_block(&mut self, open: usize) {
+        loop {
+            while self.pos < self.eol && is_ws(self.b[self.pos]) {
+                self.pos += 1;
+            }
+            if self.pos >= self.eol {
+                // Only the innermost `{` left open is reported.
+                if !std::mem::replace(&mut self.unclosed, true) {
+                    self.diags.push(
+                        Diagnostic::new(
+                            "UNCLOSED_BRACE",
+                            "This `{` is not closed on its line",
+                            Span::new(open, open + 1),
+                        )
+                        .with_hint(
+                            "close it on the same line, or end the line with `{` to write the children on the lines below",
+                        ),
+                    );
+                }
+                self.push(BraceClose, self.eol, self.eol);
+                return;
+            }
+            if self.b[self.pos] == b'}' {
+                self.push(BraceClose, self.pos, self.pos + 1);
+                self.pos += 1;
+                return;
+            }
+            let before = self.pos;
+            self.statement(0, Mode::Brace);
+            if self.pos == before {
+                self.unexpected_text(before);
+                self.bail(Mode::Brace);
+                if self.pos == before {
+                    self.pos += 1;
+                }
+            }
+        }
+    }
+
+    fn statement(&mut self, indent: usize, mode: Mode) {
         let src = self.src;
         let s = self.pos;
         let rest = &src[s..self.eol];
         if rest.is_empty() {
             return;
         }
-        if !interp {
+        if mode == Mode::Line {
             if rest.starts_with("//") {
                 let kind = if rest.starts_with("//-") {
                     SilentComment
@@ -384,13 +458,15 @@ impl<'a> Lexer<'a> {
                     return;
                 }
             }
+        }
+        if mode != Mode::Interp {
             if let Some((what, hint)) = removed_keyword(rest) {
                 let what = format!(
                     "`{}` ({what})",
-                    rest.split([' ', '\t', ':']).next().unwrap()
+                    rest.split([' ', '\t', ':', '{', '}']).next().unwrap()
                 );
                 self.unsupported(&what, hint, s, self.eol);
-                self.skip_block(indent);
+                self.skip_or_bail(indent, mode);
                 return;
             }
         }
@@ -402,7 +478,7 @@ impl<'a> Lexer<'a> {
                     s,
                     self.eol,
                 );
-                self.skip_or_bail(indent, interp);
+                self.skip_or_bail(indent, mode);
             }
             b'!' if self.at(s + 1) == b'=' => {
                 self.unsupported(
@@ -411,15 +487,15 @@ impl<'a> Lexer<'a> {
                     s,
                     self.eol,
                 );
-                self.bail(interp);
+                self.bail(mode);
             }
             b'+' => {
                 self.unsupported("A mixin call", "use a component instead", s, self.eol);
-                self.skip_or_bail(indent, interp);
+                self.skip_or_bail(indent, mode);
             }
             b':' => {
                 self.unsupported("A filter", "zamn has no filters", s, self.eol);
-                self.skip_or_bail(indent, interp);
+                self.skip_or_bail(indent, mode);
             }
             b'#' if self.at(s + 1) == b'{' => {
                 self.unsupported(
@@ -428,18 +504,18 @@ impl<'a> Lexer<'a> {
                     s,
                     self.eol,
                 );
-                self.bail(interp);
+                self.bail(mode);
             }
-            b'=' => self.expr(interp),
+            b'=' => self.expr(mode),
             b'|' => {
                 self.push(Pipe, s, s + 1);
                 self.pos = s + 1;
                 if self.pos < self.eol && self.b[self.pos] == b' ' {
                     self.pos += 1;
                 }
-                self.text_run(interp);
+                self.text_run(mode);
             }
-            b'<' if !interp => {
+            b'<' if mode == Mode::Line => {
                 self.unsupported(
                     "A line of HTML",
                     "write it as a tag, or as text after `|`",
@@ -448,26 +524,26 @@ impl<'a> Lexer<'a> {
                 );
                 self.skip_block(indent);
             }
-            b'.' if !interp && rest[1..].trim().is_empty() => {
+            b'.' if mode == Mode::Line && rest[1..].trim().is_empty() => {
                 self.push(Dot, s, s + 1);
                 self.pos = self.eol;
                 self.text_block(indent, true);
             }
-            _ => self.head(indent, interp),
+            _ => self.head(indent, mode),
         }
     }
 
-    fn skip_or_bail(&mut self, indent: usize, interp: bool) {
-        if interp {
-            self.bail(true);
-        } else {
+    fn skip_or_bail(&mut self, indent: usize, mode: Mode) {
+        if mode == Mode::Line {
             self.skip_block(indent);
+        } else {
+            self.bail(mode);
         }
     }
 
-    /// `= expr`: the expression is opaque text up to the end of the line (or
-    /// the closing `]` of an interpolation).
-    fn expr(&mut self, interp: bool) {
+    /// `= expr`: the expression is opaque text up to the end of the line, or
+    /// the `]` or `}` that closes the interpolation or block it is in.
+    fn expr(&mut self, mode: Mode) {
         let s = self.pos;
         self.push(Eq, s, s + 1);
         let mut start = s + 1;
@@ -475,7 +551,12 @@ impl<'a> Lexer<'a> {
             start += 1;
         }
         let mut end = self.eol;
-        if interp {
+        if mode != Mode::Line {
+            let (open, close) = if mode == Mode::Interp {
+                (b'[', b']')
+            } else {
+                (b'{', b'}')
+            };
             let mut depth = 0usize;
             let mut p = start;
             while p < self.eol {
@@ -484,9 +565,9 @@ impl<'a> Lexer<'a> {
                         p = self.skip_string(p).min(self.eol);
                         continue;
                     }
-                    b'[' => depth += 1,
-                    b']' if depth == 0 => break,
-                    b']' => depth -= 1,
+                    c if c == open => depth += 1,
+                    c if c == close && depth == 0 => break,
+                    c if c == close => depth -= 1,
                     _ => {}
                 }
                 p += 1;
@@ -511,7 +592,7 @@ impl<'a> Lexer<'a> {
     }
 
     /// Tag name, `#id`, `.class` and `(attrs)`, then whatever follows them.
-    fn head(&mut self, indent: usize, interp: bool) {
+    fn head(&mut self, indent: usize, mode: Mode) {
         let s = self.pos;
         let mut any = false;
         if is_word(self.b[s]) {
@@ -542,7 +623,7 @@ impl<'a> Lexer<'a> {
                             break;
                         }
                         self.error("INVALID_ID", "`#` must be followed by a valid ID", p, p + 1);
-                        return self.bail(interp);
+                        return self.bail(mode);
                     }
                     self.push(Id, p, e);
                     self.pos = e;
@@ -559,7 +640,10 @@ impl<'a> Lexer<'a> {
                     if named {
                         self.push(Class, p, e);
                         self.pos = e;
-                    } else if any && !interp && self.src[p + 1..self.eol].trim().is_empty() {
+                    } else if any
+                        && mode == Mode::Line
+                        && self.src[p + 1..self.eol].trim().is_empty()
+                    {
                         break;
                     } else if e > p + 1 {
                         self.error(
@@ -568,7 +652,7 @@ impl<'a> Lexer<'a> {
                             p,
                             e,
                         );
-                        return self.bail(interp);
+                        return self.bail(mode);
                     } else {
                         self.error(
                             "INVALID_CLASS_NAME",
@@ -576,7 +660,7 @@ impl<'a> Lexer<'a> {
                             p,
                             p + 1,
                         );
-                        return self.bail(interp);
+                        return self.bail(mode);
                     }
                 }
                 b'(' if any => {
@@ -590,7 +674,7 @@ impl<'a> Lexer<'a> {
         }
         if !any {
             self.unexpected_text(s);
-            return self.bail(interp);
+            return self.bail(mode);
         }
 
         let p = self.pos;
@@ -598,7 +682,8 @@ impl<'a> Lexer<'a> {
             return;
         }
         match self.b[p] {
-            b']' if interp => {}
+            b']' if mode == Mode::Interp => {}
+            b'}' if mode == Mode::Brace => {}
             b'/' => {
                 self.push(Slash, p, p + 1);
                 self.pos = p + 1;
@@ -609,9 +694,9 @@ impl<'a> Lexer<'a> {
                 while self.pos < self.eol && self.b[self.pos] == b' ' {
                     self.pos += 1;
                 }
-                self.statement(indent, interp);
+                self.statement(indent, mode);
             }
-            b'=' => self.expr(interp),
+            b'=' => self.expr(mode),
             b'!' if self.at(p + 1) == b'=' => {
                 self.unsupported(
                     "Unescaped buffered code (`!=`)",
@@ -619,7 +704,7 @@ impl<'a> Lexer<'a> {
                     p,
                     self.eol,
                 );
-                self.bail(interp);
+                self.bail(mode);
             }
             b'&' if self.src[p..self.eol].starts_with("&attributes") => {
                 self.unsupported(
@@ -628,32 +713,36 @@ impl<'a> Lexer<'a> {
                     p,
                     self.eol,
                 );
-                self.bail(interp);
+                self.bail(mode);
             }
-            b'.' if !interp => {
+            b'.' if mode == Mode::Line => {
                 // Only reachable when the rest of the line is blank.
                 self.push(Dot, p, p + 1);
                 self.pos = self.eol;
                 self.text_block(indent, true);
             }
             c if is_ws(c) || c == b'{' => {
-                if !interp && self.brace_open() {
+                if mode != Mode::Interp && self.brace_open(mode) {
                     return;
                 }
                 if c == b'{' {
                     self.unexpected_text(p);
-                    return self.bail(interp);
+                    return self.bail(mode);
                 }
                 self.pos = p + 1;
-                if self.at(self.pos) == b'\\' && self.at(self.pos + 1) == b'{' {
-                    // `\{` starts text with a literal brace.
+                if mode != Mode::Brace
+                    && self.at(self.pos) == b'\\'
+                    && self.at(self.pos + 1) == b'{'
+                {
+                    // `\{` starts text with a literal brace. In a one-line
+                    // block, `text_run` reads the escape.
                     self.pos += 1;
                 }
-                self.text_run(interp);
+                self.text_run(mode);
             }
             _ => {
                 self.unexpected_text(p);
-                self.bail(interp);
+                self.bail(mode);
             }
         }
     }
@@ -814,13 +903,33 @@ impl<'a> Lexer<'a> {
     }
 
     /// Text up to the end of the line, split around `#[tag ...]` interpolation.
-    fn text_run(&mut self, interp: bool) {
+    /// In `#[...]` it ends at the `]`; in a one-line block, at the `}` that
+    /// closes the block, where `\{` and `\}` are literal braces and other
+    /// braces are counted.
+    fn text_run(&mut self, mode: Mode) {
         let mut seg = self.pos;
         let mut p = self.pos;
+        let mut depth = 0usize;
         while p < self.eol {
             let c = self.b[p];
-            if interp && c == b']' {
+            if mode == Mode::Interp && c == b']' {
                 break;
+            }
+            if mode == Mode::Brace {
+                match c {
+                    b'\\' if matches!(self.at(p + 1), b'{' | b'}') && p + 1 < self.eol => {
+                        if p > seg {
+                            self.push(Text, seg, p);
+                        }
+                        seg = p + 1;
+                        p += 2;
+                        continue;
+                    }
+                    b'{' => depth += 1,
+                    b'}' if depth == 0 => break,
+                    b'}' => depth -= 1,
+                    _ => {}
+                }
             }
             if c == b'\\' && self.src[p + 1..self.eol].starts_with("#[") {
                 // `\#[` is a literal `#[`; drop the backslash.
@@ -837,7 +946,7 @@ impl<'a> Lexer<'a> {
                 }
                 self.push(InterpStart, p, p + 2);
                 self.pos = p + 2;
-                self.statement(0, true);
+                self.statement(0, Mode::Interp);
                 if self.pos < self.eol && self.b[self.pos] == b']' {
                     self.push(InterpEnd, self.pos, self.pos + 1);
                     self.pos += 1;
@@ -856,8 +965,15 @@ impl<'a> Lexer<'a> {
             }
             p += 1;
         }
-        if p > seg {
-            self.push(Text, seg, p);
+        let mut end = p;
+        if mode == Mode::Brace {
+            // Whitespace before the `}` means nothing, as at the end of a line.
+            while end > seg && is_ws(self.b[end - 1]) {
+                end -= 1;
+            }
+        }
+        if end > seg {
+            self.push(Text, seg, end);
         }
         self.pos = p;
     }
@@ -936,7 +1052,7 @@ impl<'a> Lexer<'a> {
                 if interpolate {
                     self.pos = start;
                     self.eol = line.end;
-                    self.text_run(false);
+                    self.text_run(Mode::Line);
                 } else {
                     self.push(Text, start, line.end);
                 }
@@ -978,6 +1094,27 @@ mod tests {
             kinds(src),
             vec![Tag, BraceOpen, Tag, Indent, Tag, Text, Outdent, BraceClose, Newline, Tag, Eos]
         );
+    }
+
+    #[test]
+    fn one_line_blocks() {
+        assert_eq!(
+            kinds(".a{.b{i x}}\nul {li{a} li}"),
+            vec![
+                Class, BraceOpen, Class, BraceOpen, Tag, Text, BraceClose, BraceClose, Newline,
+                Tag, BraceOpen, Tag, BraceOpen, Tag, BraceClose, Tag, BraceClose, Eos
+            ]
+        );
+        // Text runs to the `}` that closes the block; braces in it are counted.
+        let src = "p{b {{ m }} \\} }";
+        let r = lex(src);
+        let texts: Vec<_> = r
+            .tokens
+            .iter()
+            .filter(|t| t.kind == Text)
+            .map(|t| t.span.slice(src))
+            .collect();
+        assert_eq!(texts, ["{{ m }} ", "}"]);
     }
 
     #[test]

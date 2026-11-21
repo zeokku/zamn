@@ -15,7 +15,8 @@ p
 <h1>{{ title }}</h1><p>{{ greeting }} {{ name }}</p>
 ```
 
-The expression runs to the end of the line and is copied as it is. zamn never parses
+The expression runs to the end of the line (in a [block on one line](./brace-blocks#blocks-on-one-line),
+to the `}` that closes it) and is copied as it is. zamn never parses
 it, so any expression your framework accepts works: `p= items.length > 0 ? "some" : "none"`.
 
 `=` with nothing after it is an error (`MISSING_EXPRESSION`).

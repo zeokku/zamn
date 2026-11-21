@@ -107,6 +107,31 @@ test("elements, attributes, text and mustaches", () => {
   ]);
 });
 
+test("blocks on one line: an element in one ends at its }", () => {
+  const code = sfc(zamn`
+    ul{li{a x} li{b= y}}
+    p next
+  `);
+  expect(outline(code)).toEqual([
+    `<ul> "ul" ... "}"`,
+    `  <li> "li" ... "}"`,
+    `    <a> "a" ... "}"`,
+    `      text "x"`,
+    `  <li> "li" ... "}"`,
+    `    <b> "b" ... "}"`,
+    `      {{ y }} "= y"`,
+    `<p> "p" ... "\\n"`,
+    `  text "next"`,
+  ]);
+  // In source order; elements closed by the same `}` share it as their end tag.
+  const starts = (node: any): number[] =>
+    node.children.flatMap((c: any) =>
+      c.type === "VElement" ? [c.startTag.range[0], ...starts(c), c.endTag.range[0]] : [c.range[0]],
+    );
+  const order = starts(parse(code));
+  expect(order).toEqual([...order].sort((a, b) => a - b));
+});
+
 test("attribute values", () => {
   const code = sfc(zamn`
     a(title="it\\'s" :to=\`{ name }\` :n=1 on=true)

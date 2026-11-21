@@ -45,6 +45,8 @@ class Builder {
     this.i = 0;
     /** End offset of the last token consumed that is not layout. */
     this.end = 0;
+    /** Inside a `{ }` block written on one line, where `\{` and `\}` are escapes. */
+    this.oneLine = false;
   }
 
   peek() {
@@ -140,19 +142,28 @@ class Builder {
   /**
    * Text and `#[...]` interpolations up to the end of the line, starting at
    * the offset `cursor`. Text is taken from the source so escapes survive.
+   * Blocks are always printed over several lines, so the brace escapes of a
+   * one-line block are resolved.
    */
   inline(cursor) {
     const parts = [];
+    const text = (end) => {
+      const raw = this.src.slice(cursor, end);
+      parts.push(this.oneLine ? raw.replace(/\\([{}])/g, "$1") : raw);
+    };
     for (;;) {
       if (this.accept("Text")) continue;
       const open = this.accept("InterpStart");
       if (!open) break;
-      if (open.range[0] > cursor) parts.push(this.src.slice(cursor, open.range[0]));
+      if (open.range[0] > cursor) text(open.range[0]);
+      const outer = this.oneLine;
+      this.oneLine = false;
       const node = BLOCK_END.has(this.peek()) ? null : this.statement();
+      this.oneLine = outer;
       parts.push({ interp: node });
       cursor = this.expect("InterpEnd").range[1];
     }
-    if (this.end > cursor) parts.push(this.src.slice(cursor, this.end));
+    if (this.end > cursor) text(this.end);
     return parts;
   }
 
@@ -203,16 +214,26 @@ class Builder {
         this.next();
         el.block = this.textBlock() ?? [];
         break;
-      case "BraceOpen":
-        this.next();
+      case "BraceOpen": {
+        const open = this.next();
+        const outer = this.oneLine;
+        this.oneLine = !this.src.slice(open.range[1], this.toks[this.i].range[0]).includes("\n");
         el.braced = true;
         el.children = this.items();
+        this.oneLine = outer;
         this.expect("BraceClose");
         break;
+      }
       case "Text":
-      case "InterpStart":
+      case "InterpStart": {
+        const oneLine = this.oneLine;
         el.parts = this.inline(headEnd);
+        // On a line of its own, text that starts with `{` would open a block.
+        if (oneLine && typeof el.parts[0] === "string") {
+          el.parts[0] = el.parts[0].replace(/^ \{(?!\{)/, " \\{");
+        }
         break;
+      }
     }
     if (this.accept("Indent")) {
       el.children = this.items();

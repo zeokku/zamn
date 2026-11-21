@@ -70,6 +70,34 @@ test("re-indents braces and indentation blocks", async () => {
   expect(await format(source, { useTabs: true })).toContain('\n\t\t\t\tli: a(href="/") Home\n');
 });
 
+test("blocks written on one line are printed over several", async () => {
+  const source = zamn`
+    .cl{.cl2{b text}}
+    ul {li{a(href="/") Home} li{b \\} and \\{}}
+    p{b \\{x}
+  `;
+  const expanded = zamn`
+    .cl {
+      .cl2 {
+        b text
+      }
+    }
+    ul {
+      li {
+        a(href="/") Home
+      }
+      li {
+        b } and {
+      }
+    }
+    p {
+      b \\{x
+    }
+  `;
+  expect(await format(source)).toBe(expanded);
+  expect(await format(source, { zamnBlockStyle: "preserve" })).toBe(expanded);
+});
+
 test("attributes: spacing, separators and quotes", async () => {
   const source = `a( href = '/x' ,title="say \\"hi\\"", alt='it\\'s'  data-x!='<b>' disabled n=1 )/`;
   const options = { zamnMaxAttributesPerLine: 6 };

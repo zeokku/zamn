@@ -99,6 +99,8 @@ export default class ZamnTokenizer {
     this.last = 0;
     /** How many elements the walk is inside. */
     this.depth = 0;
+    /** The `}` of each block written on one line that is open, innermost last. */
+    this.oneLineCloses = [];
     this.walk = this.nodes(ast.nodes);
   }
 
@@ -292,24 +294,32 @@ export default class ZamnTokenizer {
     // are in. It leaves void elements closed, as it does `tag/`.
     const open = !el.selfClosing && !(this.namespace === HTML_NAMESPACE && VOID.has(el.name));
 
-    // The children of an element that cannot have any are its siblings.
-    if (open) this.depth++;
-    yield* this.nodes(el.children);
-    if (!open) return;
-    this.depth--;
-
-    // What closes the element: its `}`, the `]` of `#[...]`, or else the
-    // end of its last line.
+    // What closes the element: its `}`, the `]` of `#[...]`, the `}` of the
+    // block on one line that it is in, or else the end of its last line.
     let close;
+    let oneLine = false;
     if (this.lexed[i]?.type === "BraceOpen") {
       let depth = 0;
       close = this.lexed.slice(i).find((t) => {
         if (t.type === "BraceOpen") depth++;
         return t.type === "BraceClose" && --depth === 0;
       });
-    } else if (this.lexed[first - 1]?.type === "InterpStart") {
-      close = this.lexed.find((t) => t.type === "InterpEnd" && t.range[0] >= this.last);
+      const after = this.lexed[i + 1];
+      oneLine = !!after && !this.source.slice(this.lexed[i].range[1], after.range[0]).includes("\n");
     }
+
+    // The children of an element that cannot have any are its siblings.
+    if (open) this.depth++;
+    if (oneLine) this.oneLineCloses.push(close);
+    yield* this.nodes(el.children);
+    if (oneLine) this.oneLineCloses.pop();
+    if (!open) return;
+    this.depth--;
+
+    close ??=
+      this.lexed[first - 1]?.type === "InterpStart"
+        ? this.lexed.find((t) => t.type === "InterpEnd" && t.range[0] >= this.last)
+        : this.oneLineCloses.at(-1);
     // The lexer closes what is left open with an empty token.
     let range;
     if (close && close.range[0] !== close.range[1]) {

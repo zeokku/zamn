@@ -1,6 +1,6 @@
 ---
 name: zamn
-description: Write and edit zamn templates (.zamn files and Vue `<template lang="zamn">`), a static indentation-based syntax that compiles to HTML. Use whenever a task creates or changes zamn markup, or converts HTML to zamn.
+description: Write and edit zamn templates (.zamn files and Vue `<template lang="zamn">`), a static syntax with `{ }` blocks instead of closing tags that compiles to HTML. Use whenever a task creates or changes zamn markup, or converts HTML to zamn.
 license: MIT
 ---
 
@@ -14,8 +14,13 @@ includes. Output has no whitespace between tags unless written.
 - `tag` is an element; children go on the following lines, nested by
   indentation or inside `{ }`. `.cls`, `#id` and `(attrs)` follow the tag;
   without a tag the element is a `div`: `.card`.
-- `{` must be the last thing on the tag's line; `}` goes on its own line.
-  Inside braces, the base indentation is free (zero is fine). `p {}` is empty.
+- A `{` at the end of the tag's line opens a block; its `}` goes on its own
+  line. Inside braces, the base indentation is free (zero is fine). `p {}` is empty.
+- A block can also open and close on one line: `.card{.body{h2 Title}}`,
+  `ul{li{a x} li{b y}}`. Each child is a statement (`b{| bold}` for text);
+  text and `= expr` run to the closing `}`, so a child can only follow one that
+  ends in `}`. Write `\}` and `\{` for literal braces there. `p {b}` is a
+  block, not text: write `p \{b}` for that.
 - Text: `p Hello` (inline), `| text` (a line of text), `|` alone (one space,
   to join two lines). Text is not escaped: `p a &amp; <b>b</b>` is fine.
   `tag.` takes the indented lines below as raw text (`script.`, `style.`, `pre.`);

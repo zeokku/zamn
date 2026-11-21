@@ -117,7 +117,7 @@
       }
     },
     "braces": {
-      "comment": "`{` ends the line of a tag, unless it is `{{`; `{ }` is an empty block",
+      "comment": "`{` at the end of the line of a tag, unless it is `{{`; `{ }` is an empty block",
       "match": "[ \\t]*((?<!\\{)\\{)(?!\\{)[ \\t]*(\\})?[ \\t]*$",
       "captures": {
         "1": {
@@ -269,6 +269,9 @@
         },
         {
           "include": "#braces"
+        },
+        {
+          "include": "#one-line-block"
         },
         {
           "begin": "(:)[ \\t]+",
@@ -624,6 +627,159 @@
           "name": "punctuation.definition.interpolation.end.zamn"
         }
       }
+    },
+    "one-line-block": {
+      "comment": "a `{ }` block on one line: statements, each after the `}` of the one before",
+      "begin": "[ \\t]*(\\{)(?!\\{)",
+      "end": "\\}",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.section.block.begin.zamn"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.block.end.zamn"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#one-line-statement"
+        }
+      ]
+    },
+    "one-line-statement": {
+      "patterns": [
+        {
+          "begin": "(\\|)[ \\t]?",
+          "end": "(?=\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.text.zamn"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#one-line-text"
+            }
+          ]
+        },
+        {
+          "begin": "=",
+          "end": "(?=\\})",
+          "contentName": "source.ts.embedded.zamn",
+          "patterns": [
+            {
+              "include": "source.ts#expression"
+            }
+          ],
+          "beginCaptures": {
+            "0": {
+              "name": "keyword.operator.output.zamn"
+            }
+          }
+        },
+        {
+          "comment": "an element ends at the `}` of its block, of its own one-line block, or after `/`",
+          "begin": "([A-Za-z][\\w-]*(?::[\\w-]+)*)|(#[\\w-]+)|(\\.[\\w-]+)",
+          "end": "(?<=[}/])|(?=\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.name.tag.zamn"
+            },
+            "2": {
+              "name": "entity.other.attribute-name.id.zamn"
+            },
+            "3": {
+              "name": "entity.other.attribute-name.class.zamn"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#element-one-line"
+            }
+          ]
+        }
+      ]
+    },
+    "element-one-line": {
+      "patterns": [
+        {
+          "include": "#id"
+        },
+        {
+          "include": "#class"
+        },
+        {
+          "include": "#attributes"
+        },
+        {
+          "match": "/(?=[ \\t]|\\})",
+          "name": "punctuation.definition.tag.self-closing.zamn"
+        },
+        {
+          "include": "#one-line-block"
+        },
+        {
+          "begin": "(:)[ \\t]+",
+          "end": "(?=\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.separator.expansion.zamn"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#one-line-statement"
+            }
+          ]
+        },
+        {
+          "begin": "=",
+          "end": "(?=\\})",
+          "contentName": "source.ts.embedded.zamn",
+          "patterns": [
+            {
+              "include": "source.ts#expression"
+            }
+          ],
+          "beginCaptures": {
+            "0": {
+              "name": "keyword.operator.output.zamn"
+            }
+          }
+        },
+        {
+          "begin": "[ \\t]",
+          "end": "(?=\\})",
+          "patterns": [
+            {
+              "include": "#one-line-text"
+            }
+          ]
+        }
+      ]
+    },
+    "one-line-text": {
+      "comment": "text in a one-line block: `\\{` and `\\}` are escapes, other braces pair up",
+      "patterns": [
+        {
+          "match": "\\\\[{}]",
+          "name": "constant.character.escape.zamn"
+        },
+        {
+          "include": "#inline"
+        },
+        {
+          "begin": "\\{",
+          "end": "\\}",
+          "patterns": [
+            {
+              "include": "#one-line-text"
+            }
+          ]
+        }
+      ]
     }
   }
 }

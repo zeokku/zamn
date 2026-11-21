@@ -213,6 +213,69 @@ test("braces, expansion, output and interpolation", async () => {
   ]);
 });
 
+test("blocks on one line", async () => {
+  const source = zamn`
+    .cl{.cl2 {b text {x} \\}}}
+    ul{li{img/ br/} li(id="a")= msg}
+    p{| {{ a }} and #[i c]}
+    p {{ b }} \\{d}
+  `;
+  const begin = "{  punctuation.section.block.begin";
+  const end = "}  punctuation.section.block.end";
+  expect(await tokens(source)).toEqual([
+    ".cl  entity.other.attribute-name.class",
+    begin,
+    ".cl2  entity.other.attribute-name.class",
+    begin,
+    "b  entity.name.tag",
+    "text ",
+    "{",
+    "x",
+    "}",
+    "\\}  constant.character.escape",
+    end,
+    end,
+    "ul  entity.name.tag",
+    begin,
+    "li  entity.name.tag",
+    begin,
+    "img  entity.name.tag",
+    "/  punctuation.definition.tag.self-closing",
+    "br  entity.name.tag",
+    "/  punctuation.definition.tag.self-closing",
+    end,
+    "li  entity.name.tag",
+    "(  punctuation.section.attributes.begin",
+    "id  entity.other.attribute-name",
+    "=  keyword.operator.assignment",
+    '"  string.quoted.double punctuation.definition.string.begin',
+    "a  string.quoted.double",
+    '"  string.quoted.double punctuation.definition.string.end',
+    ")  punctuation.section.attributes.end",
+    "=  keyword.operator.output",
+    " msg  source.ts.embedded",
+    end,
+    "p  entity.name.tag",
+    begin,
+    "|  punctuation.definition.text",
+    "{{  meta.interpolation.expression punctuation.definition.interpolation.begin",
+    " a   meta.interpolation.expression source.ts.embedded",
+    "}}  meta.interpolation.expression punctuation.definition.interpolation.end",
+    " and ",
+    "#[  meta.interpolation.tag punctuation.section.embedded.begin",
+    "i  meta.interpolation.tag entity.name.tag",
+    "c  meta.interpolation.tag",
+    "]  meta.interpolation.tag punctuation.section.embedded.end",
+    end,
+    "p  entity.name.tag",
+    "{{  meta.interpolation.expression punctuation.definition.interpolation.begin",
+    " b   meta.interpolation.expression source.ts.embedded",
+    "}}  meta.interpolation.expression punctuation.definition.interpolation.end",
+    "\\{  constant.character.escape",
+    "d}",
+  ]);
+});
+
 test("comments, text blocks and pipes end where the indentation does", async () => {
   const source = zamn`
     div

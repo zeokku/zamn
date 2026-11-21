@@ -1,0 +1,16 @@
+.cl{.cl2{b text}}
+.cl {.cl2 {b text}}
+ul.nav{li{a(href="/") Home} li{a(href="/about") About}}
+p{b {{ msg }}}
+p{span= user ? {name: "}"}.name : ""}
+p{b closes \} and opens \{ literally}
+p{b{| bold}| and #[i more] }
+p{img(src="a.png")/ br/}
+p{a: b x}
+p{}
+section {
+  header{h1 Title}
+  ul {
+    li{p{| a}}
+  }
+}

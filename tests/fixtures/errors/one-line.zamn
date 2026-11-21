@@ -1,0 +1,8 @@
+.a{.b{x}
+.a{.b{x
+p { hello
+div{if x}
+p{b x}
+  i under a closed block
+p{b x} junk
+p{#}

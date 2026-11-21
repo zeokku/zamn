@@ -1,0 +1,16 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: "report.join(\"\\n\")"
+---
+one-line.zamn:1:3: error[UNCLOSED_BRACE]: This `{` is not closed on its line
+  hint: close it on the same line, or end the line with `{` to write the children on the lines below
+one-line.zamn:2:6: error[UNCLOSED_BRACE]: This `{` is not closed on its line
+  hint: close it on the same line, or end the line with `{` to write the children on the lines below
+one-line.zamn:3:3: error[UNCLOSED_BRACE]: This `{` is not closed on its line
+  hint: close it on the same line, or end the line with `{` to write the children on the lines below
+one-line.zamn:4:5: error[UNSUPPORTED_SYNTAX]: `if` (control flow) is not supported
+  hint: zamn has no control flow; use your framework's directives, e.g. `div(v-if="cond")`
+one-line.zamn:6:1: error[INVALID_INDENTATION]: Unexpected indentation after a closing `}`
+  hint: children of a braced element go inside its braces
+one-line.zamn:7:8: error[UNEXPECTED_TEXT]: unexpected text "junk"
+one-line.zamn:8:3: error[UNEXPECTED_TEXT]: unexpected text "#}"

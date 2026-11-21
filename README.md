@@ -5,7 +5,8 @@ A static, pug-flavoured way to write HTML, written in Rust.
 Same syntax as [pug](https://pugjs.org) for tags, classes, ids, attributes,
 text, comments and doctypes, but with no JavaScript, no control flow and no
 includes: a template is a single file. Existing static pug compiles to the
-same HTML.
+same HTML, but for the two cases below (a bare `|`, and text that starts with
+`{` and ends with `}`).
 
 ```
 div
@@ -21,11 +22,16 @@ div
 
 ## Differences from pug
 
-- **Brace blocks.** An element may hold its children in `{ }`. The `{` ends the
-  line of the tag (or is immediately closed: `p { }`); the `}` sits on its own
-  line. Inside, the first line sets the base indentation and indentation nests
-  as usual. `{{` never opens a block, so `p {{ msg }}` is text; write `p \{` for
-  a literal brace at the end of a line.
+- **Brace blocks.** An element may hold its children in `{ }`. A `{` that ends
+  the line of the tag opens a block over the lines below, closed by a `}` on
+  its own line; inside, the first line sets the base indentation and
+  indentation nests as usual. A block can also open and close on one line:
+  `.cl{.cl2{b text}}`, `ul {li{a x} li{b y}}`. Inside it, text runs to the
+  closing `}` (write `\}` and `\{` for literal braces), and a child that ends
+  with `}` may be followed by another. `{{` never opens a block, so
+  `p {{ msg }}` is text; write `p \{` for text that starts with a brace.
+  In pug, `p {b}` is the text `{b}`: this is where static pug compiles
+  differently.
 - **`tag= expr`** emits `{{ expr }}`. The expression is not parsed.
 - **Whitespace at the end of a line** is ignored everywhere: `b text  ` is
   `<b>text</b>`. A `|` on its own is one space, and is how a space between two
@@ -45,8 +51,8 @@ div
   <p><b>this</b> is <u>cool</u></p>
   ```
 
-  In pug a bare `|` is an empty line of text, so this is the one place where
-  static pug compiles to different (but equivalently rendered) whitespace.
+  In pug a bare `|` is an empty line of text, so here static pug compiles to
+  different (but equivalently rendered) whitespace.
 - **Braces in text** are text. Only a `{` straight after the tag and its
   attributes opens a block: `p some { text }` and `| { text }` are text.
 - **Attribute values** are quoted strings, numbers or bare words. `true` makes
