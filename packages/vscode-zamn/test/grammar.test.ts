@@ -213,6 +213,29 @@ test("braces, expansion, output and interpolation", async () => {
   ]);
 });
 
+test("unquoted values and bindings in brackets", async () => {
+  const directive = "meta.attribute.directive";
+  expect(await tokens("a(href=/docs/ :class={ on: x } style={color: 'red'}) x")).toEqual([
+    "a  entity.name.tag",
+    "(  punctuation.section.attributes.begin",
+    "href  entity.other.attribute-name",
+    "=  keyword.operator.assignment",
+    "/docs/  string.unquoted",
+    `:class  ${directive} entity.other.attribute-name.directive`,
+    `=  ${directive} keyword.operator.assignment`,
+    `{  ${directive} source.ts.embedded meta.brace`,
+    ` on: x   ${directive} source.ts.embedded`,
+    `}  ${directive} source.ts.embedded meta.brace`,
+    `style  ${directive} entity.other.attribute-name.directive`,
+    `=  ${directive} keyword.operator.assignment`,
+    `{  ${directive} source.ts.embedded meta.brace`,
+    `color: 'red'  ${directive} source.ts.embedded`,
+    `}  ${directive} source.ts.embedded meta.brace`,
+    ")  punctuation.section.attributes.end",
+    "x",
+  ]);
+});
+
 test("blocks on one line", async () => {
   const source = zamn`
     .cl{.cl2 {b text {x} \\}}}

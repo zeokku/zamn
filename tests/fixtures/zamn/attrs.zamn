@@ -1,0 +1,8 @@
+a(href=/) Home
+a(href=/docs/?q#top, target=_blank) Docs
+a(href=a+b n=f(1) i=a[0] w=50%) x
+input(type=checkbox checked=true hidden=false)
+RouterLink(:to=/about :class={ active: onAbout, 'is-new': fresh } @click=go()) About
+Table(v-bind=[a, b] #default=(row) .prop=x)
+p(style={color: 'red', 'font-size': '12px', margin: 0,}) Styled
+p(style={}) Empty style

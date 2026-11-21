@@ -11,4 +11,5 @@ div
   p= missing
   p {{ count.oops }}
   Card
+  Card(title=x :count={ n: count })
 </template>

@@ -11,8 +11,8 @@ includes. Output has no whitespace between tags unless written.
 
 ## Syntax
 
-- `tag` is an element; children go on the following lines, nested by
-  indentation or inside `{ }`. `.cls`, `#id` and `(attrs)` follow the tag;
+- `tag` is an element; its children go inside `{ }`, or on the following lines
+  nested by indentation. `.cls`, `#id` and `(attrs)` follow the tag;
   without a tag the element is a `div`: `.card`.
 - A `{` at the end of the tag's line opens a block; its `}` goes on its own
   line. Inside braces, the base indentation is free (zero is fine). `p {}` is empty.
@@ -28,8 +28,10 @@ includes. Output has no whitespace between tags unless written.
 - Inline element inside text: `p Read #[a(href="/docs") the docs] first.`
 - `tag: child` nests one child on the same line: `li: a(href="/") Home`.
 - `tag= expr` and `= expr` write `{{ expr }}`. `{{ }}` in text passes through.
-- Attributes: `a(href="/" target="_blank")`. Values are quoted strings, numbers
-  or bare words. `disabled` or `x=true` is a boolean attribute; `x=false`
+- Attributes: `a(href="/" target="_blank")`. Values are quoted strings, or
+  unquoted as in HTML (`href=/docs/`; no spaces, `" ' = < >`, `,` or `)`).
+  Bindings take brackets unquoted: `:class={ active: on }`. `style={color: 'red'}`
+  becomes CSS. `disabled` or `x=true` is a boolean attribute; `x=false`
   drops it. `!=` writes the value unescaped. Vue names work as written:
   `:to`, `@click.prevent`, `#default="{ row }"`, `v-model.trim`.
 - `img/` self-closes; void tags (`img`, `br`, `input`, `meta`, `link`, `hr`) need nothing.
@@ -53,7 +55,9 @@ includes. Output has no whitespace between tags unless written.
 
 1. Write the tersest form: every element with children in `{ }`, no
    indentation, no optional spaces, attributes on the tag's line. Text blocks
-   (`tag.`) and multi-line attribute values keep their indentation.
+   (`tag.`) and multi-line attribute values keep their indentation. A block
+   whose children allow it may close on its line (`a(href="/"){img(src="/a.svg")}`);
+   that saves about 1%, so don't rewrite text to make blocks fit.
 
    ```zamn
    ul.nav {

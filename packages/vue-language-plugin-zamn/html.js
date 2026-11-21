@@ -141,8 +141,16 @@ class Writer {
     const innerStart = start + (quoted ? 1 : 0);
     // Vue takes the character before the value for its opening quote.
     const delimiter = inner.includes('"') && !inner.includes("'") ? "'" : '"';
-    this.emit("=");
-    this.copy(delimiter, innerStart - 1);
+    if (quoted) {
+      this.emit("=");
+      this.copy(delimiter, innerStart - 1);
+    } else {
+      // Unquoted, as HTML allows: the quote is written where the value starts.
+      if (this.source[start - 1] === "=") this.copy("=", start - 1);
+      else this.emit("=");
+      this.mark(start);
+      this.emit(delimiter);
+    }
     if (inner === attr.value) {
       this.value(inner, innerStart, delimiter);
     } else {

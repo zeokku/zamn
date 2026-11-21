@@ -483,6 +483,26 @@
           ]
         },
         {
+          "comment": "a binding, or pug's `style={...}`, written without quotes: a value in brackets, spaces and all",
+          "begin": "((?:v-|[:@#.])[^\\s=,()!]+|style)(!?=)(?=[{\\[(])",
+          "end": "(?<=[}\\])])",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.other.attribute-name.directive.zamn"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.zamn"
+            }
+          },
+          "name": "meta.attribute.directive.zamn",
+          "contentName": "source.ts.embedded.zamn",
+          "patterns": [
+            {
+              "include": "#brackets"
+            }
+          ]
+        },
+        {
           "match": "(?:v-|[:@#])[^\\s=,()!]+",
           "name": "entity.other.attribute-name.directive.zamn"
         },
@@ -776,6 +796,77 @@
           "patterns": [
             {
               "include": "#one-line-text"
+            }
+          ]
+        }
+      ]
+    },
+    "brackets": {
+      "comment": "balanced brackets around an expression",
+      "patterns": [
+        {
+          "begin": "\\{",
+          "end": "\\}",
+          "beginCaptures": {
+            "0": {
+              "name": "meta.brace.zamn"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "meta.brace.zamn"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#brackets"
+            },
+            {
+              "include": "source.ts#expression"
+            }
+          ]
+        },
+        {
+          "begin": "\\[",
+          "end": "\\]",
+          "beginCaptures": {
+            "0": {
+              "name": "meta.brace.zamn"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "meta.brace.zamn"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#brackets"
+            },
+            {
+              "include": "source.ts#expression"
+            }
+          ]
+        },
+        {
+          "begin": "\\(",
+          "end": "\\)",
+          "beginCaptures": {
+            "0": {
+              "name": "meta.brace.zamn"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "meta.brace.zamn"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#brackets"
+            },
+            {
+              "include": "source.ts#expression"
             }
           ]
         }

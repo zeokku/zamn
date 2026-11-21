@@ -122,3 +122,18 @@ token measurements use. It breaks text blocks (`p.`, `script.`), whose lines
 must stay indented deeper than their tag, and puts multi-line attribute values
 at column 0. The token corpus avoids both; `docs/test/corpus.test.ts` would
 catch it if a page used them.
+
+## `backdrop-filter` and Lightning CSS
+
+Vite 8 minifies CSS with Lightning CSS and gives it targets only from
+`build.cssTarget` (esbuild's format), not from `css.lightningcss.targets`.
+VitePress leaves it unset, and without targets VitePress's
+`backdrop-filter: var(--vp-nav-backdrop-filter)` came out of the build as
+`-webkit-backdrop-filter` alone, which Chromium ignores. So `docs/.vitepress/config.mts`
+turns `browserslist("defaults")` into a `cssTarget`. Related:
+https://github.com/parcel-bundler/lightningcss/issues/826.
+
+Separately, Lightning CSS 1.33 merges `backdrop-filter: var(--x)` and
+`-webkit-backdrop-filter: var(--x)` in one rule into whichever comes last, with
+or without targets. The docs theme therefore writes only the unprefixed
+property; every browser in `defaults` supports it.

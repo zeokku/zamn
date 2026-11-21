@@ -6,3 +6,7 @@ a(title=)
 a(href="x" href="y")
 #a#b
 a(href="x"
+a(x=a=b)
+a(x=f(a, b))
+a(style={color: c})
+a(data-x={ a: 1 })

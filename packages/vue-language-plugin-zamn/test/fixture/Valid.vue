@@ -20,7 +20,7 @@ main#app.page(:class="{ active: active && items.length > 0 }") {
   ) {
     span {{ row.id }} of #[b= items.length]
   }
-  p(v-if="active") On
+  p(v-if="active" :class={ on: active, 'is-new': items.length > 1 }) On
   p(v-else).
     Off for
     {{ items.length }} items

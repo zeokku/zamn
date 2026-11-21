@@ -55,8 +55,11 @@ div
   different (but equivalently rendered) whitespace.
 - **Braces in text** are text. Only a `{` straight after the tag and its
   attributes opens a block: `p some { text }` and `| { text }` are text.
-- **Attribute values** are quoted strings, numbers or bare words. `true` makes
-  a boolean attribute; `false`, `null` and `undefined` drop it. `!=` skips
+- **Attribute values** are quoted strings, or unquoted as HTML allows them
+  (`href=/docs/`; a `,` or `)` ends the value). `true` makes a boolean
+  attribute; `false`, `null` and `undefined` drop it. A binding takes a value
+  in brackets without quotes (`:class={ active: on }`), and
+  `style={color: 'red'}` is written as CSS, as in pug. `!=` skips
   escaping. Vue-style names work: `:to`, `@click`, `#slot`, `v-model.trim`.
 - **`#{...}`** in text is not special.
 - **Removed**, each with its own error: `- code`, `!=`, `if`/`else`/`unless`,

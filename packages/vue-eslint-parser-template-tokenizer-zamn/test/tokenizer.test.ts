@@ -144,6 +144,18 @@ test("attribute values", () => {
   expect(on.value).toBeNull();
 });
 
+test("unquoted values, as HTML has them, and bindings in brackets", () => {
+  const code = sfc(zamn`
+    a(href=/docs/ :class={ on: x, 'is-new': y } @click=go() style={color: 'red'})
+  `);
+  const [href, cls, click, style] = parse(code).children[0].startTag.attributes;
+  expect(href.value.value).toBe("/docs/");
+  expect(cls.value.expression.type).toBe("ObjectExpression");
+  expect(code.slice(...cls.value.expression.range)).toBe("{ on: x, 'is-new': y }");
+  expect(code.slice(...click.value.expression.range)).toBe("go()");
+  expect(style.value.value).toBe("color:red;");
+});
+
 test("v-pre turns expressions off", () => {
   const code = sfc(zamn`
     div(v-pre)

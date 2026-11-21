@@ -366,7 +366,7 @@ impl<'a> Parser<'a> {
                     if matches!(self.peek(), AttrEq | AttrEqRaw) {
                         attr.escaped = self.next().kind == AttrEq;
                         if let Some(v) = self.accept(AttrValue) {
-                            attr.value = self.attr_value(v);
+                            attr.value = self.attr_value(&attr.name, v);
                             attr.value_span = Some(v.span);
                             attr.span = name.span.to(v.span);
                         }
@@ -382,7 +382,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn attr_value(&mut self, t: Token) -> AttrValue {
+    fn attr_value(&mut self, name: &str, t: Token) -> AttrValue {
         let raw = self.text(t);
         let quote = raw.as_bytes()[0];
         if matches!(quote, b'"' | b'\'' | b'`') {
@@ -400,18 +400,39 @@ impl<'a> Parser<'a> {
             return AttrValue::Str(unescape(inner));
         }
         match raw {
-            "true" => AttrValue::Bool(true),
-            "false" | "null" | "undefined" => AttrValue::Bool(false),
-            _ => {
-                let bare = raw
-                    .bytes()
-                    .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'-' | b'.' | b'%'));
-                if !bare {
-                    self.js_expression(t.span);
-                }
-                AttrValue::Str(raw.to_string())
-            }
+            "true" => return AttrValue::Bool(true),
+            "false" | "null" | "undefined" => return AttrValue::Bool(false),
+            _ => {}
         }
+        if matches!(quote, b'{' | b'[' | b'(') {
+            // A binding's value is an expression for the framework: copied
+            // as written, spaces and all.
+            if is_binding(name) {
+                return AttrValue::Str(raw.to_string());
+            }
+            if name == "style" && quote == b'{' {
+                if let Some(css) = style_object(raw) {
+                    return AttrValue::Str(css);
+                }
+            }
+            self.js_expression(t.span);
+            return AttrValue::Str(raw.to_string());
+        }
+        // Otherwise an unquoted value as HTML has it.
+        if raw
+            .chars()
+            .any(|c| c.is_whitespace() || matches!(c, '"' | '\'' | '`' | '=' | '<' | '>'))
+        {
+            self.diags.push(
+                Diagnostic::new(
+                    "INVALID_ATTRIBUTE_VALUE",
+                    "An unquoted attribute value cannot contain whitespace or any of \" ' ` = < >",
+                    t.span,
+                )
+                .with_hint("put the value in quotes"),
+            );
+        }
+        AttrValue::Str(raw.to_string())
     }
 
     fn js_expression(&mut self, span: Span) {
@@ -423,9 +444,96 @@ impl<'a> Parser<'a> {
                 span,
             )
             .with_hint(
-                "zamn has no JavaScript; attribute values are quoted strings, numbers or bare words",
+                "zamn has no JavaScript; quote the value, or write a binding such as `:href` for your framework",
             ),
         );
+    }
+}
+
+/// A Vue binding (`:to`, `@click`, `#default`, `v-if`, `.prop`), whose value is
+/// an expression for the framework.
+fn is_binding(name: &str) -> bool {
+    (name.starts_with("v-") || name.starts_with([':', '@', '#', '.']))
+        && !name.ends_with([':', '@', '#', '.'])
+}
+
+/// `style={color: 'red', 'font-size': 12}` as CSS, as pug writes it:
+/// `color:red;font-size:12;`. Keys are names or quoted strings, values quoted
+/// strings or numbers; anything else is `None`.
+fn style_object(raw: &str) -> Option<String> {
+    let b = raw.as_bytes();
+    let mut p = 1;
+    let mut css = String::new();
+    let skip_ws = |p: &mut usize| {
+        while *p < b.len() && b[*p].is_ascii_whitespace() {
+            *p += 1;
+        }
+    };
+    // A quoted string at `p`, unescaped; `p` moves past it.
+    let string = |p: &mut usize| -> Option<String> {
+        let quote = b[*p];
+        let start = *p + 1;
+        let mut e = start;
+        while e < b.len() && b[e] != quote {
+            e += if b[e] == b'\\' { 2 } else { 1 };
+        }
+        if e >= b.len() {
+            return None;
+        }
+        *p = e + 1;
+        Some(unescape(&raw[start..e]))
+    };
+    loop {
+        skip_ws(&mut p);
+        if p >= b.len() {
+            return None;
+        }
+        if b[p] == b'}' {
+            return (p + 1 == b.len()).then_some(css);
+        }
+        let key = if matches!(b[p], b'"' | b'\'') {
+            string(&mut p)?
+        } else {
+            let start = p;
+            while p < b.len() && (b[p].is_ascii_alphanumeric() || matches!(b[p], b'_' | b'$')) {
+                p += 1;
+            }
+            if p == start || b[start].is_ascii_digit() {
+                return None;
+            }
+            raw[start..p].to_string()
+        };
+        skip_ws(&mut p);
+        if b.get(p) != Some(&b':') {
+            return None;
+        }
+        p += 1;
+        skip_ws(&mut p);
+        let value = match b.get(p)? {
+            b'"' | b'\'' => string(&mut p)?,
+            _ => {
+                let start = p;
+                if b[p] == b'-' {
+                    p += 1;
+                }
+                while p < b.len() && (b[p].is_ascii_digit() || b[p] == b'.') {
+                    p += 1;
+                }
+                let number = &raw[start..p];
+                number.parse::<f64>().ok()?;
+                number.to_string()
+            }
+        };
+        css.push_str(&key);
+        css.push(':');
+        css.push_str(&value);
+        css.push(';');
+        skip_ws(&mut p);
+        match b.get(p)? {
+            b',' => p += 1,
+            b'}' => {}
+            _ => return None,
+        }
     }
 }
 

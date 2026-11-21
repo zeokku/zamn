@@ -75,7 +75,7 @@ struct Lexer<'a> {
 }
 
 const NO_JS: &str =
-    "zamn has no JavaScript; attribute values are quoted strings, numbers or bare words";
+    "zamn has no JavaScript; quote the value, or write a binding such as `:href` for your framework";
 const NO_CONTROL_FLOW: &str =
     "zamn has no control flow; use your framework's directives, e.g. `div(v-if=\"cond\")`";
 const NO_FILES: &str = "a zamn template is a single file; compose with components instead";

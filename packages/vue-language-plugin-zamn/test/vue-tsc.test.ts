@@ -17,6 +17,7 @@ test("vue-tsc reports type errors at their place in the zamn template", async ()
     "Invalid.vue:11:6 TS2339", // p= missing
     "Invalid.vue:12:14 TS2339", // {{ count.oops }}
     "Invalid.vue:13:3 TS2345", // Card without its required title
+    "Invalid.vue:14:17 TS2322", // :count={ n: count }: an object is not a number
   ]);
   expect(output).not.toContain("[Vue]");
 }, 60_000);
