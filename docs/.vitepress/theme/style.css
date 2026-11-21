@@ -228,7 +228,7 @@ body {
   letter-spacing: -0.035em;
   font-weight: 800;
 }
-/* `<angle="brackets">`: the words greyed out, the punctuation in mono, and the
+/* `<angle brackets>`: the words greyed out, the punctuation in mono, and the
    `<` and `>` in the brand colour. */
 .VPHero .text .angle {
   color: var(--vp-c-text-3);
@@ -367,8 +367,19 @@ body {
   margin: 24px 0 12px;
   padding-top: 0;
 }
-.home-extra > h2:first-child {
+/* "Write this" and "Get this": stacked, then side by side on wide screens. */
+.home-compare {
+  display: grid;
+  row-gap: 24px;
+  column-gap: 32px;
+}
+.home-compare h2 {
   margin-top: 0;
+}
+@media (min-width: 960px) {
+  .home-compare {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .home-extra h2 .header-anchor {
   top: 0;

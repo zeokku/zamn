@@ -63,7 +63,12 @@
 
 .home-extra {
   /* The example between the hero and the features (see style.css). */
-  max-width: 72ch;
+  max-width: 1152px;
   margin: 0 auto;
   padding: 0 24px 32px;
+}
+.home-extra > p {
+  max-width: 72ch;
+  margin-left: auto;
+  margin-right: auto;
 }

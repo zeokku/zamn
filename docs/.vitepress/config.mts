@@ -157,7 +157,7 @@ export default defineConfig({
     editLink: { pattern: `${repo}/edit/main/docs/:path`, text: "Edit this page on GitHub" },
     search: { provider: "local" },
     outline: { level: [2, 3] },
-    footer: { message: "Released under the MIT License.", copyright: "© zeokku" },
+    footer: { message: "Released under the MIT License.", copyright: '© <a href="https://zeokku.com">ZEOKKU</a>' },
   },
 
   markdown: {

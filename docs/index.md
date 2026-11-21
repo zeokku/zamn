@@ -4,7 +4,7 @@ layout: home
 
 hero:
   name: ".zamn"
-  text: "HTML without the <span class=\"angle\"><span class=\"punct bracket\">&lt;</span>angle<span class=\"punct\">=&quot;</span><wbr>brackets<span class=\"punct\">&quot;</span><span class=\"punct bracket\">&gt;</span></span>"
+  text: "HTML without the <span class=\"angle\"><span class=\"punct bracket\">&lt;</span>angle brackets<span class=\"punct bracket\">&gt;</span></span>"
   tagline: A static way to write HTML with <code>{ }</code> blocks instead of closing tags. Easy to read, quick to write, and cheap for coding agents to generate.
   actions:
     - theme: brand
@@ -37,16 +37,21 @@ features:
 ---
 
 <div class="home-extra">
+<div class="home-compare">
+<div>
 
 ## Write this
 
 ```zamn
 nav.top {
-  a(href="/") Home
-  a(href="/docs" :class="{ active: onDocs }") Docs
-  button(@click="toggleTheme")= themeLabel
+  a(href=/) Home
+  a(href=/docs :class={ active: onDocs }) Docs
+  button(@click=toggleTheme)= themeLabel
 }
 ```
+
+</div>
+<div>
 
 ## Get this
 
@@ -57,6 +62,9 @@ nav.top {
   <button @click="toggleTheme">{{ themeLabel }}</button>
 </nav>
 ```
+
+</div>
+</div>
 
 zamn compiles to plain HTML (shown formatted here; the compiler writes it on one
 line), so it works anywhere HTML does: a static page, an email
