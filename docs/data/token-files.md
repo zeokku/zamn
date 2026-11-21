@@ -1,6 +1,6 @@
 <!-- Written by docs/scripts/token-stats.ts. Do not edit. -->
 
-| Page | | zamn, flat braces | zamn, one-line blocks | zamn, one-line blocks, no optional quotes | zamn, 1-space indentation | zamn, formatted | HTML, minified | HTML, formatted |
+| Page | | zamn, flat braces | zamn, one-line blocks | zamn, one-line blocks, simple values unquoted | zamn, 1-space indentation | zamn, formatted | HTML, minified | HTML, formatted |
 |---|---|--:|--:|--:|--:|--:|--:|--:|
 | `article` | OpenAI | 584 | 584 | 582 | 626 | 691 | 705 | 893 |
 | | Claude | — | — | — | — | — | — | — |

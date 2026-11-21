@@ -4,7 +4,7 @@
 |---|--:|--:|--:|--:|
 | zamn, flat braces | 3,550 | — | −34% / — | −16% / — |
 | zamn, one-line blocks | 3,523 | — | −35% / — | −17% / — |
-| zamn, one-line blocks, no optional quotes | 3,404 | — | −37% / — | −19% / — |
+| zamn, one-line blocks, simple values unquoted | 3,404 | — | −37% / — | −19% / — |
 | zamn, 1-space indentation | 3,693 | — | −32% / — | −12% / — |
 | zamn, formatted | 4,205 | — | −22% / — | ±0% / — |
 | HTML, minified | 4,220 | — | −22% / — | ±0% / — |

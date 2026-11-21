@@ -28,13 +28,17 @@ includes. Output has no whitespace between tags unless written.
 - Inline element inside text: `p Read #[a(href="/docs") the docs] first.`
 - `tag: child` nests one child on the same line: `li: a(href="/") Home`.
 - `tag= expr` and `= expr` write `{{ expr }}`. `{{ }}` in text passes through.
-- Attributes: `a(href="/" target="_blank")`. Values are quoted strings, or
-  unquoted as in HTML (`href=/docs/`; no spaces, `" ' = < >`, `,` or `)`).
-  Bindings take brackets unquoted: `:class={ active: on }`; the value ends at
-  the closing bracket, so quote `v-for="(item, i) in items"`. `style={color: 'red'}`
-  becomes CSS. `disabled` or `x=true` is a boolean attribute; `x=false`
-  drops it. `!=` writes the value unescaped. Vue names work as written:
+- Attributes: `a(href="/" target="_blank")`. `style={color: 'red'}` becomes
+  CSS. `disabled` or `x=true` is a boolean attribute; `x=false` drops it. `!=` writes the value unescaped. Vue names work as written:
   `:to`, `@click.prevent`, `#default="{ row }"`, `v-model.trim`.
+- Quoting: always quote a value that contains whitespace, a `,`, any of
+  `` " ' ` = < > ``, or a bracket: `class="btn primary"`, `@click="save()"`,
+  `v-for="(item, i) in items"`. Without quotes such a value ends early or is an
+  error, sometimes silently (`class=btn primary` gives a `primary` attribute).
+  Simple values may go without quotes: `href=/docs`, `type=checkbox`,
+  `:key=item.id`. One exception: a binding (`:x`, `@x`, `#x`, `.x`, `v-*`) whose
+  whole value is one `{ }` or `[ ]` group may stay unquoted, spaces and commas
+  included: `:class={ active: on, big: large }`, `v-bind=[a, b]`.
 - `img/` self-closes; void tags (`img`, `br`, `input`, `meta`, `link`, `hr`) need nothing.
 - `//- note` is a comment left out of the output; `// note` is an HTML comment.
 - `doctype html` at the top of a full page.
@@ -56,9 +60,8 @@ includes. Output has no whitespace between tags unless written.
 
 1. Write the tersest form: every element with children in `{ }`, no
    indentation, no optional spaces, attributes on the tag's line. Leave quotes
-   off values that don't need them (`href=/docs`, `:class={ active: on }`);
-   quote values with spaces and bindings that aren't one bracketed group
-   (`v-for="item in items"`). Text blocks
+   off values that don't need them, following the quoting rule above
+   (`href=/docs`, `:class={ active: on }`, but `@click="save()"`). Text blocks
    (`tag.`) and multi-line attribute values keep their indentation. A block
    whose children allow it may close on its line (`a(href="/"){img(src="/a.svg")}`);
    that saves about 1%, so don't rewrite text to make blocks fit.

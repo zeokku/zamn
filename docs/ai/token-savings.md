@@ -34,7 +34,7 @@ holds the same page:
 |---|---|
 | zamn, flat braces | Prettier with `tabWidth: 0`: braces around every block, no indentation |
 | zamn, one-line blocks | flat braces, with every block that can close on its line written on one: `ul{li{a x}}` |
-| zamn, one-line blocks, no optional quotes | the same, with the quotes left off every value that means the same without them: `href=/docs`, `:class={ on: x }` |
+| zamn, one-line blocks, simple values unquoted | the same, with quotes left off as the [agent rules](./rules) allow: simple values (`href=/docs`) and bindings that are one `{ }` or `[ ]` group (`:class={ on: x }`) |
 | zamn, 1-space indentation | Prettier with `zamnBlockStyle: "preserve"` and `tabWidth: 1`: no braces |
 | zamn, formatted | Prettier with prettier-plugin-zamn's defaults |
 | HTML, minified | `compile(source, { doctype: "html" })` |

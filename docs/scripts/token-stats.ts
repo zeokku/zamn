@@ -25,7 +25,7 @@ const out = resolve(docs, "data/token-stats.json");
 export const variants = {
   zamnFlat: "zamn, flat braces",
   zamnOneLine: "zamn, one-line blocks",
-  zamnUnquoted: "zamn, one-line blocks, no optional quotes",
+  zamnUnquoted: "zamn, one-line blocks, simple values unquoted",
   zamnIndent: "zamn, 1-space indentation",
   zamnFormatted: "zamn, formatted",
   htmlMinified: "HTML, minified",
@@ -46,7 +46,7 @@ export async function render(source: string): Promise<Record<Variant, string>> {
     zamnFlat: await zamn(source, { ...terse, tabWidth: 0 }),
     // Flat braces, with every block that can close on its line written on one.
     zamnOneLine: oneLine(await zamn(source, { ...terse, tabWidth: 0 })),
-    // The same, with quotes left off every value that can go without.
+    // The same, with quotes left off as the agent rules allow.
     zamnUnquoted: unquote(oneLine(await zamn(source, { ...terse, tabWidth: 0 }))),
     // No braces, one space per level.
     zamnIndent: await zamn(source, { ...terse, tabWidth: 1, zamnBlockStyle: "preserve" }),
@@ -100,7 +100,7 @@ export function oneLine(flat: string): string {
 /** Whether zamn copies this attribute's bracketed value as written: a binding. */
 const isBinding = (name: string) => /^(v-|[:@#.])/.test(name) && !/[:@#.]$/.test(name);
 
-/** Whether `value` is one bracketed group: `{ a: 1 }`, not `(a, b) in xs`. */
+/** Whether `value` is one bracketed group: `{ a: 1 }`, not `{ a } b`. */
 function oneGroup(value: string) {
   let depth = 0;
   for (let i = 0; i < value.length; i++) {
@@ -111,10 +111,11 @@ function oneGroup(value: string) {
 }
 
 /**
- * Leaves the quotes off every value that means the same without them: one HTML
- * allows unquoted (`href=/docs/`), or a binding's value that is one bracketed
- * group (`:class={ active: on }`). Strings with escapes, and `"true"` and the
- * like (unquoted they are booleans), keep their quotes.
+ * Leaves quotes off as the agent rules (agents/zamn.md) allow: a value with no
+ * whitespace, `,`, quote, `=`, `<`, `>` or bracket (`href=/docs/`), and a
+ * binding's value that is one `{ }` or `[ ]` group (`:class={ active: on }`).
+ * Strings with escapes, and `"true"` and the like (unquoted they are
+ * booleans), keep their quotes.
  */
 export function unquote(source: string): string {
   const edits: { range: [number, number]; text: string }[] = [];
@@ -127,10 +128,10 @@ export function unquote(source: string): string {
         if (!/^["']/.test(raw)) continue;
         const value = raw.slice(1, -1);
         if (!value || value.includes("\\") || /^(true|false|null|undefined)$/.test(value)) continue;
-        const html = !/[\s"'`=<>,)]/.test(value) && !/^[{[(]/.test(value);
+        const simple = !/[\s"'`=<>,(){}[\]]/.test(value);
         const group =
-          isBinding(attr.name) && /^[{[(]/.test(value) && !/["`]/.test(value) && oneGroup(value);
-        if (html || group) edits.push({ range: attr.valueSpan.range, text: value });
+          isBinding(attr.name) && /^[{[]/.test(value) && !/["`]/.test(value) && oneGroup(value);
+        if (simple || group) edits.push({ range: attr.valueSpan.range, text: value });
       }
       walk(node.children);
     }

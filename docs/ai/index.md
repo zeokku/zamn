@@ -15,9 +15,11 @@ compiles to exactly the same HTML. [How it was measured](./token-savings).
 
 1. **Generate terse zamn.** Every element with children holds them in `{ }`, with
    no indentation at all, and attributes stay on the tag's line: a brace block
-   can start at any indentation, including none. Values go without quotes where
-   they can: `href=/docs`, `type=checkbox`, and a binding whose value is one
-   bracketed group, `:class={ active: on }`. A block can also close on its own
+   can start at any indentation, including none. Simple values go without quotes
+   (`href=/docs`, `type=checkbox`), and so does a binding whose whole value is
+   one `{ }` or `[ ]` group (`:class={ active: on }`). Anything with whitespace,
+   a `,`, a quote, `=`, `<`, `>` or a bracket is quoted: `@click="save()"`,
+   `v-for="(item, i) in items"`. A block can also close on its own
    line (`a(href=/){img(src=/logo.svg)}`), but that saves little.
 2. **Check it.** `zamn file.zamn` (or `vue-tsc` and `eslint` in a Vue project)
    reports every problem with a code and a hint, which an agent can act on.
@@ -81,7 +83,7 @@ compiler says:
 | `a(href=base + "/x")` | `JS_EXPRESSION` | `a(:href="base + '/x'")` |
 | `<div>` lines of HTML | `UNSUPPORTED_SYNTAX` | `div`, or `\| <div>` as text |
 | `p Some text {` | none: the `{` is text | open the block straight after the tag: `p {` |
-| `v-for=(item, i) in items` | none: the value ends at `)`, and `in` and `items` become attributes | quote it: `v-for="(item, i) in items"` |
+| `v-for=(item, i) in items` | none: the value ends at `)`, and `in` and `items` become attributes | quote any value with spaces, commas or brackets: `v-for="(item, i) in items"` |
 | `class=btn primary` | none: the value ends at the space, and `primary` becomes an attribute | quote a value with spaces: `class="btn primary"` |
 | a line indented under `}` | `INVALID_INDENTATION` | put children inside the braces |
 | text lines without `\|` | `UNEXPECTED_TEXT`, or a stray element | start each text line with `\|` |
