@@ -30,7 +30,8 @@ includes. Output has no whitespace between tags unless written.
 - `tag= expr` and `= expr` write `{{ expr }}`. `{{ }}` in text passes through.
 - Attributes: `a(href="/" target="_blank")`. Values are quoted strings, or
   unquoted as in HTML (`href=/docs/`; no spaces, `" ' = < >`, `,` or `)`).
-  Bindings take brackets unquoted: `:class={ active: on }`. `style={color: 'red'}`
+  Bindings take brackets unquoted: `:class={ active: on }`; the value ends at
+  the closing bracket, so quote `v-for="(item, i) in items"`. `style={color: 'red'}`
   becomes CSS. `disabled` or `x=true` is a boolean attribute; `x=false`
   drops it. `!=` writes the value unescaped. Vue names work as written:
   `:to`, `@click.prevent`, `#default="{ row }"`, `v-model.trim`.
@@ -54,16 +55,19 @@ includes. Output has no whitespace between tags unless written.
 ## Workflow
 
 1. Write the tersest form: every element with children in `{ }`, no
-   indentation, no optional spaces, attributes on the tag's line. Text blocks
+   indentation, no optional spaces, attributes on the tag's line. Leave quotes
+   off values that don't need them (`href=/docs`, `:class={ active: on }`);
+   quote values with spaces and bindings that aren't one bracketed group
+   (`v-for="item in items"`). Text blocks
    (`tag.`) and multi-line attribute values keep their indentation. A block
    whose children allow it may close on its line (`a(href="/"){img(src="/a.svg")}`);
    that saves about 1%, so don't rewrite text to make blocks fit.
 
    ```zamn
    ul.nav {
-   li: a(href="/") Home
+   li: a(href=/) Home
    li {
-   a(href="/docs" :class="{ active: onDocs }") Docs
+   a(href=/docs :class={ active: onDocs }) Docs
    span.badge= count
    }
    }

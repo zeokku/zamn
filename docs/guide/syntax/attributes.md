@@ -114,6 +114,18 @@ RouterLink(:to=/about :class={ active: onAbout } @click=go()) About
 <RouterLink :to="/about" :class="{ active: onAbout }" @click="go()">About</RouterLink>
 ```
 
+The value ends at its closing bracket, and whatever follows is the next attribute.
+Quote a value that goes on after it:
+
+```zamn
+li(v-for="(item, i) in items")
+li(v-for=(item, i) in items)
+```
+
+```html
+<li v-for="(item, i) in items"></li><li v-for="(item, i)" in="in" items="items"></li>
+```
+
 ## Names
 
 Names can hold almost anything but spaces, `=`, `,` and `)`, so framework syntax

@@ -24,8 +24,8 @@ article.post#intro {
 
 A zamn template is data, not a program:
 
-- **No JavaScript.** Attribute values are strings, numbers or bare words. Expressions
-  belong to your framework: `p= message` writes `{{ message }}`, and `:title="t"` or
+- **No JavaScript.** Attribute values are strings, quoted or not, as in HTML.
+  Expressions belong to your framework: `p= message` writes `{{ message }}`, and `:title="t"` or
   `@click="go"` pass through to Vue as they are.
 - **No control flow.** No `if`, no loops. Use your framework's directives
   (`li(v-for="item in items")`).

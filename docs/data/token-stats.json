@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-21",
+  "generated": "2026-11-22",
   "tokenizers": {
     "openai": "o200k_base (gpt-tokenizer)",
     "claude": null
@@ -19,6 +19,12 @@
           "openai": 584,
           "claude": null,
           "sha": "4d46f12dd10e5bff"
+        },
+        "zamnUnquoted": {
+          "chars": 2039,
+          "openai": 582,
+          "claude": null,
+          "sha": "2eb57c8bd1486c1f"
         },
         "zamnIndent": {
           "chars": 2185,
@@ -61,6 +67,12 @@
           "claude": null,
           "sha": "b32476e2f875cd2e"
         },
+        "zamnUnquoted": {
+          "chars": 2007,
+          "openai": 578,
+          "claude": null,
+          "sha": "7b43dd737867cfbd"
+        },
         "zamnIndent": {
           "chars": 2060,
           "openai": 589,
@@ -101,6 +113,12 @@
           "openai": 544,
           "claude": null,
           "sha": "3b6b94fdaa0d0928"
+        },
+        "zamnUnquoted": {
+          "chars": 1948,
+          "openai": 527,
+          "claude": null,
+          "sha": "49c1f363cc80ad44"
         },
         "zamnIndent": {
           "chars": 2118,
@@ -143,6 +161,12 @@
           "claude": null,
           "sha": "de7a854eea95f014"
         },
+        "zamnUnquoted": {
+          "chars": 3500,
+          "openai": 935,
+          "claude": null,
+          "sha": "062ace9ae0eaa2ee"
+        },
         "zamnIndent": {
           "chars": 3939,
           "openai": 1029,
@@ -183,6 +207,12 @@
           "openai": 483,
           "claude": null,
           "sha": "6c084fe246a09f33"
+        },
+        "zamnUnquoted": {
+          "chars": 1717,
+          "openai": 436,
+          "claude": null,
+          "sha": "36185c6c9b8d8d02"
         },
         "zamnIndent": {
           "chars": 1845,
@@ -225,6 +255,12 @@
           "claude": null,
           "sha": "c2874a390b53cbe3"
         },
+        "zamnUnquoted": {
+          "chars": 1277,
+          "openai": 346,
+          "claude": null,
+          "sha": "37758e89516c8149"
+        },
         "zamnIndent": {
           "chars": 1358,
           "openai": 368,
@@ -261,6 +297,11 @@
     "zamnOneLine": {
       "chars": 12830,
       "openai": 3523,
+      "claude": null
+    },
+    "zamnUnquoted": {
+      "chars": 12488,
+      "openai": 3404,
       "claude": null
     },
     "zamnIndent": {

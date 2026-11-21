@@ -57,8 +57,9 @@ export default {
   `| text` or `= expr` line.
 - Prints a block written on one line (`ul{li{a x}}`) over several lines, in
   either block style.
-- Writes attributes as `name="value"`. Quotes follow `singleQuote`, unless the other
-  quote needs fewer escapes. Attributes are printed with the separator
+- Writes quoted values with the quotes `singleQuote` asks for, unless the other
+  quote needs fewer escapes. Unquoted values (`href=/docs`, `:class={ on: x }`)
+  stay as written. Attributes are printed with the separator
   `zamnAttributeSeparator` asks for.
 - Puts attributes one per line when there are more of them than
   `zamnMaxAttributesPerLine`, or when the tag, ids, classes and attributes don't fit

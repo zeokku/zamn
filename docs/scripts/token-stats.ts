@@ -15,7 +15,7 @@ import { createHash } from "node:crypto";
 import { basename, resolve } from "node:path";
 import * as prettier from "prettier";
 import * as zamnPrettier from "prettier-plugin-zamn";
-import { compile, lex } from "zamn";
+import { compile, lex, parse, type Node } from "zamn";
 
 const CLAUDE_MODEL = "claude-opus-5-5";
 const docs = resolve(import.meta.dir, "..");
@@ -25,6 +25,7 @@ const out = resolve(docs, "data/token-stats.json");
 export const variants = {
   zamnFlat: "zamn, flat braces",
   zamnOneLine: "zamn, one-line blocks",
+  zamnUnquoted: "zamn, one-line blocks, no optional quotes",
   zamnIndent: "zamn, 1-space indentation",
   zamnFormatted: "zamn, formatted",
   htmlMinified: "HTML, minified",
@@ -45,6 +46,8 @@ export async function render(source: string): Promise<Record<Variant, string>> {
     zamnFlat: await zamn(source, { ...terse, tabWidth: 0 }),
     // Flat braces, with every block that can close on its line written on one.
     zamnOneLine: oneLine(await zamn(source, { ...terse, tabWidth: 0 })),
+    // The same, with quotes left off every value that can go without.
+    zamnUnquoted: unquote(oneLine(await zamn(source, { ...terse, tabWidth: 0 }))),
     // No braces, one space per level.
     zamnIndent: await zamn(source, { ...terse, tabWidth: 1, zamnBlockStyle: "preserve" }),
     // What prettier-plugin-zamn prints with its default options.
@@ -92,6 +95,52 @@ export function oneLine(flat: string): string {
     return [`${line.head} {`, ...children.flat(), "}"];
   };
   return root.flatMap(print).join("\n") + "\n";
+}
+
+/** Whether zamn copies this attribute's bracketed value as written: a binding. */
+const isBinding = (name: string) => /^(v-|[:@#.])/.test(name) && !/[:@#.]$/.test(name);
+
+/** Whether `value` is one bracketed group: `{ a: 1 }`, not `(a, b) in xs`. */
+function oneGroup(value: string) {
+  let depth = 0;
+  for (let i = 0; i < value.length; i++) {
+    if ("{[(".includes(value[i])) depth++;
+    else if ("}])".includes(value[i]) && --depth === 0) return i === value.length - 1;
+  }
+  return false;
+}
+
+/**
+ * Leaves the quotes off every value that means the same without them: one HTML
+ * allows unquoted (`href=/docs/`), or a binding's value that is one bracketed
+ * group (`:class={ active: on }`). Strings with escapes, and `"true"` and the
+ * like (unquoted they are booleans), keep their quotes.
+ */
+export function unquote(source: string): string {
+  const edits: { range: [number, number]; text: string }[] = [];
+  const walk = (nodes: Node[]) => {
+    for (const node of nodes) {
+      if (node.type !== "Element") continue;
+      for (const attr of node.attrs) {
+        if (!attr.valueSpan || attr.shorthand) continue;
+        const raw = source.slice(...attr.valueSpan.range);
+        if (!/^["']/.test(raw)) continue;
+        const value = raw.slice(1, -1);
+        if (!value || value.includes("\\") || /^(true|false|null|undefined)$/.test(value)) continue;
+        const html = !/[\s"'`=<>,)]/.test(value) && !/^[{[(]/.test(value);
+        const group =
+          isBinding(attr.name) && /^[{[(]/.test(value) && !/["`]/.test(value) && oneGroup(value);
+        if (html || group) edits.push({ range: attr.valueSpan.range, text: value });
+      }
+      walk(node.children);
+    }
+  };
+  walk(parse(source).ast.nodes);
+  let out = source;
+  for (const { range, text } of edits.sort((a, b) => b.range[0] - a.range[0])) {
+    out = out.slice(0, range[0]) + text + out.slice(range[1]);
+  }
+  return out;
 }
 
 interface Count {

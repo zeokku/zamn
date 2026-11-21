@@ -15,8 +15,10 @@ compiles to exactly the same HTML. [How it was measured](./token-savings).
 
 1. **Generate terse zamn.** Every element with children holds them in `{ }`, with
    no indentation at all, and attributes stay on the tag's line: a brace block
-   can start at any indentation, including none. A block can also close on its
-   own line (`a(href="/"){img(src="/logo.svg")}`), but that saves little.
+   can start at any indentation, including none. Values go without quotes where
+   they can: `href=/docs`, `type=checkbox`, and a binding whose value is one
+   bracketed group, `:class={ active: on }`. A block can also close on its own
+   line (`a(href=/){img(src=/logo.svg)}`), but that saves little.
 2. **Check it.** `zamn file.zamn` (or `vue-tsc` and `eslint` in a Vue project)
    reports every problem with a code and a hint, which an agent can act on.
 3. **Format it for people.** `prettier --write` with
@@ -27,9 +29,9 @@ Terse:
 
 ```zamn
 ul.nav {
-li: a(href="/") Home
+li: a(href=/) Home
 li {
-a(href="/docs" :class="{ active: onDocs }") Docs
+a(href=/docs :class={ active: onDocs }) Docs
 span.badge= count
 }
 }
@@ -39,9 +41,9 @@ After Prettier:
 
 ```zamn
 ul.nav {
-  li: a(href="/") Home
+  li: a(href=/) Home
   li {
-    a(href="/docs" :class="{ active: onDocs }") Docs
+    a(href=/docs :class={ active: onDocs }) Docs
     span.badge= count
   }
 }
@@ -50,8 +52,10 @@ ul.nav {
 With OpenAI's tokenizer, flat braces came out a few percent smaller than
 indentation with one space. Folding every block that can onto one line saved under
 1% more: most blocks hold text somewhere other than at the end, and text runs to
-the closing `}`, so they can't fold. Both are far smaller than formatted HTML. Whichever an
-agent writes, the formatter makes them identical.
+the closing `}`, so they can't fold. Leaving out the quotes that aren't needed saved
+about 3%, and up to 10% on a form full of short values. All of these are far smaller
+than formatted HTML, and the formatter turns any of them into the same layout. It
+keeps values quoted or unquoted as they were written.
 
 ## Give your agent the rules
 
@@ -77,6 +81,8 @@ compiler says:
 | `a(href=base + "/x")` | `JS_EXPRESSION` | `a(:href="base + '/x'")` |
 | `<div>` lines of HTML | `UNSUPPORTED_SYNTAX` | `div`, or `\| <div>` as text |
 | `p Some text {` | none: the `{` is text | open the block straight after the tag: `p {` |
+| `v-for=(item, i) in items` | none: the value ends at `)`, and `in` and `items` become attributes | quote it: `v-for="(item, i) in items"` |
+| `class=btn primary` | none: the value ends at the space, and `primary` becomes an attribute | quote a value with spaces: `class="btn primary"` |
 | a line indented under `}` | `INVALID_INDENTATION` | put children inside the braces |
 | text lines without `\|` | `UNEXPECTED_TEXT`, or a stray element | start each text line with `\|` |
 | expecting a space between two lines of text or tags | none: they touch | a `\|` line on its own |

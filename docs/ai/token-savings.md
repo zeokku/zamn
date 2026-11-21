@@ -34,13 +34,14 @@ holds the same page:
 |---|---|
 | zamn, flat braces | Prettier with `tabWidth: 0`: braces around every block, no indentation |
 | zamn, one-line blocks | flat braces, with every block that can close on its line written on one: `ul{li{a x}}` |
+| zamn, one-line blocks, no optional quotes | the same, with the quotes left off every value that means the same without them: `href=/docs`, `:class={ on: x }` |
 | zamn, 1-space indentation | Prettier with `zamnBlockStyle: "preserve"` and `tabWidth: 1`: no braces |
 | zamn, formatted | Prettier with prettier-plugin-zamn's defaults |
 | HTML, minified | `compile(source, { doctype: "html" })` |
 | HTML, formatted | the minified HTML through Prettier's HTML formatter |
 
 The terse zamn forms also set `zamnMaxAttributesPerLine: false` and an unlimited
-`printWidth`, so attributes stay on one line. A test checks that all four zamn forms
+`printWidth`, so attributes stay on one line. A test checks that all five zamn forms
 compile to identical HTML.
 
 Tokens are counted with:
@@ -60,6 +61,9 @@ Tokens are counted with:
 - **One-line blocks** save under 1% over flat braces. A block folds only when
   every child but the last ends in `}` or `/`, because text runs to the closing
   `}`, and most blocks hold text. A newline costs about what a space does.
+- **Quotes** cost about 3%. Most values HTML allows unquoted (paths, `type`,
+  `name`, Vue expressions like `form.email`) save a token or two each; the
+  sign-up form, full of them, drops by 10%.
 - **Utility classes** (`dashboard-card`) save the least: a long `class="..."` string
   costs the same in both. Semantic markup with `.class` shorthand saves the most.
 - Tokens are not the only cost. A model writes HTML it has seen millions of times;

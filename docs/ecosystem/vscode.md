@@ -13,7 +13,7 @@ code --install-extension zamn.vscode-zamn
 ```
 
 Expressions in `{{ }}`, after `tag=` and in the values of directives (`:to`,
-`@click`, `#default`, `v-if`) are highlighted as TypeScript, and the lines under
+`@click`, `#default`, `v-if`), quoted or in brackets, are highlighted as TypeScript, and the lines under
 `script.` and `style.` as JavaScript and CSS. Syntax zamn doesn't have (`if`,
 `each`, `mixin`, `include`, `- code`, lines of HTML) is marked as an error.
 

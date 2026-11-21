@@ -43,8 +43,9 @@ bunx prettier --write "src/**/*.zamn"
   moves into the block, as a `| text` or `= expr` line.
 - Prints a block written on one line (`ul{li{a x}}`) over several lines, in
   either block style.
-- Writes attributes as `name="value"`. Quotes follow `singleQuote`, unless the
-  other quote needs fewer escapes. Attributes may be written with spaces or
+- Writes quoted values with the quotes `singleQuote` asks for, unless the
+  other quote needs fewer escapes. Unquoted values (`href=/docs`,
+  `:class={ on: x }`) stay as written. Attributes may be written with spaces or
   commas between them; they are printed with what `zamnAttributeSeparator`
   says.
 - Puts attributes one per line when there are more of them than
