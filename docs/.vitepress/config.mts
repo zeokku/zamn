@@ -153,7 +153,10 @@ export default defineConfig({
       "/ai/": ai,
       // No sidebar for /blog/: posts read better without one.
     },
-    socialLinks: [{ icon: "github", link: repo }],
+    socialLinks: [
+      { icon: "github", link: repo },
+      { icon: "discord", link: "https://zeokku.com/discord" },
+    ],
     editLink: { pattern: `${repo}/edit/main/docs/:path`, text: "Edit this page on GitHub" },
     search: { provider: "local" },
     outline: { level: [2, 3] },
