@@ -48,6 +48,11 @@ needs to change.
 ## Token statistics
 
 `bun run docs:tokens` measures the pages in `token-corpus/` and writes
-`data/token-stats.json`, which the AI pages show. See
-[Token savings](ai/token-savings.md) for the method. Claude counts need
-`ANTHROPIC_API_KEY` or an `ant auth login` profile.
+`data/token-stats.json` and the tables the AI pages include. Claude counts need
+`ANTHROPIC_API_KEY` or an `ant auth login` profile, on an account with credits.
+
+`bun run docs:generate` has Claude Code write each page from its `.task.txt`, as
+HTML and as zamn, and writes `data/generation-summary.md`. It runs on whatever
+Claude Code is logged in with and costs about $7 at API prices for every arm three
+times; `--arms`, `--pages` and `--repeats` run less. See
+[Token savings](ai/token-savings.md) for both methods.

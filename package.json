@@ -22,6 +22,7 @@
     "docs:dev": "bun run --cwd docs dev",
     "docs:build": "bun run --cwd docs build",
     "docs:preview": "bun run --cwd docs preview",
-    "docs:tokens": "bun run --cwd docs tokens"
+    "docs:tokens": "bun run --cwd docs tokens",
+    "docs:generate": "bun run --cwd docs generate"
   }
 }

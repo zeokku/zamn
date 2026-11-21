@@ -324,5 +324,25 @@
       "openai": 5404,
       "claude": null
     }
+  },
+  "overhead": {
+    "rules": {
+      "chars": 4020,
+      "openai": 1248,
+      "claude": null,
+      "sha": "decfe70d7a40f0b6"
+    },
+    "skillDescription": {
+      "chars": 236,
+      "openai": 57,
+      "claude": null,
+      "sha": "69418e9301f84635"
+    },
+    "skillBody": {
+      "chars": 4388,
+      "openai": 1352,
+      "claude": null,
+      "sha": "270b842d3e6ed6e2"
+    }
   }
 }

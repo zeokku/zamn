@@ -1,0 +1,8 @@
+A Vue template for a sign-up form (submit.prevent calls submit, novalidate).
+An h2 "Create your account" and a subtitle "Already have one? Log in" with a RouterLink to /login.
+Fields, each in a div with class field and a label: full name (form.name, trimmed) and work email (form.email, trimmed), both required with autocomplete and aria-invalid bound to whether errors.name / errors.email is set, each followed by its error message (role alert, shown only when set).
+A password field (form.password, minimum 12 characters, autocomplete new-password) in an input group with a toggle button that switches showPassword (aria-pressed bound to it) and reads Hide or Show; the input type follows showPassword. Then a hint "At least 12 characters." and its error message.
+A company size select (form.size) with a disabled placeholder option "Choose one" and one option per item of sizes.
+A fieldset "What will you use it for?" with one checkbox per item of goals, bound to form.goals.
+A required terms checkbox (form.terms) whose label links to the terms of service and the privacy policy, both opening in a new tab.
+A full-width primary submit button, disabled while submitting, reading "Creating your account…" while submitting and "Create account" otherwise, and a form-level error message (errors.form).

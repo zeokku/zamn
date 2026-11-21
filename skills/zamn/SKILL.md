@@ -17,10 +17,12 @@ includes. Output has no whitespace between tags unless written.
 - A `{` at the end of the tag's line opens a block; its `}` goes on its own
   line. Inside braces, the base indentation is free (zero is fine). `p {}` is empty.
 - A block can also open and close on one line: `.card{.body{h2 Title}}`,
-  `ul{li{a x} li{b y}}`. Each child is a statement (`b{| bold}` for text);
-  text and `= expr` run to the closing `}`, so a child can only follow one that
-  ends in `}`. Write `\}` and `\{` for literal braces there. `p {b}` is a
-  block, not text: write `p \{b}` for that.
+  `ul{li{a x} li{b y}}`. It must close on that line: `select{option a` with
+  `option b}` on the next line is an error (`UNCLOSED_BRACE`). Each child is
+  a statement (`b{| bold}` for text); text and `= expr` run to the closing
+  `}`, so a child can only follow one that ends in `}`. Write `\}` and `\{`
+  for literal braces there. `p {b}` is a block, not text: write `p \{b}` for
+  that.
 - Text: `p Hello` (inline), `| text` (a line of text), `|` alone (one space,
   to join two lines). Text is not escaped: `p a &amp; <b>b</b>` is fine.
   `tag.` takes the indented lines below as raw text (`script.`, `style.`, `pre.`);
@@ -58,21 +60,19 @@ includes. Output has no whitespace between tags unless written.
 
 ## Workflow
 
-1. Write the tersest form: every element with children in `{ }`, no
-   indentation, no optional spaces, attributes on the tag's line. Leave quotes
-   off values that don't need them, following the quoting rule above
-   (`href=/docs`, `:class={ active: on }`, but `@click="save()"`). Text blocks
-   (`tag.`) and multi-line attribute values keep their indentation. A block
-   whose children allow it may close on its line (`a(href="/"){img(src="/a.svg")}`);
-   that saves about 1%, so don't rewrite text to make blocks fit.
+1. Write readable zamn, laid out the way a person would: children in `{ }`
+   blocks or nested by indentation, one child per line, attributes on the
+   tag's line. Don't squeeze it: measured with Claude, the tersest form (no
+   indentation, blocks on one line, no optional quotes) took more thinking than
+   it saved, and was invalid more often.
 
    ```zamn
    ul.nav {
-   li: a(href=/) Home
-   li {
-   a(href=/docs :class={ active: onDocs }) Docs
-   span.badge= count
-   }
+     li: a(href="/") Home
+     li {
+       a(href="/docs" :class="{ active: onDocs }") Docs
+       span.badge= count
+     }
    }
    ```
 

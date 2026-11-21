@@ -24,7 +24,7 @@ features:
     link: /guide/syntax/elements
   - title: Fewer tokens
     icon: ◆
-    details: About a third fewer tokens than formatted HTML on realistic pages. Agents write terse zamn, Prettier makes it pretty.
+    details: About a third fewer tokens than formatted HTML to read and keep. Claude writes it for a few percent less per page, and about a sixth less over a chat, thinking included.
     link: /ai/token-savings
   - title: Vue tooling
     icon: ■

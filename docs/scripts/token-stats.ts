@@ -155,6 +155,24 @@ interface Stats {
   tokenizers: { openai: string; claude: string | null };
   files: { name: string; counts: Record<Variant, Count> }[];
   totals: Record<Variant, { chars: number; openai: number; claude: number | null }>;
+  /** What an agent reads once per conversation before it writes zamn. */
+  overhead: Record<Overhead, Count>;
+}
+
+const overheads = {
+  rules: "Rules (`agents/zamn.md`), in every conversation",
+  skillDescription: "Skill description, in every session",
+  skillBody: "Skill body, once it is used",
+} as const;
+type Overhead = keyof typeof overheads;
+
+async function overheadTexts(): Promise<Record<Overhead, string>> {
+  const skill = await Bun.file(resolve(docs, "../skills/zamn/SKILL.md")).text();
+  return {
+    rules: await Bun.file(resolve(docs, "../agents/zamn.md")).text(),
+    skillDescription: skill.match(/^description: (.*)$/m)![1],
+    skillBody: skill.replace(/^---\n[\s\S]*?\n---\n/, ""),
+  };
 }
 
 async function claudeCounter() {
@@ -183,21 +201,27 @@ async function main() {
       if (count.claude !== null) kept.set(count.sha, count.claude);
     }
   }
+  for (const count of Object.values(previous?.overhead ?? {})) {
+    if (count.claude !== null) kept.set(count.sha, count.claude);
+  }
 
   const claude = await claudeCounter();
+  const measure = async (text: string): Promise<Count> => {
+    const sha = createHash("sha256").update(text).digest("hex").slice(0, 16);
+    return {
+      chars: text.length,
+      openai: countO200k(text),
+      claude: claude ? await claude(text) : (kept.get(sha) ?? null),
+      sha,
+    };
+  };
   const paths = [...new Glob("token-corpus/*.zamn").scanSync({ cwd: docs })].sort();
   const files: Stats["files"] = [];
   for (const path of paths) {
     const forms = await render(await Bun.file(resolve(docs, path)).text());
     const counts = {} as Record<Variant, Count>;
     for (const [variant, text] of Object.entries(forms) as [Variant, string][]) {
-      const sha = createHash("sha256").update(text).digest("hex").slice(0, 16);
-      counts[variant] = {
-        chars: text.length,
-        openai: countO200k(text),
-        claude: claude ? await claude(text) : (kept.get(sha) ?? null),
-        sha,
-      };
+      counts[variant] = await measure(text);
     }
     files.push({ name: basename(path, ".zamn"), counts });
     console.log(`${path}: ${Object.values(counts).map((c) => c.openai).join(" / ")}`);
@@ -222,12 +246,17 @@ async function main() {
     },
     files,
     totals,
+    overhead: {} as Stats["overhead"],
   };
+  for (const [key, text] of Object.entries(await overheadTexts()) as [Overhead, string][]) {
+    stats.overhead[key] = await measure(text);
+  }
   await Bun.write(out, JSON.stringify(stats, null, 2) + "\n");
   // Markdown tables for the pages to include: they reach llms.txt and the
   // Markdown version of each page, which a Vue component would not.
   await Bun.write(resolve(docs, "data/token-summary.md"), summaryTable(stats));
   await Bun.write(resolve(docs, "data/token-files.md"), filesTable(stats));
+  await Bun.write(resolve(docs, "data/token-overhead.md"), overheadTable(stats));
   console.log(`wrote ${out} and the tables next to it`);
 }
 
@@ -276,6 +305,42 @@ function filesTable(stats: Stats) {
     `| Page | | ${keys.map((v) => variants[v]).join(" | ")} |`,
     `|---|---|${keys.map(() => "--:").join("|")}|`,
     ...rows,
+    caption(stats),
+  ].join("\n");
+}
+
+/** The rules and the skill against what zamn saves per page. */
+function overheadTable(stats: Stats) {
+  const pages = stats.files.length;
+  const t = stats.totals;
+  // Pages of `zamn` it takes for the saving over formatted HTML, the kind
+  // models write, to cover `cost` tokens.
+  const breakEven = (cost: number | null, zamn: Variant, tokenizer: "openai" | "claude") => {
+    const z = t[zamn][tokenizer];
+    const html = t.htmlFormatted[tokenizer];
+    if (cost === null || z === null || html === null) return "—";
+    return (cost / ((html - z) / pages)).toFixed(1);
+  };
+  const o = stats.overhead;
+  const sum = (k: "openai" | "claude") =>
+    o.skillDescription[k] === null || o.skillBody[k] === null ? null : o.skillDescription[k]! + o.skillBody[k]!;
+  const rows: [string, number, number | null][] = [
+    ...(Object.keys(overheads) as Overhead[]).map((k) => [overheads[k], o[k].openai, o[k].claude] as [string, number, number | null]),
+    ["Skill, description and body", sum("openai")!, sum("claude")],
+  ];
+  const pair = (cost: [number, number | null], zamn: Variant) =>
+    `${breakEven(cost[0], zamn, "openai")} / ${breakEven(cost[1], zamn, "claude")}`;
+  return [
+    "<!-- Written by docs/scripts/token-stats.ts. Do not edit. -->",
+    "",
+    "| Read once | OpenAI | Claude | Pages to break even, formatted zamn (OpenAI / Claude) | terse zamn (OpenAI / Claude) |",
+    "|---|--:|--:|--:|--:|",
+    ...rows.map(
+      ([label, openai, claude]) =>
+        `| ${label} | ${num(openai)} | ${num(claude)} | ${pair([openai, claude], "zamnFormatted")} | ${pair([openai, claude], "zamnUnquoted")} |`,
+    ),
+    "",
+    "Pages whose saving over formatted HTML, at this corpus's average, covers the tokens read once. Terse zamn is the smallest form: one-line blocks, simple values unquoted.",
     caption(stats),
   ].join("\n");
 }

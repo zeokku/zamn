@@ -8,7 +8,8 @@
     "build": "vitepress build",
     "preview": "vitepress preview",
     "test": "bun test",
-    "tokens": "bun scripts/token-stats.ts"
+    "tokens": "bun scripts/token-stats.ts",
+    "generate": "bun scripts/generation-stats.ts"
   },
   "dependencies": {
     "zamn": "workspace:*"

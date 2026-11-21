@@ -115,6 +115,65 @@ message holding just `"a"` minus one. All forms of a page share the overhead,
 so the percentages don't depend on it; the absolute numbers are off by at most
 a token or so.
 
+`count_tokens` is free, but the API refuses it ("credit balance is too low")
+on an account with no credits.
+
+## Measuring generation with `claude -p`
+
+`docs/scripts/generation-stats.ts` drives Claude Code rather than the API, so it
+works on a subscription. What it relies on:
+
+- `--bare` would isolate best, but it reads only `ANTHROPIC_API_KEY`, never the
+  OAuth login. The script runs in an empty temp directory with
+  `--setting-sources project --strict-mcp-config --tools Skill` instead. Built-in
+  and user skills are still listed in the system prompt, equally in every arm.
+- `--output-format stream-json --verbose` gives one `result` per turn, whose
+  `modelUsage[model]` has `thinkingTokens` (part of `outputTokens`). With
+  `--input-format stream-json`, the usage and `total_cost_usd` in each `result`
+  are totals so far, so a turn is the difference from the previous one.
+- Prompts written to stdin while Claude is busy are merged into one turn: write
+  the next one only after the previous `result` arrives.
+- `modelUsage` also lists a small Haiku call Claude Code makes on its own; the
+  script counts only the requested model.
+
+## What the AI measurements showed (2026-11-22)
+
+Measured with `claude-opus-5-5` through Claude Code 2.1.319, six corpus pages,
+three runs of each arm. The tables are in `docs/data/`; the reasoning behind
+the current agent advice is here.
+
+- **A page is smaller, generating it barely is.** Generated zamn code is about
+  a third smaller than the formatted HTML Claude writes. But with one page per
+  conversation, Claude thinks about 270 tokens more per page before writing
+  zamn (about 480 with the terse skill), and often not at all before writing
+  HTML. So the whole answer is only about 5% smaller for one page, and about
+  16% smaller over a chat of six pages (an earlier run gave 22%; the noise is
+  several percent).
+- **In a chat, the extra thinking is mostly on the first page:** about +530
+  tokens there, then about +45 per page on pages 2–6, where Claude thinks
+  before writing HTML too. With the old terse skill, it stayed higher on later
+  pages.
+- **Terse advice doesn't pay.** The skill used to ask for the tersest form (no
+  indentation, one-line blocks, no optional quotes). That gave the smallest
+  code but the most thinking, so the answer was no smaller than HTML, and it
+  was the only arm that wrote invalid zamn: a block opened inline and closed on
+  a later line (`select{option a` / `option b}`, `UNCLOSED_BRACE`). The skill
+  and `agents/zamn.md` now ask for readable zamn, and the syntax bullet says a
+  one-line block must close on its line. Asking for readable zamn produced no
+  invalid answers. The old step is kept as the `zamnTerse` arm.
+- **The skill costs input once per conversation:** about 9.7k tokens on the
+  first page, mostly cache reads. Loading it means reading its body and two
+  extra model calls that reread the context. Rules pasted into `CLAUDE.md` would
+  skip the extra calls but are read in every conversation, zamn or not.
+- **Break-even on size alone:** the rules (~1.25k tokens) or the skill (~1.4k)
+  are made back after about 6–7 pages of formatted zamn compared with formatted
+  HTML. Compared with minified HTML, formatted zamn is about even, so they never
+  are.
+- **The tokenizer counts are an upper bound.** The static counts (`docs:tokens`)
+  measure only the size of the text. They are right for reading and storing a
+  page, but overstate what generating it saves. Claim generation savings only
+  from `docs:generate`.
+
 ## prettier-plugin-zamn with `tabWidth: 0`
 
 `tabWidth: 0` prints every brace block with no indentation, the flat form the

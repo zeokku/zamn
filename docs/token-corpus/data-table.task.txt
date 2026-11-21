@@ -1,0 +1,6 @@
+A Vue template for an invoices table.
+A toolbar with the h2 "Invoices" and filters: a search input bound to query, a status select bound to status (All, Draft, Sent, Overdue, Paid), and a primary "New invoice" button that emits create.
+The table: a header row with a select-all checkbox (checked bound to allSelected, change calls toggleAll), one sortable header per item of columns (keyed by column.key, aria-sort from sortKey and sortOrder, a button calling sortBy(column.key) showing column.label), and a visually hidden "Actions" header.
+The body: an empty-state row when rows is empty ("No invoices match your filters.", spanning every column), then one row per invoice (keyed by row.id, class selected when selected.has(row.id)): a checkbox calling toggle(row.id), the invoice number as a RouterLink to /invoices/<id>, the customer, issue and due dates via formatDate, the amount via formatMoney(row.total, row.currency), a StatusBadge, and three icon buttons emitting send (disabled when paid), download and remove, with titles and icons IconSend, IconDownload, IconTrash.
+A footer row: "Showing <rows.length> of <total> invoices, <formatMoney(sum, currency)> in total." with the numbers in bold.
+Pagination: Previous and Next buttons changing page, disabled at the ends, and "Page <page> of <pages>".

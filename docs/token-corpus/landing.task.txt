@@ -1,0 +1,11 @@
+A complete HTML page (doctype, head and body) for Northwind, an invoicing product: "Northwind: invoices that pay themselves".
+Head: charset, viewport, title, a meta description, a stylesheet /assets/site.css and an SVG favicon.
+Header: a nav with the logo image linking home, links to Features, Pricing, Customers and Docs, and two buttons: "Log in" (ghost) and "Start free trial" (primary).
+Main:
+- a hero with an eyebrow line about automatic payment reminders, the h1 "Invoices that pay themselves", a two-sentence lead, two calls to action (start a free trial, watch the 2-minute demo with an arrow), a fine-print line, and a lazy-loaded dashboard screenshot in a figure;
+- a customer logo row: "Trusted by 4,000 small businesses" and four logo images (Acme, Globex, Initech, Umbrella);
+- a features section (id features) with an h2 and four feature articles, each an icon, an h3 and one sentence: Send in seconds, Polite reminders, Automatic reconciliation, Cash flow at a glance;
+- a testimonial blockquote from Maria Lopez, founder of Lopez Studio, with her avatar, and one emphasized word in the quote;
+- a call to action with an h2, a line about the 14-day trial, and a GET form to /signup with a visually hidden label, a required email input and a submit button.
+Footer: the mono logo and a copyright line, and three navs (Product, Company, Legal), each with an h4 and a list of links.
+Use semantic class names (site-header, nav, hero, feature-grid, btn, btn-primary and so on) and a container class on each section.
