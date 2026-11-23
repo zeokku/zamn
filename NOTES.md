@@ -196,3 +196,15 @@ Separately, Lightning CSS 1.33 merges `backdrop-filter: var(--x)` and
 `-webkit-backdrop-filter: var(--x)` in one rule into whichever comes last, with
 or without targets. The docs theme therefore writes only the unprefixed
 property; every browser in `defaults` supports it.
+
+## What in the skill changes how much Claude thinks
+
+Measured on 2026-11-22 with `docs:generate` (claude-opus-5-5, Claude Code 2.1.319, six pages, three runs each), as thinking tokens summed over the six pages, mean and median. HTML thinks 639 (median 600); the current skill 2,251 (2,198).
+
+- **Wording does not.** The skill rewritten to explain zamn as CSS selectors nested like SCSS, with the same rules: 2,505 (2,280). The same, also saying to quote every attribute value: 2,412 (1,965), with one invalid page (`INVALID_CLASS_NAME`).
+- **A shorter skill thinks more.** Cut to 1.4 KB (an example and four lines of rules, pug named as the base): 2,928 (2,808), lower on no page but the article.
+- **Worked examples think less.** The current skill plus six zamn examples with the HTML each compiles to (text mixed with elements, a `v-for` list, a form, utility classes, a slot, a full page): 1,628 (1,606), lower on five pages of six, all valid. Output as a whole drops to 8,722, against 9,240 for the current skill and 9,749 for HTML; input read grows from 102k to 110k, almost all of it cached. The examples were close to the corpus (a todo list, as in `vue-component`; a form, as in `signup-form`), so this may overstate the saving on other pages.
+
+Single runs vary from about 100 to 1,300 thinking tokens on the same page, so only differences much larger than a few hundred tokens mean anything.
+
+The skill stays as it is for now: the examples add input to every conversation that loads the skill, and the saving is not shown on pages unlike them.
