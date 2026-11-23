@@ -9,7 +9,8 @@
     "preview": "vitepress preview",
     "test": "bun test",
     "tokens": "bun scripts/token-stats.ts",
-    "generate": "bun scripts/generation-stats.ts"
+    "generate": "bun scripts/generation-stats.ts",
+    "chats": "bun scripts/chat-stats.ts"
   },
   "dependencies": {
     "zamn": "workspace:*"

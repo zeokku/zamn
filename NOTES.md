@@ -136,6 +136,19 @@ works on a subscription. What it relies on:
 - `modelUsage` also lists a small Haiku call Claude Code makes on its own; the
   script counts only the requested model.
 
+## Measuring chats with `claude -p`
+
+`docs/scripts/chat-stats.ts` (`docs:chats`) runs a page's steps from `docs/token-corpus/chats.yaml` in one chat through `docs/scripts/claude-stream.ts`. Seen in Claude Code 2.1.319:
+
+- `--setting-sources project` also skips the user's `effortLevel`, so runs without `--effort` use Claude Code's built-in default, not the level the user works at. The script uses that default; `--effort` sets a level, and the results record which.
+- A PostToolUse hook that exits with 2 has its stderr passed to Claude after the tool result, as `PostToolUse:Write hook blocking error from command: "<command>": [<command>]: <stderr>`. Exit 0 with no output passes nothing. The command is quoted in every error, so the hook is a short `zamn-hook` on `PATH`. With `--include-hook-events`, each run is a `system`/`hook_response` message with `exit_code`, `stdout` and `stderr`.
+- The `system`/`init` message is repeated with every prompt in stream-json input mode.
+- Thinking blocks come with empty text; `system`/`thinking_tokens` messages give a running estimate of their size, which ran above the final `thinkingTokens`.
+- An `assistant` message's `usage` has the call's input and cache figures but not its final output; one call's content blocks come as separate messages with the same id.
+- A denied tool call comes back as a tool result with `is_error`, starting with "Permission to use"; asking for a tool that isn't enabled comes back as "No such tool available".
+- `rate_limit_event` messages carry the account's use of each window (`unifiedWindows.five_hour.utilization`, `resetsAt`). Parallel conversations see slightly different figures.
+- Parallel chats share the prompt cache. With `--exclude-dynamic-system-prompt-sections` and one warm-up prompt per arm, a chat's first call read about 4.3k tokens of Claude Code's prefix from the cache and wrote about 5k of its own (environment, skill listing, prompt), about the same in every arm. Without the warm-up, whichever chat starts first pays for writing the shared prefix.
+
 ## What the AI measurements showed (2026-11-22)
 
 Measured with `claude-opus-5-5` through Claude Code 2.1.319, six corpus pages,

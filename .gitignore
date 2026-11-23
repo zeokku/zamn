@@ -48,6 +48,8 @@ packages/zamn/pkg
 docs/.vitepress/dist
 docs/.vitepress/cache
 
-# generated answers of docs:generate (large; the summary table is committed)
+# generated answers of docs:generate and docs:chats (large; the summary tables are committed)
 docs/data/generation-stats.json
 docs/data/generation-stats.partial.json
+docs/data/chat-stats.json
+docs/data/chat-stats.partial.json

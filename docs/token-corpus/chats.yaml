@@ -1,0 +1,152 @@
+# The chats of `bun run docs:chats` (docs/scripts/chat-stats.ts). Each page is
+# one chat: the first step writes it, the others edit it. The prompts don't
+# name a language: the script adds "Write it in HTML/zamn, in <file>" to the
+# first one and "Reply with one short sentence when it's done." to every one.
+#
+# A step is a prompt, or { prompt, has, lacks }: text the page's HTML (a Vue
+# component's template) must contain, or must not, from that step on. `has` is
+# matched as written, `lacks` ignoring case; whitespace layout is ignored. Check
+# only what the prompts fix (texts, URLs, ids, bound expressions), never markup
+# Claude is free to choose. A page named `Name.vue` is a Vue component.
+
+landing:
+  - prompt: |
+      A complete web page (doctype, head and body) for Northwind, an invoicing product: "Northwind: invoices that pay themselves".
+      Head: charset, viewport, title, a meta description, a stylesheet /assets/site.css and an SVG favicon.
+      Header: a nav with the logo image linking home, links to Features, Pricing, Customers and Docs, and two buttons: "Log in" (ghost) and "Start free trial" (primary).
+      Main:
+      - a hero with an eyebrow line about automatic payment reminders, the h1 "Invoices that pay themselves", a two-sentence lead, two calls to action (start a free trial, watch the 2-minute demo with an arrow), a fine-print line, and a lazy-loaded dashboard screenshot in a figure;
+      - a customer logo row: "Trusted by 4,000 small businesses" and four logo images (Acme, Globex, Initech, Umbrella);
+      - a features section (id features) with an h2 and four feature articles, each an icon, an h3 and one sentence: Send in seconds, Polite reminders, Automatic reconciliation, Cash flow at a glance;
+      - a testimonial blockquote from Maria Lopez, founder of Lopez Studio, with her avatar, and one emphasized word in the quote;
+      - a call to action with an h2, a line about the 14-day trial, and a GET form to /signup with a visually hidden label, a required email input and a submit button.
+      Footer: the mono logo and a copyright line, and three navs (Product, Company, Legal), each with an h4 and a list of links.
+      Use semantic class names (site-header, nav, hero, feature-grid, btn, btn-primary and so on) and a container class on each section.
+    has: ["/assets/site.css", "Invoices that pay themselves", "Trusted by 4,000 small businesses", 'id="features"', "Cash flow at a glance", "Maria Lopez", 'action="/signup"']
+  - prompt: Add a "Blog" link to /blog in the site navigation, after Docs.
+    has: ['href="/blog"']
+  - prompt: 'Change the hero''s eyebrow line to "New: recurring invoices".'
+    has: ["New: recurring invoices"]
+  - prompt: Add a fifth feature after "Cash flow at a glance", with the icon /img/icons/repeat.svg, the heading "Recurring invoices" and the text "Bill retainers and subscriptions on a schedule, without lifting a finger."
+    has: ["/img/icons/repeat.svg", "Recurring invoices", "Bill retainers and subscriptions on a schedule, without lifting a finger."]
+  - prompt: Remove the Umbrella logo from the customer logos, and change the line above them to "Trusted by 5,000 small businesses".
+    has: ["Trusted by 5,000 small businesses"]
+    lacks: ["Umbrella", "Trusted by 4,000 small businesses"]
+  - prompt: Add a pricing section (id pricing) between the features and the testimonial, and point the Pricing link in the navigation to it. It has the h2 "Simple pricing" and three plan cards, Starter ($0), Growth ($29 a month) and Scale ($99 a month), each with the plan's name in an h3, its price, a list of two features and a button "Choose <plan>". Mark Growth with a "Most popular" badge.
+    has: ['id="pricing"', 'href="#pricing"', "Simple pricing", "Choose Starter", "Choose Growth", "Choose Scale", "Most popular"]
+  - prompt: In the footer, add a "Status" link to https://status.northwind.app at the end of the Company nav, and make the copyright year 2027.
+    has: ["https://status.northwind.app", "2027"]
+
+article:
+  - prompt: |
+      A blog post body (an article element, no page shell) titled "Caching without tears".
+      Header: a meta line with the date November 2, 2026 (a time element), a link to the author Sam Park (/authors/sam) and "7 min read", separated by middots; the h1; a lead paragraph of two sentences about who decides that a cached value is stale.
+      A table of contents (nav, aria-label "Contents") with an h2 and an ordered list linking to three sections: Time to live (#ttl), Invalidation by event (#events), Versioned keys (#versions).
+      Each section has that id and an h2. Time to live: a paragraph with one emphasized word, a code sample `cache.set(key, value, { ttl: 60_000 });` in pre/code with class language-ts, and a paragraph with one strong word. Invalidation by event: a paragraph, then a warning callout (aside, classes callout and callout-warning) starting with a bold "Watch out:". Versioned keys: a paragraph, a figure with an image (/img/versioned-keys.svg, 640x240, with alt text) and a caption, and a three-column table (Approach, Fresh, Effort for writers) with rows for Time to live, Events and Versioned keys.
+      A footer thanking Lee and Ana (each a link to /authors/<name>) and a list of tag links: caching, architecture.
+    has: ["Caching without tears", "/authors/sam", "7 min read", 'href="#versions"', 'id="ttl"', "callout-warning", "/img/versioned-keys.svg", "Effort for writers", "/authors/ana"]
+  - prompt: Change the reading time in the header from 7 to 8 minutes.
+    has: ["8 min read"]
+    lacks: ["7 min read"]
+  - prompt: 'Add a fourth section after Versioned keys, with the id write-through, the heading "Write-through" and one paragraph: "The writer updates the cache and the source together, so readers never see a stale value, at the price of slower writes." Add it to the table of contents too.'
+    has: ['id="write-through"', 'href="#write-through"', "at the price of slower writes."]
+  - prompt: 'In the comparison table, add a row for Write-through: fresh "Yes", effort "Every write, in the same transaction".'
+    has: ["Every write, in the same transaction"]
+  - prompt: Turn the warning callout into a tip, with the classes callout and callout-tip, starting with a bold "Tip:" instead of "Watch out:". Keep the rest of its text.
+    has: ["callout-tip", "Tip:"]
+    lacks: ["callout-warning", "Watch out:"]
+  - prompt: 'After the first paragraph of Invalidation by event, add a code sample in pre/code with the class language-ts: `bus.on("invoice.paid", (e) => cache.delete(e.id));`'
+    has: ["cache.delete(e.id)"]
+  - prompt: Thank Kim too (/authors/kim), after Ana, and add a tag link "performance" to /tags/performance at the end of the tag list.
+    has: ["/authors/kim", "/tags/performance"]
+
+SignupForm.vue:
+  - prompt: |
+      A Vue component, only its template (no script or style), for a sign-up form (submit.prevent calls submit, novalidate).
+      An h2 "Create your account" and a subtitle "Already have one? Log in" with a RouterLink to /login.
+      Fields, each in a div with class field and a label: full name (form.name, trimmed) and work email (form.email, trimmed), both required with autocomplete and aria-invalid bound to whether errors.name / errors.email is set, each followed by its error message (role alert, shown only when set).
+      A password field (form.password, minimum 12 characters, autocomplete new-password) in an input group with a toggle button that switches showPassword (aria-pressed bound to it) and reads Hide or Show; the input type follows showPassword. Then a hint "At least 12 characters." and its error message.
+      A company size select (form.size) with a disabled placeholder option "Choose one" and one option per item of sizes.
+      A fieldset "What will you use it for?" with one checkbox per item of goals, bound to form.goals.
+      A required terms checkbox (form.terms) whose label links to the terms of service and the privacy policy, both opening in a new tab.
+      A full-width primary submit button, disabled while submitting, reading "Creating your account…" while submitting and "Create account" otherwise, and a form-level error message (errors.form).
+    has: ["Create your account", "form.email", "showPassword", "At least 12 characters.", "form.size", "form.goals", "_blank", "Create account", "errors.form"]
+  - prompt: 'Add a "Confirm password" field right after the password field: an input with the id password-confirm, bound to form.passwordConfirm, of the same type as the password input, with autocomplete new-password, required, and its error errors.passwordConfirm shown the way the other fields show theirs.'
+    has: ['id="password-confirm"', "form.passwordConfirm", "errors.passwordConfirm"]
+  - prompt: Remove the company size field.
+    lacks: ["form.size", "Choose one"]
+  - prompt: Make the terms and privacy links open in the same tab.
+    lacks: ["_blank"]
+  - prompt: Rename the submit button to "Start free trial", and to "Starting your trial…" while submitting.
+    has: ["Start free trial"]
+    lacks: ["Create account"]
+  - prompt: Add an optional "Phone" field after the work email, with the same markup as the other fields, a tel input bound to form.phone (trimmed) with autocomplete tel. It isn't required and has no error message.
+    has: ["form.phone", 'type="tel"']
+  - prompt: Wrap every field, from the full name to the terms checkbox, in a fieldset with the class fields that is disabled while submitting.
+    has: ['class="fields"']
+
+InvoiceTable.vue:
+  - prompt: |
+      A Vue component, only its template (no script or style), for an invoices table.
+      A toolbar with the h2 "Invoices" and filters: a search input bound to query, a status select bound to status (All, Draft, Sent, Overdue, Paid), and a primary "New invoice" button that emits create.
+      The table: a header row with a select-all checkbox (checked bound to allSelected, change calls toggleAll), one sortable header per item of columns (keyed by column.key, aria-sort from sortKey and sortOrder, a button calling sortBy(column.key) showing column.label), and a visually hidden "Actions" header.
+      The body: an empty-state row when rows is empty ("No invoices match your filters.", spanning every column), then one row per invoice (keyed by row.id, class selected when selected.has(row.id)): a checkbox calling toggle(row.id), the invoice number as a RouterLink to /invoices/<id>, the customer, issue and due dates via formatDate, the amount via formatMoney(row.total, row.currency), a StatusBadge, and three icon buttons emitting send (disabled when paid), download and remove, with titles and icons IconSend, IconDownload, IconTrash.
+      A footer row: "Showing <rows.length> of <total> invoices, <formatMoney(sum, currency)> in total." with the numbers in bold.
+      Pagination: Previous and Next buttons changing page, disabled at the ends, and "Page <page> of <pages>".
+    has: ["Invoices", "New invoice", "allSelected", "sortBy(column.key)", "No invoices match your filters.", "selected.has(row.id)", "formatMoney(row.total, row.currency)", "IconDownload", "StatusBadge"]
+  - prompt: Add a "Paid on" cell to each invoice row, between the due date and the amount, showing formatDate(row.paidAt) when the invoice is paid and an em dash otherwise.
+    has: ["row.paidAt"]
+  - prompt: Remove the download button from each row.
+    lacks: ["IconDownload"]
+  - prompt: Rename the pagination buttons to "Previous page" and "Next page".
+    has: ["Previous page", "Next page"]
+  - prompt: In the footer row, after the total, add "<formatMoney(paidSum, currency)> of it paid." with the amount in bold.
+    has: ["paidSum", "of it paid."]
+  - prompt: Add an "Export CSV" button to the toolbar, after the "New invoice" button, that emits export and is disabled when rows is empty.
+    has: ["Export CSV"]
+  - prompt: In the customer cell, show the customer's email (row.customerEmail) under their name, as a small muted line.
+    has: ["row.customerEmail"]
+
+DashboardCards.vue:
+  - prompt: |
+      A Vue component, only its template (no script or style), styled only with Tailwind utility classes (light and dark mode), for a dashboard.
+      First a responsive grid (1, 2 then 4 columns) of stat cards, one per item of `stats` (keyed by stat.id). Each card: the stat label and an icon badge on one row (the icon is a dynamic component, stat.icon), the big value, a row with the change (green with IconArrowUp when stat.change >= 0, otherwise red with IconArrowDown, text formatPercent(stat.change)) followed by "vs last month", and a Sparkline component with stat.history as points and a green or red color depending on the change.
+      Below, a card titled "Recent activity" with a "View all" link to /activity, and a list (role list, divided rows) of `activity` events (keyed by event.id): the user's avatar image, a line with the user's name in bold followed by event.description, and a relative time (formatRelative(event.at), in a time element with the datetime bound).
+    has: ["stat.icon", "IconArrowUp", "formatPercent(stat.change)", "vs last month", "Sparkline", "Recent activity", "/activity", "event.description", "formatRelative(event.at)", "grid-cols-4"]
+  - prompt: In each stat card, replace the "vs last month" text with stat.period.
+    has: ["stat.period"]
+    lacks: ["vs last month"]
+  - prompt: Show the sparkline only when stat.history has points.
+  - prompt: In the activity list, show a "New" badge right after the user's name when event.unread is true, a small rounded pill with indigo text on a light indigo background (a dark indigo background in dark mode).
+    has: ["event.unread", "indigo"]
+  - prompt: Change the "View all" link to point to /activity?filter=all.
+    has: ["/activity?filter=all"]
+  - prompt: Make the stat grid 1, 2 then 3 columns instead of 4.
+    has: ["grid-cols-3"]
+    lacks: ["grid-cols-4"]
+  - prompt: When there is no activity, show a centered, muted "No activity yet." in the activity card instead of the list.
+    has: ["No activity yet."]
+
+TodoApp.vue:
+  - prompt: |
+      A Vue component, only its template (no script or style), for a todo app.
+      A header with the h1 "Todos" and a form (submit.prevent calls add) holding an autofocused, trimmed input bound to draft, with a placeholder.
+      A main section, shown only when there are todos: a toggle-all checkbox (checked when remaining is 0, change calls toggleAll) with its label, then a TransitionGroup rendered as a ul (name list) with one li per todo in filtered (keyed by todo.id, classes completed and editing). Each li shows either a view (a checkbox bound to todo.done, the title in a label that calls edit(todo) on double click, and a delete button calling remove(todo)), or, while it is the one being edited, an edit input bound to todo.title with a v-focus directive, which calls done(todo) on blur and on Enter and cancel(todo) on Escape.
+      A footer, shown only when there are todos: the count of remaining items with "item" or "items" and "left", a list of filter links (one per entry of the filters object, linking to #/<key>, class selected for the current visibility), and a "Clear completed" button shown only when some are done.
+      A named slot "footer" receiving the todo count, whose fallback content is a hint about double-clicking to edit and a "Made with Vue" link.
+    has: ["Todos", "TransitionGroup", "todo.done", "edit(todo)", "remove(todo)", "v-focus", "cancel(todo)", "toggleAll", "Clear completed", "Made with Vue"]
+  - prompt: Show each todo's due date in its view, after its label, as a time element with the class due, its datetime bound to todo.due, showing formatDate(todo.due), only when todo.due is set.
+    has: ["formatDate(todo.due)", 'class="due"']
+  - prompt: In the footer, say "remaining" instead of "left", and have screen readers announce the count politely (aria-live).
+    has: ['aria-live="polite"']
+    lacks: ["left"]
+  - prompt: Rename the "Clear completed" button to "Clear done".
+    has: ["Clear done"]
+    lacks: ["Clear completed"]
+  - prompt: Add a star button before each todo's checkbox that toggles todo.starred, with aria-pressed bound to it, and give the li the class starred when the todo is starred.
+    has: ["todo.starred"]
+  - prompt: In the main section, after the list, show "All done!" when there are todos but none remaining.
+    has: ["All done!"]
+  - prompt: Change the slot's fallback hint to "Double-click a todo to rename it." and remove the "Made with Vue" link.
+    has: ["Double-click a todo to rename it."]
+    lacks: ["Made with Vue"]
