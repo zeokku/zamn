@@ -1,0 +1,1 @@
+Add a "Paid on" cell to each invoice row, between the due date and the amount: formatDate(row.paidAt) when the invoice is paid, and an em dash otherwise. Remove the download button. Rename the pagination buttons to "Previous page" and "Next page".

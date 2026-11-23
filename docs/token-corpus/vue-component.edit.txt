@@ -1,0 +1,1 @@
+Show each todo's due date: in the todo's view, after its label, a time element with the class due, its datetime bound to todo.due, showing formatDate(todo.due), only when todo.due is set. In the footer, say "remaining" instead of "left", and announce the count politely to screen readers with aria-live. Rename the "Clear completed" button to "Clear done".

@@ -208,3 +208,7 @@ Measured on 2026-11-22 with `docs:generate` (claude-opus-5-5, Claude Code 2.1.31
 Single runs vary from about 100 to 1,300 thinking tokens on the same page, so only differences much larger than a few hundred tokens mean anything.
 
 The skill stays as it is for now: the examples add input to every conversation that loads the skill, and the saving is not shown on pages unlike them.
+
+## Claude Code writes temporary files to its scratchpad
+
+Claude Code's system prompt tells Claude to put temporary files in a session scratchpad directory. In `docs:generate`, where Bash may run `zamn` and nothing else, Claude often checked its answer with `cat > <scratchpad>/page.zamn <<'EOF'` followed by `zamn`, which was denied, until the skill said to pipe the template into `zamn` instead of writing a temporary file. Even then, 3 runs in 18 still tried the file first. Checking an answer that is not in a file means writing the code twice, so it roughly doubles what Claude writes for a page.

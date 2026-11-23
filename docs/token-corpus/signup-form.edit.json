@@ -1,0 +1,1 @@
+{ "has": ["id=\"password-confirm\"", "form.passwordConfirm", "errors.passwordConfirm"], "lacks": ["id=\"company-size\"", "target=\"_blank\""] }

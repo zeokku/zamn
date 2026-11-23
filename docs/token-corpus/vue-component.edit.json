@@ -1,0 +1,1 @@
+{ "has": ["formatDate(todo.due)", "aria-live", "Clear done"], "lacks": ["left", "Clear completed"] }

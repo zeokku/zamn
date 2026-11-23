@@ -5,9 +5,10 @@ cargo install zamn
 ```
 
 ```text
-Usage: zamn [options] <file>
+Usage: zamn [options] [file]
 
-Compiles a zamn template to HTML on stdout.
+Compiles a zamn template to HTML on stdout. Without a file, or with `-`, the
+template is read from stdin.
 
 Options:
   -o, --out <file>     write the HTML to a file
@@ -32,7 +33,16 @@ zamn Card.zamn --doctype html
 
 # Check a file without keeping the output
 zamn page.zamn > /dev/null && echo ok
+
+# Check a template without writing a file, as an agent would
+zamn > /dev/null <<'EOF'
+ul {
+  li: a(href="/") Home
+}
+EOF
 ```
+
+Errors in a template read from stdin name it `<stdin>`.
 
 `--tokens` and `--ast` print what [`lex`](./api#lex) and [`parse`](./api#parse)
 return, with byte offsets (the JavaScript API gives UTF-16 offsets instead).
@@ -53,4 +63,4 @@ Lines are 1-based, columns are 1-based. No HTML is written when there are errors
 |---|---|
 | 0 | compiled |
 | 1 | the template has errors, or a file could not be read or written |
-| 2 | wrong usage: unknown option, missing file |
+| 2 | wrong usage: an unknown option, an option without its value, or no file while stdin is a terminal |

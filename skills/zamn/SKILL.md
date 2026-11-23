@@ -82,6 +82,17 @@ includes. Output has no whitespace between tags unless written.
    zamn path/to/file.zamn > /dev/null
    ```
 
+   To check zamn that is not in a file of its own (an answer, a snippet), pipe it
+   in instead of writing a temporary file:
+
+   ```sh
+   zamn > /dev/null <<'EOF'
+   ul {
+     li: a(href="/") Home
+   }
+   EOF
+   ```
+
    For a Vue component, run the project's `vue-tsc` and `eslint` instead, if the
    project has them; they read `<template lang="zamn">`.
 

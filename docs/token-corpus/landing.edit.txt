@@ -1,0 +1,1 @@
+Add a "Blog" link to /blog in the site navigation, after Docs. Change the hero's eyebrow to "New: recurring invoices". Add a fifth feature after "Cash flow at a glance", with the icon /img/icons/repeat.svg, the heading "Recurring invoices" and the text "Bill retainers and subscriptions on a schedule, without lifting a finger." Remove the Umbrella logo from the customer logos.

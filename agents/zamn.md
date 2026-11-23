@@ -76,8 +76,25 @@ ul.nav {
 Compile the file and fix every error it reports; each has a code and a hint:
 
 ```sh
-zamn page.zamn
+zamn page.zamn > /dev/null
+```
+
+To check zamn that is not in a file of its own (an answer, a snippet), pipe it in
+instead of writing a temporary file:
+
+```sh
+zamn > /dev/null <<'EOF'
+ul {
+  li: a(href="/") Home
+}
+EOF
 ```
 
 In a Vue project, `<template lang="zamn">` is checked by `vue-tsc` and `eslint`
 as well.
+
+## Converting HTML
+
+Drop the closing tags, turn `class="a b"` into `.a.b` and `id="x"` into `#x`
+(keep `class="..."` for names with `/` or `:`), and turn whitespace that
+matters between inline elements into `|` lines.

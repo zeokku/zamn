@@ -1,11 +1,13 @@
+use std::io::{IsTerminal, Read};
 use std::process::ExitCode;
 
 use zamn::{compile, CompileOptions, FileDiagnostic};
 
 const USAGE: &str = "\
-Usage: zamn [options] <file>
+Usage: zamn [options] [file]
 
-Compiles a zamn template to HTML on stdout.
+Compiles a zamn template to HTML on stdout. Without a file, or with `-`, the
+template is read from stdin.
 
 Options:
   -o, --out <file>     write the HTML to a file
@@ -36,18 +38,26 @@ fn main() -> ExitCode {
             "--doctype" => doctype = Some(value("--doctype")),
             "--tokens" => tokens = true,
             "--ast" => ast = true,
-            _ if arg.starts_with('-') => {
+            _ if arg.starts_with('-') && arg != "-" => {
                 eprintln!("unknown option {arg}\n\n{USAGE}");
                 return ExitCode::from(2);
             }
             _ => file = Some(arg),
         }
     }
-    let Some(file) = file else {
+    let stdin = file.as_deref().is_none_or(|f| f == "-");
+    if file.is_none() && std::io::stdin().is_terminal() {
         eprintln!("{USAGE}");
         return ExitCode::from(2);
+    }
+    let file = if stdin { "<stdin>".to_owned() } else { file.unwrap() };
+    let read = if stdin {
+        let mut s = String::new();
+        std::io::stdin().read_to_string(&mut s).map(|_| s)
+    } else {
+        std::fs::read_to_string(&file)
     };
-    let source = match std::fs::read_to_string(&file) {
+    let source = match read {
         Ok(s) => s,
         Err(e) => {
             eprintln!("{file}: {e}");

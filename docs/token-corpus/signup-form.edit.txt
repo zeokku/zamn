@@ -1,0 +1,1 @@
+Add a "Confirm password" field right after the password field: an input with the id password-confirm, bound to form.passwordConfirm, of the same type as the password input, with autocomplete new-password, required, and its error errors.passwordConfirm shown the way the other fields show theirs. Remove the company size field. Make the terms and privacy links open in the same tab.

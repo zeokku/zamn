@@ -12,8 +12,10 @@ compiles to exactly the same HTML.
 
 Writing it is another matter. Claude thinks before writing zamn where it often
 doesn't for HTML, and that takes back most of the saving: measured with Claude
-Code, a page costs a few percent less to generate as zamn, and a chat of several
-pages about a sixth less, thinking included. [How it was measured](./token-savings).
+Code, a page costs 5 to 10% less to generate as zamn, and a chat of several pages
+about a sixth less, thinking included. A single edit to a page costs more in zamn,
+because the skill is loaded and the result compiled for that one edit.
+[How it was measured](./token-savings).
 
 ## The workflow
 
