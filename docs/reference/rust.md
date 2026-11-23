@@ -5,7 +5,7 @@ the same crates.
 
 | Crate | What |
 |---|---|
-| `zamn` | `compile()`, the `zamn` binary, and re-exports of the three below |
+| `zamn` | `compile()`, `compile_vue()`, the `zamn` binary, and re-exports of the three below |
 | `zamn_lexer` | source to tokens, spans, diagnostics; `LineIndex` for line/column and UTF-16 positions |
 | `zamn_parser` | tokens to the AST |
 | `zamn_codegen` | AST to HTML, with mappings and source map v3 |
@@ -43,6 +43,8 @@ if out.diagnostics.is_empty() {
 `codegen`, which holds the `interpolation` delimiters and the assumed `doctype`.
 `compile` always returns HTML. When `diagnostics` is not empty, that HTML is a best
 effort: don't use it.
+
+`compile_vue(sfc, &options)` does the same for the `<template lang="zamn">` of a Vue single-file component, and returns `None` if it has none. The HTML is the template's; the diagnostics point into the whole file. `zamn::vue::zamn_template` gives the byte range of that template's content.
 
 ## Lex and parse
 

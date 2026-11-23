@@ -73,28 +73,24 @@ ul.nav {
 
 ## Checking your work
 
-Compile the file and fix every error it reports; each has a code and a hint:
+Check with `zamn --validate`, and fix every error it reports; each has a code and a hint. It prints nothing when everything is valid, takes several files, and checks the `<template lang="zamn">` of a `.vue` file in place. Check once, after the last change, not after every edit:
 
 ```sh
-zamn page.zamn > /dev/null
+zamn --validate src/pages/home.zamn src/components/TodoList.vue
 ```
 
-To check zamn that is not in a file of its own (an answer, a snippet), pipe it in
-instead of writing a temporary file:
+To check zamn that is not in a file of its own (an answer, a snippet), pipe it in instead of writing a temporary file:
 
 ```sh
-zamn > /dev/null <<'EOF'
+zamn --validate <<'EOF'
 ul {
   li: a(href="/") Home
 }
 EOF
 ```
 
-In a Vue project, `<template lang="zamn">` is checked by `vue-tsc` and `eslint`
-as well.
+In a Vue project, `vue-tsc` and `eslint`, if the project has them, also check the expressions in the template.
 
 ## Converting HTML
 
-Drop the closing tags, turn `class="a b"` into `.a.b` and `id="x"` into `#x`
-(keep `class="..."` for names with `/` or `:`), and turn whitespace that
-matters between inline elements into `|` lines.
+Drop the closing tags, turn `class="a b"` into `.a.b` and `id="x"` into `#x` (keep `class="..."` for names with `/` or `:`), and turn whitespace that matters between inline elements into `|` lines.

@@ -95,6 +95,7 @@ The lexer and parser never fail: they report every problem as a diagnostic
 
 ```sh
 cargo run -p zamn -- page.zamn -o page.html --map page.html.map
+cargo run -p zamn -- --validate page.zamn Component.vue  # errors only, or nothing
 ```
 
 ```ts

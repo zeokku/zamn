@@ -10,12 +10,7 @@ These are the totals for six hand-written pages: a landing page, a sign-up form,
 data table, a Tailwind dashboard, a Vue component and an article. Every zamn form
 compiles to exactly the same HTML.
 
-Writing it is another matter. Claude thinks before writing zamn where it often
-doesn't for HTML, and that takes back most of the saving: measured with Claude
-Code, a page costs 5 to 10% less to generate as zamn, and a chat of several pages
-about a sixth less, thinking included. A single edit to a page costs more in zamn,
-because the skill is loaded and the result compiled for that one edit.
-[How it was measured](./token-savings).
+Writing it is another matter. Claude thinks before writing zamn where it often doesn't for HTML, and that takes back most of the saving: measured with Claude Code, a page costs 5 to 10% less to generate as zamn, and a chat of several pages about a sixth less, thinking included. Edits cost a little more in zamn: a single edit pays for loading the skill and compiling the result, and over six edits in one chat the answers are about 6% bigger than HTML's. [How it was measured](./token-savings).
 
 ## The workflow
 
@@ -24,8 +19,7 @@ because the skill is loaded and the result compiled for that one edit.
    line. Squeezing it (no indentation, blocks on one line, no optional quotes)
    makes the code smaller but took Claude more thinking than it saved, and more
    of its answers were invalid.
-2. **Check it.** `zamn file.zamn` (or `vue-tsc` and `eslint` in a Vue project)
-   reports every problem with a code and a hint, which an agent can act on.
+2. **Check it.** `zamn --validate page.zamn Component.vue` reports every problem with a code and a hint, which an agent can act on, and prints nothing when all is well. It reads the `<template lang="zamn">` of a `.vue` file in place; `vue-tsc` and `eslint` also check the expressions in it.
 3. **Format it for people.** `prettier --write` with
    [prettier-plugin-zamn](../ecosystem/prettier) settles the layout. Prettier costs
    no tokens.

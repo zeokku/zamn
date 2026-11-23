@@ -23,12 +23,14 @@
 //                   so Claude can check its answer on stdin before replying
 //   htmlChat, zamnChat  every page in turn in one conversation
 //   htmlEdit, zamnEdit  edits instead of new pages: the page is in the
-//                   directory (formatted HTML, or zamn as Prettier prints it),
-//                   Claude gets Read and Edit, and `name.edit.txt` says what to
-//                   change; zamnEditSkill also has the skill, and zamnEdit
-//                   the skill and `zamn`. An edit
+//                   directory as `name.html` (formatted HTML) or `name.zamn`
+//                   (as Prettier prints it), Claude gets Read and Edit, and
+//                   `name.edit.txt` says what to change; zamnEditSkill also has
+//                   the skill, and zamnEdit the skill and `zamn`. An edit
 //                   counts as done when the page's HTML has what
 //                   `name.edit.json` lists under `has`, and none of `lacks`
+//   htmlEditChat, zamnEditChat  every edit in turn in one conversation, with
+//                   every page in the directory from the start
 //
 // The `zamn` the arms run is the workspace's debug build (`bun run build`).
 //
@@ -76,6 +78,8 @@ export const arms = {
   htmlEdit: arm("HTML", "html", null, { edit: true }),
   zamnEditSkill: arm("zamn, with the skill", "zamn", "readable", { edit: true }),
   zamnEdit: arm("zamn, with the skill and the compiler", "zamn", "readable", { edit: true, cli: true }),
+  htmlEditChat: arm("HTML, one chat", "html", null, { edit: true, chat: true }),
+  zamnEditChat: arm("zamn, with the skill and the compiler, one chat", "zamn", "readable", { edit: true, cli: true, chat: true }),
 } satisfies Record<string, ArmSpec>;
 export type Arm = keyof typeof arms;
 const spec = (a: Arm): ArmSpec => arms[a];
@@ -177,8 +181,8 @@ async function skillText(kind: Skill) {
 const prompt = (task: string, lang: Lang) =>
   `${task.trim()}\n\nWrite it in ${lang === "html" ? "HTML" : "zamn"}. Reply with only the code, in one code block, without a <template> wrapper.`;
 
-const editPrompt = (task: string, lang: Lang) =>
-  `The page is in page.${lang}. ${task.trim()}\n\nEdit the file in place, then reply with one short sentence.`;
+const editPrompt = (file: string, task: string) =>
+  `The page is in ${file}. ${task.trim()}\n\nEdit the file in place, then reply with one short sentence.`;
 
 /** The page as it is before an edit: formatted HTML, or zamn as Prettier prints it. */
 async function startingPage(source: string, lang: Lang) {
@@ -243,9 +247,15 @@ async function converse(arm: Arm, repeat: number, pages: Page[]): Promise<Conver
   try {
     await $`git init -q`.cwd(dir);
     if (skill) await Bun.write(join(dir, ".claude/skills/zamn/SKILL.md"), await skillText(skill));
-    const file = join(dir, `page.${lang}`);
-    const before = edit ? await startingPage(pages[0].source, lang) : null;
-    if (before !== null) await Bun.write(file, before);
+    // Each page in a file of its own, all there from the start in a chat.
+    const fileOf = (page: Page) => `${page.name}.${lang}`;
+    const before = new Map<string, string>();
+    if (edit) {
+      for (const page of pages) {
+        before.set(page.name, await startingPage(page.source, lang));
+        await Bun.write(join(dir, fileOf(page)), before.get(page.name)!);
+      }
+    }
     // Only `zamn` is added to PATH, from a directory outside the working one.
     const bin = await mkdtemp(join(tmpdir(), "zamn-bin-"));
     if (cli) await symlink(zamnBinary, join(bin, "zamn"));
@@ -265,7 +275,7 @@ async function converse(arm: Arm, repeat: number, pages: Page[]): Promise<Conver
     // merged into one turn.
     const send = (i: number) => {
       if (i < pages.length) {
-        const text = edit ? editPrompt(pages[i].task, lang) : prompt(pages[i].task, lang);
+        const text = edit ? editPrompt(fileOf(pages[i]), pages[i].task) : prompt(pages[i].task, lang);
         proc.stdin.write(JSON.stringify({ type: "user", message: { role: "user", content: text } }) + "\n");
         proc.stdin.flush();
       } else proc.stdin.end();
@@ -314,8 +324,8 @@ async function converse(arm: Arm, repeat: number, pages: Page[]): Promise<Conver
       let code: string | null;
       let errors: string[];
       if (edit) {
-        code = await Bun.file(file).text().catch(() => null);
-        errors = code === null ? ["NO_FILE"] : code === before ? ["UNCHANGED"] : await check(code, lang);
+        code = await Bun.file(join(dir, fileOf(pages[i]))).text().catch(() => null);
+        errors = code === null ? ["NO_FILE"] : code === before.get(pages[i].name) ? ["UNCHANGED"] : await check(code, lang);
         if (code !== null && !errors.length) errors = undone(code, lang, pages[i].expect);
       } else {
         code = extract(r.result ?? "");

@@ -8,6 +8,8 @@ pub use zamn_codegen as codegen;
 pub use zamn_lexer as lexer;
 pub use zamn_parser as parser;
 
+pub mod vue;
+
 use zamn_codegen::sourcemap;
 use zamn_lexer::{Diagnostic, LineIndex, Loc};
 
@@ -88,6 +90,43 @@ pub struct Compiled {
 
 /// Compile a template to HTML.
 pub fn compile(source: &str, options: &CompileOptions) -> Compiled {
+    let (code, map, diagnostics) = generate(source, options);
+    let diagnostics = diagnostics
+        .into_iter()
+        .map(|d| FileDiagnostic::new(&options.filename, source, d))
+        .collect();
+    Compiled {
+        code,
+        map,
+        diagnostics,
+    }
+}
+
+/// Compile the `<template lang="zamn">` of a Vue single-file component, or
+/// `None` if it has none. The HTML is the template's; positions in the
+/// diagnostics are in the whole file. The source map, if asked for, maps
+/// the template alone.
+pub fn compile_vue(sfc: &str, options: &CompileOptions) -> Option<Compiled> {
+    let range = vue::zamn_template(sfc)?;
+    let (code, map, diagnostics) = generate(&sfc[range.clone()], options);
+    let shift = range.start as u32;
+    let diagnostics = diagnostics
+        .into_iter()
+        .map(|mut d| {
+            d.span.start += shift;
+            d.span.end += shift;
+            FileDiagnostic::new(&options.filename, sfc, d)
+        })
+        .collect();
+    Some(Compiled {
+        code,
+        map,
+        diagnostics,
+    })
+}
+
+/// The HTML, the source map, and every diagnostic in source order.
+fn generate(source: &str, options: &CompileOptions) -> (String, Option<String>, Vec<Diagnostic>) {
     let parsed = zamn_parser::parse(source);
     let output = zamn_codegen::generate(&parsed.ast.nodes, &options.codegen);
 
@@ -104,17 +143,8 @@ pub fn compile(source: &str, options: &CompileOptions) -> Compiled {
         )
     });
 
-    let mut diags = parsed.diagnostics;
-    diags.extend(output.diagnostics);
-    diags.sort_by_key(|d| d.span.start);
-    let diagnostics = diags
-        .into_iter()
-        .map(|d| FileDiagnostic::new(&options.filename, source, d))
-        .collect();
-
-    Compiled {
-        code: output.html,
-        map,
-        diagnostics,
-    }
+    let mut diagnostics = parsed.diagnostics;
+    diagnostics.extend(output.diagnostics);
+    diagnostics.sort_by_key(|d| d.span.start);
+    (output.html, map, diagnostics)
 }

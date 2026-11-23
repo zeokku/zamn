@@ -76,25 +76,23 @@ includes. Output has no whitespace between tags unless written.
    }
    ```
 
-2. Compile to check it, and fix every error (each has a code and a hint):
+2. Check it with `zamn --validate`, and fix every error (each has a code and a hint). It prints nothing when everything is valid, takes several files, and checks the `<template lang="zamn">` of a `.vue` file in place. Check once, after the last change, not after every edit:
 
    ```sh
-   zamn path/to/file.zamn > /dev/null
+   zamn --validate src/pages/home.zamn src/components/TodoList.vue
    ```
 
-   To check zamn that is not in a file of its own (an answer, a snippet), pipe it
-   in instead of writing a temporary file:
+   To check zamn that is not in a file of its own (an answer, a snippet), pipe it in instead of writing a temporary file:
 
    ```sh
-   zamn > /dev/null <<'EOF'
+   zamn --validate <<'EOF'
    ul {
      li: a(href="/") Home
    }
    EOF
    ```
 
-   For a Vue component, run the project's `vue-tsc` and `eslint` instead, if the
-   project has them; they read `<template lang="zamn">`.
+   In a Vue project, the project's `vue-tsc` and `eslint`, if it has them, also check the expressions in the template.
 
 3. Format the file for people, if the project uses Prettier with
    prettier-plugin-zamn:
