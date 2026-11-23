@@ -5,6 +5,15 @@
 //
 //   bun run docs:generate [--arms html,zamn,zamnCli,htmlEdit,zamnEdit,...]
 //                         [--repeats 3] [--budget 20] [--parallel 6] [--pages landing,article]
+//                         [--quiet]
+//
+// The console follows every conversation as it runs: each line starts with the
+// time since the start and a tag (`#repeat arm page`) in a colour of its own,
+// since conversations run in parallel. It shows the prompts sent, each model
+// call and what it read, thinking (Claude Code reports only an estimate of its
+// size, not its text), text, tool calls and their results, denials, rate
+// limits, then each page's tokens, cost and checks, and progress against the
+// budget. --quiet leaves out the events inside a conversation.
 //
 // It runs the `claude` CLI (Claude Code) in print mode, so it uses whatever
 // Claude Code is logged in with, a subscription included. Each conversation
@@ -42,7 +51,7 @@ import { $, Glob } from "bun";
 import { mkdtemp, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
-import { parseArgs } from "node:util";
+import { parseArgs, styleText } from "node:util";
 import * as prettier from "prettier";
 import { compile, ZamnError } from "zamn";
 import { render } from "./token-stats";
@@ -91,8 +100,46 @@ const { values: args } = parseArgs({
     budget: { type: "string", default: "20" },
     parallel: { type: "string", default: "6" },
     pages: { type: "string" },
+    quiet: { type: "boolean", default: false },
   },
 });
+
+const started = performance.now();
+const seconds = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
+/** Time since the start, as m:ss. */
+function clock() {
+  const s = Math.floor((performance.now() - started) / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
+/** The first line of a text, cut to `max` characters, and how many lines follow. */
+function oneLine(text: string, max = 110) {
+  const lines = text.trim().split("\n");
+  const head = lines[0] ?? "";
+  const first = head.length > max ? `${head.slice(0, max)}…` : head;
+  return lines.length > 1 ? `${first} (+${lines.length - 1} lines)` : first;
+}
+
+type Color = Parameters<typeof styleText>[0];
+const palette: Color[] = ["cyan", "magenta", "yellow", "green", "blue", "red"];
+let tags = 0;
+/**
+ * Console lines prefixed with the time and a tag, in a colour of the tag's own.
+ * `info` and `warn` always print; `detail`, the events inside a conversation,
+ * not with --quiet. styleText leaves colours out when the output isn't a terminal.
+ */
+function logger(tag: string, color: Color = palette[tags++ % palette.length]!) {
+  const line = (text: string) => console.log(`${styleText("dim", clock().padStart(5))} ${styleText(color, tag)} ${text}`);
+  return {
+    info: line,
+    warn: (text: string) => line(styleText("yellow", text)),
+    detail: (text: string) => {
+      if (!args.quiet) line(styleText("dim", text));
+    },
+  };
+}
+type Log = ReturnType<typeof logger>;
+const run = logger("run", ["bold"]);
 
 /** One page written by Claude. */
 export interface Turn {
@@ -240,8 +287,147 @@ function undone(code: string, lang: Lang, expect: Page["expect"]): string[] {
   ];
 }
 
+/** A result's running totals for the requested model, or null if it has none. */
+function usageOf(result: any) {
+  const u = result.modelUsage?.[MODEL];
+  if (!u) return null;
+  return {
+    input: u.inputTokens + u.cacheReadInputTokens + u.cacheCreationInputTokens,
+    output: u.outputTokens,
+    thinking: u.thinkingTokens ?? 0,
+  };
+}
+
+/** A tool call's input, as one line for the log. */
+function toolInput(c: any): string {
+  const i = c.input ?? {};
+  if (c.name === "Bash") return oneLine(i.command ?? "");
+  if (c.name === "Skill") return i.skill ?? "";
+  if (c.name === "Read") return i.file_path ?? "";
+  if (c.name === "Edit") {
+    return `${i.file_path}: ${fmt(i.old_string?.length ?? 0)} → ${fmt(i.new_string?.length ?? 0)} characters${i.replace_all ? ", every occurrence" : ""}`;
+  }
+  return oneLine(JSON.stringify(i));
+}
+
+/** The last rate limit logged: it is the account's, the same in every conversation. */
+let lastRate = "";
+
+/**
+ * Logs a conversation as it happens, from Claude Code's stream-json messages.
+ * `sent` is called with each prompt, `message` with each line Claude Code prints.
+ */
+export function follower(log: Log, dir: string, pages: Page[]) {
+  const toolNames = new Map<string, string>();
+  const calls = new Set<string>();
+  /** Model calls for the page being answered. */
+  let pageCalls = 0;
+  /** Claude Code's running estimate of the thinking in progress. */
+  let thinking = 0;
+  let answered = 0;
+  let sentAt = performance.now();
+  let previous = { input: 0, output: 0, thinking: 0, cost: 0 };
+  const short = (text: string) => (dir ? text.replaceAll(dir, ".") : text);
+  // The page is in the tag of a one-page conversation; a chat names it on each line.
+  const page = () => (pages.length > 1 ? `${answered + 1}/${pages.length} ${pages[answered]?.name ?? ""}: ` : "");
+  return {
+    sent(text: string) {
+      sentAt = performance.now();
+      log.detail(`${page()}prompt sent, ${fmt(text.length)} characters: ${oneLine(text, 80)}`);
+    },
+    message(m: any) {
+      switch (m.type) {
+        case "system":
+          if (m.subtype === "init") {
+            const skills: string[] = m.skills ?? [];
+            log.detail(
+              `Claude Code ${m.claude_code_version}, ${m.model}, tools ${(m.tools ?? []).join(",")}, ` +
+                `${m.permissionMode}, ${skills.length} skills listed${skills.includes("zamn") ? ", zamn among them" : ""}`,
+            );
+          } else if (m.subtype === "thinking_tokens") thinking = m.estimated_tokens ?? thinking;
+          // A denial is logged with its tool result.
+          else if (m.subtype !== "permission_denied") log.detail(`system: ${m.subtype}`);
+          break;
+        case "assistant": {
+          const msg = m.message ?? {};
+          // A call's content blocks come as separate messages with the same id.
+          if (!calls.has(msg.id)) {
+            calls.add(msg.id);
+            pageCalls++;
+            const u = msg.usage ?? {};
+            const read = (u.input_tokens ?? 0) + (u.cache_read_input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0);
+            log.detail(
+              `${page()}model call ${pageCalls}${msg.model && msg.model !== MODEL ? ` (${msg.model})` : ""}: ` +
+                `reads ${fmt(read)} tokens, ${fmt(u.cache_read_input_tokens ?? 0)} from cache, ` +
+                `${fmt(u.cache_creation_input_tokens ?? 0)} written to it`,
+            );
+          }
+          for (const c of msg.content ?? []) {
+            if (c.type === "thinking") {
+              const took = m.thinking_duration_ms ? ` for ${seconds(m.thinking_duration_ms)}` : "";
+              log.detail(`${page()}thinks${took}${thinking ? `, about ${fmt(thinking)} tokens (estimate)` : ""}`);
+              thinking = 0;
+            } else if (c.type === "text") {
+              log.detail(`${page()}writes ${fmt(c.text.length)} characters: ${oneLine(c.text)}`);
+            } else if (c.type === "tool_use") {
+              toolNames.set(c.id, c.name);
+              log.detail(`${page()}→ ${c.name} ${short(toolInput(c))}`);
+            }
+          }
+          break;
+        }
+        case "user":
+          for (const c of Array.isArray(m.message?.content) ? m.message.content : []) {
+            if (c.type !== "tool_result") continue;
+            const name = toolNames.get(c.tool_use_id) ?? "tool";
+            const text = short(
+              typeof c.content === "string" ? c.content : (c.content ?? []).map((p: any) => p.text ?? "").join("\n"),
+            ).trim();
+            if (!c.is_error) log.detail(`${page()}← ${name}: ${oneLine(text || "(no output)")}`);
+            else if (text.startsWith("Permission to use")) log.warn(`${page()}✗ ${name} denied`);
+            else for (const line of text.split("\n").slice(0, 4)) log.warn(`${page()}✗ ${name}: ${line.slice(0, 110)}`);
+          }
+          break;
+        case "rate_limit_event": {
+          const info = m.rate_limit_info ?? {};
+          const windows = Object.entries(info.unifiedWindows ?? {})
+            .map(([name, w]: [string, any]) => `${name.replace("_", " ")} ${Math.round((w.utilization ?? 0) * 100)}%`)
+            .join(", ");
+          const text = `rate limit ${info.status}${windows ? `: ${windows} used` : ""}`;
+          if (text !== lastRate) {
+            lastRate = text;
+            (info.status === "allowed" ? run.detail : run.warn)(text);
+          }
+          break;
+        }
+        case "result": {
+          const totals = usageOf(m);
+          const cost = m.total_cost_usd ?? previous.cost;
+          const took = seconds(performance.now() - sentAt);
+          if (totals) {
+            log.info(
+              `${page()}answered in ${took} after ${pageCalls} model calls: ` +
+                `output ${fmt(totals.output - previous.output)} (thinking ${fmt(totals.thinking - previous.thinking)}), ` +
+                `input ${fmt(totals.input - previous.input)}, $${(cost - previous.cost).toFixed(3)}`,
+            );
+            previous = { ...totals, cost };
+          } else log.warn(`${page()}answered in ${took}, with no usage for ${MODEL}`);
+          if (m.subtype !== "success" || m.is_error) {
+            log.warn(`${page()}ended with ${m.subtype}${m.terminal_reason ? ` (${m.terminal_reason})` : ""}`);
+          }
+          answered++;
+          pageCalls = 0;
+          break;
+        }
+        default:
+          log.detail(`(${m.type}${m.subtype ? `/${m.subtype}` : ""})`);
+      }
+    },
+  };
+}
+
 /** Runs one conversation: each page's prompt in turn, as one chat. */
-async function converse(arm: Arm, repeat: number, pages: Page[]): Promise<Conversation> {
+async function converse(arm: Arm, repeat: number, pages: Page[], log: Log): Promise<Conversation> {
   const { lang, skill, edit, cli } = spec(arm);
   const dir = await mkdtemp(join(tmpdir(), "zamn-generate-"));
   try {
@@ -261,6 +447,11 @@ async function converse(arm: Arm, repeat: number, pages: Page[]): Promise<Conver
     if (cli) await symlink(zamnBinary, join(bin, "zamn"));
     const tools = ["Skill", ...(edit ? ["Read", "Edit"] : []), ...(cli ? ["Bash"] : [])];
     const allowed = [...(edit ? ["Read", "Edit"] : []), ...(cli ? ["Bash(zamn *)"] : [])];
+    log.detail(
+      `${pages.length} ${edit ? "edit" : "page"}${pages.length > 1 ? "s" : ""} in ${lang}, skill ${skill ?? "none"}, ` +
+        `tools ${tools.join(",")}${allowed.length ? `, allowed ${allowed.join(",")}` : ""}, in ${dir}`,
+    );
+    const follow = follower(log, dir, pages);
     const proc = Bun.spawn(
       ["claude", "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose",
         "--model", MODEL, "--tools", tools.join(","), "--setting-sources", "project", "--strict-mcp-config",
@@ -276,10 +467,20 @@ async function converse(arm: Arm, repeat: number, pages: Page[]): Promise<Conver
     const send = (i: number) => {
       if (i < pages.length) {
         const text = edit ? editPrompt(fileOf(pages[i]), pages[i].task) : prompt(pages[i].task, lang);
+        follow.sent(text);
         proc.stdin.write(JSON.stringify({ type: "user", message: { role: "user", content: text } }) + "\n");
         proc.stdin.flush();
       } else proc.stdin.end();
     };
+    // stderr as it comes, and all of it for the error if Claude Code fails.
+    const stderr = (async () => {
+      let all = "";
+      for await (const chunk of proc.stderr.pipeThrough(new TextDecoderStream())) {
+        all += chunk;
+        for (const line of chunk.split("\n")) if (line.trim()) log.warn(`stderr: ${line.trim()}`);
+      }
+      return all;
+    })();
     send(0);
     const messages: any[] = [];
     let buffer = "";
@@ -292,10 +493,13 @@ async function converse(arm: Arm, repeat: number, pages: Page[]): Promise<Conver
         if (!line) continue;
         const message = JSON.parse(line);
         messages.push(message);
+        follow.message(message);
         if (message.type === "result") send(messages.filter((m) => m.type === "result").length);
       }
     }
-    if ((await proc.exited) !== 0) throw new Error(`${arm}: claude failed: ${await new Response(proc.stderr).text()}`);
+    const exit = await proc.exited;
+    const errorText = await stderr;
+    if (exit !== 0) throw new Error(`${arm}: claude exited with ${exit}: ${errorText.trim()}`);
     await rm(bin, { recursive: true, force: true });
     const results = messages.filter((m) => m.type === "result");
     if (results.length !== pages.length) throw new Error(`${arm}: ${results.length} answers for ${pages.length} pages`);
@@ -310,13 +514,9 @@ async function converse(arm: Arm, repeat: number, pages: Page[]): Promise<Conver
 
     // Usage in each result is the total so far; a turn is the difference.
     const totals = results.map((r) => {
-      const u = r.modelUsage?.[MODEL];
+      const u = usageOf(r);
       if (!u) throw new Error(`${arm}: no usage for ${MODEL}`);
-      return {
-        input: u.inputTokens + u.cacheReadInputTokens + u.cacheCreationInputTokens,
-        output: u.outputTokens,
-        thinking: u.thinkingTokens ?? 0,
-      };
+      return u;
     });
     const turns: Turn[] = [];
     for (const [i, r] of results.entries()) {
@@ -346,11 +546,20 @@ async function converse(arm: Arm, repeat: number, pages: Page[]): Promise<Conver
           return `${c.name}: ${String(what).split("\n")[0].replace(dir, ".")}`.slice(0, 120);
         }),
       });
+      const t = turns.at(-1)!;
+      log.info(
+        `${pages.length > 1 ? `${i + 1}/${pages.length} ${t.page}: ` : ""}` +
+          (t.valid ? styleText("green", edit ? "valid, every change made" : "valid") : styleText("red", `invalid: ${t.errors.join(" ")}`)) +
+          (t.codeTokens === null ? "" : `, code ${fmt(t.codeTokens)} tokens (o200k_base)`) +
+          (cli ? `, ${t.checks} zamn run${t.checks === 1 ? "" : "s"}` : ""),
+      );
     }
+    const skillLoaded = toolUses.flat().some((c) => c.name === "Skill" && c.input?.skill === "zamn");
+    if (skill && !skillLoaded) log.warn("never loaded the zamn skill");
     return {
       arm,
       repeat,
-      skillLoaded: toolUses.flat().some((c) => c.name === "Skill" && c.input?.skill === "zamn"),
+      skillLoaded,
       costUsd: results.at(-1).total_cost_usd,
       turns,
     };
@@ -397,10 +606,22 @@ async function main() {
     ),
   ).flat();
   const expected = queue.length / repeats;
+  const total = queue.length;
 
   const previous: GenerationStats | null = await Bun.file(out).json().catch(() => null);
   const kept = (previous?.conversations ?? []).filter((c) => c.arm in arms && !chosen.includes(c.arm));
   const claudeCode = (await $`claude --version`.text()).trim();
+  run.info(`${MODEL} through Claude Code ${claudeCode}`);
+  run.info(`arms ${chosen.join(", ")}`);
+  run.info(`pages ${pages.map((p) => p.name).join(", ")}, ${repeats} run${repeats === 1 ? "" : "s"} of each`);
+  run.info(
+    `${total} conversations, ${fmt(queue.reduce((n, q) => n + q.pages.length, 0))} prompts, ` +
+      `${args.parallel} at a time, budget $${budget}`,
+  );
+  if (kept.length) {
+    const byArm = Object.entries(Object.groupBy(kept, (c) => c.arm)).map(([a, cs]) => `${a} ${cs!.length}`);
+    run.info(`kept from the previous run: ${byArm.join(", ")}`);
+  }
   const done: Conversation[] = [];
   let spent = 0;
   // Written after every conversation, so a stopped run keeps what it has. Only
@@ -422,35 +643,59 @@ async function main() {
     await Bun.write(out, JSON.stringify(stats, null, 2) + "\n");
     await Bun.write(resolve(docs, "data/generation-summary.md"), summaryTable(stats, false));
     await Bun.write(resolve(docs, "data/edit-summary.md"), summaryTable(stats, true));
-    return complete.length;
+    return { complete: complete.length, partial: partial.length, stats };
   };
 
+  let begun = 0;
+  let finished = 0;
+  let failed = 0;
+  /** Wall-clock time left, from the pace so far; parallel runs are in the pace. */
+  const left = () => {
+    const ms = ((performance.now() - started) / finished) * (total - finished);
+    return ms < 60_000 ? seconds(ms) : `${Math.round(ms / 60_000)} min`;
+  };
   const worker = async () => {
     for (let next = queue.shift(); next; next = queue.shift()) {
       if (spent >= budget) {
-        console.warn(`budget of $${budget} reached ($${spent.toFixed(2)}), not starting more runs`);
+        run.warn(`budget of $${budget} reached ($${spent.toFixed(2)}), not starting the ${queue.length + 1} conversations left`);
         queue.length = 0;
         return;
       }
-      const c = await converse(next.arm, next.repeat, next.pages).catch((error: Error) => {
-        console.error(`#${next.repeat} ${next.arm}: ${error.message}`);
+      const log = logger(`#${next.repeat} ${next.arm}${next.pages.length === 1 ? ` ${next.pages[0]!.name}` : ""}`);
+      const at = performance.now();
+      log.info(`starts, conversation ${++begun} of ${total}`);
+      const c = await converse(next.arm, next.repeat, next.pages, log).catch((error: Error) => {
+        log.info(styleText("red", `failed: ${error.message}`));
         return null;
       });
-      if (!c) continue;
+      finished++;
+      if (!c) {
+        failed++;
+        continue;
+      }
       spent += c.costUsd;
       done.push(c);
-      for (const t of c.turns) {
-        console.log(
-          `#${c.repeat} ${c.arm} ${t.page}: out ${t.output} (thinking ${t.thinking}), in ${t.input}, ` +
-            `code ${t.codeTokens}, checks ${t.checks}, ${t.valid ? "valid" : t.errors.join(" ")}`,
-        );
-      }
-      console.log(`  $${c.costUsd.toFixed(3)} (total $${spent.toFixed(2)})`);
-      await save();
+      log.info(
+        `done in ${seconds(performance.now() - at)}, $${c.costUsd.toFixed(3)}. ` +
+          `Spent $${spent.toFixed(2)} of $${budget}; ${finished} of ${total} conversations finished` +
+          `${failed ? ` (${failed} failed)` : ""}${finished < total ? `, about ${left()} to go` : ""}`,
+      );
+      const saved = await save();
+      log.detail(
+        `saved: ${saved.complete} conversations in complete repeats` +
+          `${saved.partial ? `, ${saved.partial} in generation-stats.partial.json until their repeat is complete` : ""}`,
+      );
     }
   };
   await Promise.all(Array.from({ length: Number(args.parallel) }, worker));
-  console.log(`wrote ${out} (${await save()} new conversations) and the table next to it`);
+  const { complete, stats } = await save();
+  run.info(
+    `wrote ${out} (${complete} new conversations${failed ? `, ${failed} failed` : ""}) and the tables next to it, ` +
+      `$${spent.toFixed(2)} in ${seconds(performance.now() - started)}`,
+  );
+  for (const edits of [false, true]) {
+    if (chosen.some((a) => spec(a).edit === edits)) console.log(`\n${summaryTable(stats, edits).replace(/^<!--.*-->\n/, "")}`);
+  }
 }
 
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : NaN);
