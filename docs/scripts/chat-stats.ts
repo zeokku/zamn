@@ -3,9 +3,12 @@
 // The steps are in docs/token-corpus/chats.yaml. Writes
 // docs/data/chat-stats.json and the tables in docs/data/chat-summary.md.
 //
-//   bun run docs:chats [--arms html,zamn,zamnHook,zamnCli] [--pages landing,SignupForm.vue]
-//                      [--repeats 3] [--effort low|medium|high|xhigh|max] [--budget 60] [--parallel 6]
+//   bun run docs:chats [--arms html,zamnHook] [--pages landing,SignupForm.vue]
+//                      [--repeats 1] [--effort low|medium|high|xhigh|max] [--budget 60] [--parallel 6]
 //                      [--max-usage 95] [--model claude-opus-5-5] [--quiet]
+//
+// By default it runs the html and zamnHook arms once; `--arms` picks others
+// (zamn, zamnCli) and `--repeats` runs each chat more times.
 //
 // chats.yaml maps a page to its steps: the first writes the page, the others
 // edit it. A step is a prompt, or { prompt, has, lacks }: text the page's HTML
@@ -31,6 +34,12 @@
 // the script sends the errors back once, as a user would, and counts the fix in
 // that step. Then it checks the step's `has` and `lacks`.
 //
+// A step records every error Claude was shown while answering it, in order:
+// the hook's, a tool's (its own `zamn` run, an Edit that didn't apply, a
+// denied call) and the script's check before a fix-up. Each one with zamn's
+// error codes in it keeps the file as it was then. It is read when the error
+// arrives: Claude changes the file only after another model call.
+//
 // Costs are Claude Code's list-price estimate (`total_cost_usd`), also on a
 // subscription. Tokens are the requested model's, from the `result` totals.
 // Before the chats, one unrecorded chat per arm warms the prompt cache, so that
@@ -51,7 +60,7 @@ import { parseArgs, styleText } from "node:util";
 import * as prettier from "prettier";
 import { compileTemplate, parse as parseSfc } from "vue/compiler-sfc";
 import {
-  describeTotals, duration, elapsed, fmt, forgetRateLimit, inputOf, logger, minus, noTotals, rateLimit, run, Session, setQuiet,
+  describeTotals, duration, elapsed, fmt, forgetRateLimit, inputOf, logger, minus, noTotals, oneLine, rateLimit, run, Session, setQuiet,
   usageOf, usd,
   type Log, type Totals,
 } from "./claude-stream";
@@ -86,9 +95,9 @@ const spec = (a: Arm): ArmSpec => arms[a];
 
 const { values: args } = parseArgs({
   options: {
-    arms: { type: "string", default: Object.keys(arms).join(",") },
+    arms: { type: "string", default: "html,zamnHook" },
     pages: { type: "string" },
-    repeats: { type: "string", default: "3" },
+    repeats: { type: "string", default: "1" },
     effort: { type: "string" },
     budget: { type: "string", default: "60" },
     "max-usage": { type: "string", default: "95" },
@@ -177,7 +186,7 @@ export async function inspect(dir: string, file: string, lang: Lang, vue: boolea
     const check = Bun.spawnSync([zamnBinary, "--validate", file], { cwd: dir });
     if (check.exitCode !== 0) {
       const problems = `${check.stdout}${check.stderr}`.trim();
-      const codes = [...problems.matchAll(/error\[(\w+)\]/g)].map((m) => m[1]!);
+      const codes = zamnCodes(problems);
       return { text, html: null, codes: codes.length ? codes : ["ZAMN"], problems };
     }
     html = Bun.spawnSync([zamnBinary, file], { cwd: dir }).stdout.toString();
@@ -238,6 +247,22 @@ export function judge(page: Page, i: number, html: string, before: Map<string, b
   return { errors, met };
 }
 
+const zamnCodes = (text: string) => [...text.matchAll(/error\[(\w+)\]/g)].map((m) => m[1]!);
+
+/** An error Claude was shown during a step. */
+export interface Problem {
+  /** The hook, a tool's error result, or the script's check that sent the fix-up. */
+  by: "hook" | "tool" | "check";
+  /** The tool whose result it was. */
+  tool?: string;
+  /** zamn's error codes in it, or the check's. */
+  codes: string[];
+  /** What Claude read. */
+  text: string;
+  /** The file when the error was reported, for zamn errors; null if there was none. */
+  file?: string | null;
+}
+
 /** One step of a chat: a prompt, and the fix-up if the script sent one. */
 export interface StepResult {
   step: number;
@@ -252,7 +277,14 @@ export interface StepResult {
   fixUp: string[] | null;
   /** Valid, its own checks met, and no earlier one broken. */
   valid: boolean;
+  /**
+   * What is still wrong once the step is over, fix-up included: the file's
+   * error codes and the checks it misses. Errors fixed within the step are in
+   * `problems`.
+   */
   errors: string[];
+  /** Every error Claude was shown during the step, in order. */
+  problems: Problem[];
   durationMs: number;
   /** The file after the step. */
   file: string | null;
@@ -295,9 +327,9 @@ async function prepare(arm: Arm) {
   if (cli || hook) await symlink(zamnBinary, join(bin, "zamn"));
   const tools = ["Skill", "Write", "Read", "Edit", ...(cli ? ["Bash"] : [])];
   const allowed = ["Write", "Read", "Edit", ...(cli ? ["Bash(zamn *)"] : [])];
-  const start = (log: Log, maxBudgetUsd: number) =>
+  const start = (log: Log, maxBudgetUsd: number, onMessage?: (message: any) => void) =>
     new Session({
-      model: MODEL, cwd: dir, tools, allowed, effort: args.effort, maxBudgetUsd, log,
+      model: MODEL, cwd: dir, tools, allowed, effort: args.effort, maxBudgetUsd, log, onMessage,
       env: { ...process.env, PATH: `${bin}:${process.env.PATH}` },
     });
   const cleanUp = async () => {
@@ -327,6 +359,10 @@ async function warmUp(arm: Arm) {
   }
 }
 
+/** An error Claude was shown, as a few words for the log: who reported it and its codes. */
+const describeProblem = (p: Problem) =>
+  `${p.by === "tool" ? p.tool : p.by}${p.codes.length ? ` ${[...new Set(p.codes)].join(" ")}` : `: ${oneLine(p.text, 60)}`}`;
+
 const isZamnRun = (c: any) => c.name === "Bash" && /(^|[\s|;&(])zamn(\s|$)/m.test(c.input?.command ?? "");
 
 /** Runs one chat: the page's steps in turn. */
@@ -338,7 +374,34 @@ async function chat(arm: Arm, page: Page, repeat: number, log: Log): Promise<Cha
     `${file}, ${page.steps.length} steps, skill ${skill ?? "none"}${hook ? ", hook" : ""}, tools ${env.tools.join(",")}, ` +
       `allowed ${env.allowed.join(",")}, ${effortText(EFFORT)}, in ${env.dir}`,
   );
-  const session = env.start(log, page.steps.length);
+  // The errors Claude is shown during the current step, and reads of the file
+  // as it was at each of them.
+  let problems: Problem[] = [];
+  let snapshots: Promise<void>[] = [];
+  const short = (text: string) => text.replaceAll(`${env.dir}/`, "").replaceAll(env.dir, ".").trim();
+  const report = (by: Problem["by"], text: string, tool?: string) => {
+    const problem: Problem = { by, ...(tool ? { tool } : {}), codes: zamnCodes(text), text: short(text) };
+    problems.push(problem);
+    if (!problem.codes.length) return;
+    const read = Bun.file(join(env.dir, file)).text().catch(() => null);
+    snapshots.push(read.then((text) => void (problem.file = text)));
+  };
+  const toolNames = new Map<string, string>();
+  const onMessage = (m: any) => {
+    if (m.type === "assistant") {
+      for (const c of m.message?.content ?? []) if (c.type === "tool_use") toolNames.set(c.id, c.name);
+    } else if (m.type === "system" && m.subtype === "hook_response" && m.exit_code !== 0) {
+      report("hook", String(m.stderr || m.output || ""));
+    } else if (m.type === "user" && Array.isArray(m.message?.content)) {
+      for (const c of m.message.content) {
+        if (c.type !== "tool_result" || !c.is_error) continue;
+        const text = typeof c.content === "string" ? c.content : (c.content ?? []).map((p: any) => p.text ?? "").join("\n");
+        // A hook's error is recorded from its hook_response.
+        if (!text.includes("hook blocking error")) report("tool", text, toolNames.get(c.tool_use_id) ?? "tool");
+      }
+    }
+  };
+  const session = env.start(log, page.steps.length, onMessage);
   try {
     const steps: StepResult[] = [];
     let previous = noTotals;
@@ -346,11 +409,14 @@ async function chat(arm: Arm, page: Page, repeat: number, log: Log): Promise<Cha
     for (let i = 0; i < page.steps.length; i++) {
       const label = labelOf(i);
       const at = performance.now();
+      problems = [];
+      snapshots = [];
       let result = await session.send(label, promptFor(page, i, lang));
       let found = await inspect(env.dir, file, lang, page.vue);
       let fixUp: string[] | null = null;
       if (found.problems) {
         fixUp = found.codes;
+        problems.push({ by: "check", codes: found.codes, text: found.problems, file: found.text });
         log.warn(`${label}: ${found.codes.join(" ")}, sending the errors back`);
         result = await session.send(`${label}, fix`, fixPrompt(file, found.problems));
         found = await inspect(env.dir, file, lang, page.vue);
@@ -364,6 +430,7 @@ async function chat(arm: Arm, page: Page, repeat: number, log: Log): Promise<Cha
       const judged = found.html === null ? { errors: [], met } : judge(page, i, found.html, met);
       met = judged.met;
       const errors = [...found.codes, ...judged.errors];
+      await Promise.all(snapshots);
       const step: StepResult = {
         step: i,
         usage: minus(totals, previous),
@@ -377,6 +444,7 @@ async function chat(arm: Arm, page: Page, repeat: number, log: Log): Promise<Cha
         fixUp,
         valid: errors.length === 0,
         errors,
+        problems,
         durationMs: performance.now() - at,
         file: found.text,
       };
@@ -386,6 +454,7 @@ async function chat(arm: Arm, page: Page, repeat: number, log: Log): Promise<Cha
         `${label}: ${describeTotals(step.usage)}, ${step.calls} model calls` +
           (cli ? `, ${step.zamnRuns} zamn runs` : "") +
           (hook && step.hookErrors ? `, ${step.hookErrors} hook errors` : "") +
+          (problems.length ? `, shown ${plural(problems.length, "error")} (${problems.map(describeProblem).join("; ")})` : "") +
           `, ${step.valid ? styleText("green", fixUp ? "valid after the fix-up" : "valid") : styleText("red", errors.join(" "))}`,
       );
     }
@@ -599,6 +668,9 @@ export function summary(stats: ChatStats): string {
     line("Model calls", present.map((a) => num(sum(a, (c) => c.steps.reduce((n, s) => n + s.calls, 0))))),
     line("Valid, its checks met, nothing broken", present.map((a) => count(a, (s) => s.valid))),
     line("Needed a fix-up", present.map((a) => count(a, (s) => s.fixUp !== null))),
+    // Chats recorded before `problems` was have no figure.
+    line("Claude was shown an error", present.map((a) =>
+      allSteps(a).every((s) => s.problems) ? count(a, (s) => s.problems.length > 0) : "—")),
     ...(present.some((a) => spec(a).cli)
       ? [line("`zamn` runs", present.map((a) => (spec(a).cli ? num(sum(a, (c) => c.steps.reduce((n, s) => n + s.zamnRuns, 0))) : "")))]
       : []),

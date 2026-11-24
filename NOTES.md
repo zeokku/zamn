@@ -149,6 +149,35 @@ works on a subscription. What it relies on:
 - `rate_limit_event` messages carry the account's use of each window (`unifiedWindows.five_hour.utilization`, `resetsAt`). Parallel conversations see slightly different figures.
 - Parallel chats share the prompt cache. With `--exclude-dynamic-system-prompt-sections` and one warm-up prompt per arm, a chat's first call read about 4.3k tokens of Claude Code's prefix from the cache and wrote about 5k of its own (environment, skill listing, prompt), about the same in every arm. Without the warm-up, whichever chat starts first pays for writing the shared prefix.
 
+## What the chat measurements showed (2026-11-24)
+
+Measured with `bun run docs:chats --repeats 1`: `claude-opus-5-5` at Claude Code's default effort, Claude Code 2.1.319, six pages, a chat each of 7 steps (write the page, then 6 edits), one run of each of the four arms. The tables are in `docs/data/chat-summary.md`. Since then `docs:chats` runs only `html` and `zamnHook` by default, once: the hook arm cost the least of the zamn arms (+11% over HTML, against +23% with the skill alone and +31% with Bash `zamn`). `--arms` still runs `zamn` and `zamnCli`.
+
+**How input adds up.** Every model call sends the whole conversation so far as its input: system prompt, every message, every tool call and its result. So input grows with the chat, and each step pays again for all the ones before it (about 24k tokens on edit 1 of the hook arm, 28k on edit 6). Loading the skill is one extra model call, and from then on the skill's text sits in the conversation as a tool result, so every later call reads it again. Writing a page took HTML 2 calls (Write, then the reply) and the hook arm 3 (Skill, Write, reply), two of them with the skill in their input.
+
+**Where the hook arm's extra input came from:** 1,222,541 input tokens against 934,945 for HTML, +287.6k (+31%):
+
+| Where | Extra input | Why |
+|---|--:|---|
+| writing the page | +71k | the Skill call, and the two calls after it reading the skill |
+| 33 edit steps with as many calls as HTML | +127k | about 1.9k tokens per call: the skill, read again by every call |
+| 3 edit steps with more calls than HTML | +89k | `landing` edit 4 (+35k) and `DashboardCards.vue` edit 4 (+31k), where hook errors took a Read and another Edit; `landing` edit 5 (+23k), where Claude made three edits in separate calls |
+
+So every token of SKILL.md costs about two tokens of input per step for the rest of the chat.
+
+**Why the tables compare cost, not tokens.** Token types are priced very differently: relative to fresh input, a cache read is about 0.1×, a cache write about 1.25× and output (thinking included) about 5×. About 95% of the input here was read from the cache, so +31% input came to only +11% cost. `total_cost_usd` is Claude Code's estimate at API list prices. Whether a subscription's usage limits weigh token types the same way is not published, so cost stands in for quota but does not measure it. The `rate_limit_event` utilization does measure quota, but it covers the whole account (other sessions included) and parallel chats, so it can't be put down to one chat.
+
+**Thinking differences from one run are noise.** The hook arm thought 2,961 tokens, the Bash arm 2,379. All of the gap was in writing the page (2,167 against 1,398); on the edits the hook arm thought less (794 against 981). Within one arm, thinking while writing a page ranged from 0 to 629 tokens per page, and the `zamn` arm, with exactly the Bash arm's skill text, thought 4,423. This matches the 100–1,300 tokens single runs vary by on one page (see "What in the skill changes how much Claude thinks"). 600 thinking tokens cost about $0.015.
+
+**One edit broke zamn in every zamn arm.** `landing` edit 4 ("Remove the Umbrella logo…") left the file invalid in all three zamn arms and in no HTML one: `UNCLOSED_BRACE`, four `INCONSISTENT_INDENTATION`, and `SELF_CLOSING_CONTENT` on the Initech `li: img(...)` line, which means an element ended up indented deeper than that line and nested into the `img`. The hook arm and the Bash arm caught it themselves; the skill-only arm needed the script's fix-up. The broken file was lost: the JSON kept only the file after each step, and sessions are not persisted. About a dozen likely leftovers (a blank line, a `}` too deep or too shallow, the line's indentation left on the next one) all compile, so it was none of the obvious slips. A step's `problems` now records every error Claude is shown (by the hook, a tool, or the script's check), each with zamn's codes and, for zamn errors, the file as it was then; `errors` stays what is still wrong once the step is over.
+
+**What the skill doesn't say, checked with the compiler:**
+
+- Inside braces, indentation still nests. The skill says only that the base indentation is free. A line indented less than its block's first line is `INCONSISTENT_INDENTATION`, and a line indented deeper silently becomes a child of the line above: `ul {` / `  li a` / `    li b` gives `<li>a<li>b</li></li>`, and under `li: img(...)` it goes into the `img` (`SELF_CLOSING_CONTENT`). These are the codes of the `landing` failure, and the skill says nothing about editing, which is 6 of the 7 steps.
+- Class names need `class="..."` for `.` and brackets too, not only `/` and `:`: `.p-0.5` is `INVALID_CLASS_NAME`, `.w-[10px]` is `UNEXPECTED_TEXT`.
+- `style={}` keys are copied as written: `style={fontSize: '2px'}` gives `fontSize:2px`; `{'font-size': '2px'}` gives CSS.
+- `img/` is a weak example of self-closing, since `img` is void anyway; it matters for components (`Icon/`).
+
 ## What the AI measurements showed (2026-11-22)
 
 Measured with `claude-opus-5-5` through Claude Code 2.1.319, six corpus pages,

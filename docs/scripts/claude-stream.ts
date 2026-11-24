@@ -260,6 +260,8 @@ export interface SessionOptions {
   env: Record<string, string | undefined>;
   maxBudgetUsd: number;
   log: Log;
+  /** Called with each stream-json message as it arrives, after it is logged. */
+  onMessage?: (message: any) => void;
 }
 
 /** A stream-json message, and the label of the prompt it answers. */
@@ -281,10 +283,12 @@ export class Session {
   private waiting: { resolve: (m: any) => void; reject: (e: Error) => void } | null = null;
   private reading: Promise<void>;
   private stderr: Promise<string>;
+  private onMessage: SessionOptions["onMessage"];
 
   constructor(options: SessionOptions) {
-    const { model, cwd, tools, allowed, effort, env, maxBudgetUsd, log } = options;
+    const { model, cwd, tools, allowed, effort, env, maxBudgetUsd, log, onMessage } = options;
     this.follow = follower(log, cwd, model);
+    this.onMessage = onMessage;
     const proc = Bun.spawn(
       ["claude", "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose",
         "--include-hook-events", "--exclude-dynamic-system-prompt-sections",
@@ -318,6 +322,7 @@ export class Session {
         const message = JSON.parse(line);
         this.messages.push({ label: this.label, message });
         this.follow.message(message);
+        this.onMessage?.(message);
         if (message.type === "result" && this.waiting) {
           const { resolve } = this.waiting;
           this.waiting = null;
