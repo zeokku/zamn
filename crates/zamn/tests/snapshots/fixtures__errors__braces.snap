@@ -1,0 +1,34 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: "report.join(\"\\n\")"
+---
+braces.zamn:4:1: error[UNMATCHED_BRACE]: This `}` does not close any `{`
+  hint: remove it, or write `\}` for a literal brace
+braces.zamn:5:13: error[UNESCAPED_BRACE]: A `{` in text must be escaped
+  hint: write `\{` for a literal brace
+braces.zamn:6:3: error[UNCLOSED_INTERPOLATION]: This `{{` is not closed
+  hint: close it with `}}` on the same line
+braces.zamn:9:5: warning[MISLEADING_INDENTATION]: This line is indented as if it were nested, but indentation means nothing in zamn
+  hint: wrap the children in `{ }` on the line above, or remove the indentation
+braces.zamn:10:10: error[UNSUPPORTED_SYNTAX]: Content on the `script` line is not supported
+  hint: write the content on the lines below, and end it with `/script` on its own line
+braces.zamn:14:3: error[UNMATCHED_CLOSE]: This `/script` does not close anything
+  hint: a script with `src` needs no `/script`
+braces.zamn:15:3: error[UNMATCHED_CLOSE]: This `/div` does not close anything
+  hint: close elements with `}`; only `script` and `style` content ends with a `/` line
+braces.zamn:16:9: error[UNSUPPORTED_SYNTAX]: Content on the `style` line is not supported
+  hint: write the content on the lines below, and end it with `/style` on its own line
+braces.zamn:17:10: error[UNSUPPORTED_SYNTAX]: Content on the `script` line is not supported
+  hint: write the content on the lines below, and end it with `/script` on its own line
+braces.zamn:18:6: error[UNSUPPORTED_SYNTAX]: A text block (`tag.`) is not supported
+  hint: write text in `|{ ... }`; a `script` or `style` takes the lines below it, ended by `/script` or `/style`
+braces.zamn:19:3: error[MISSING_DOCTYPE]: `doctype` must be followed by the document type
+  hint: write `doctype html`, or leave the line out
+braces.zamn:20:6: error[UNSUPPORTED_SYNTAX]: A self-closing `/` is not supported
+  hint: drop the `/`: HTML elements such as `img` need no closing
+braces.zamn:21:3: error[UNEXPECTED_TEXT]: unexpected text "{{ te"
+  hint: start text with `|`
+braces.zamn:22:3: error[UNEXPECTED_TEXT]: unexpected text "#{b x"
+  hint: start text with `|`
+braces.zamn:24:4: error[UNCLOSED_BRACE]: This `{` is never closed
+  hint: close it with `}`

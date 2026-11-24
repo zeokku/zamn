@@ -1,0 +1,6 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: report
+---
+3:3 error[UNCLOSED_COMMENT] This comment is never closed "/*"
+  hint: close it with `*/`

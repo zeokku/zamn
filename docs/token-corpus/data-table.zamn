@@ -1,50 +1,73 @@
-section.invoices
-  header.toolbar
+section.invoices {
+  header.toolbar {
     h2 Invoices
-    .filters
+    .filters {
       input.search(v-model="query" type="search" placeholder="Search by customer or number" aria-label="Search invoices")
-      select(v-model="status" aria-label="Status")
+      select(v-model="status" aria-label="Status") {
         option(value="all") All
         option(value="draft") Draft
         option(value="sent") Sent
         option(value="overdue") Overdue
         option(value="paid") Paid
+      }
       button.btn.btn-primary(@click="$emit('create')") New invoice
-  table.table
-    thead
-      tr
-        th
+    }
+  }
+  table.table {
+    thead {
+      tr {
+        th {
           input(type="checkbox" :checked="allSelected" @change="toggleAll" aria-label="Select all")
-        th(v-for="column in columns" :key="column.key" :aria-sort="sortKey === column.key ? sortOrder : 'none'")
+        }
+        th(v-for="column in columns" :key="column.key" :aria-sort="sortKey === column.key ? sortOrder : 'none'") {
           button.sort(@click="sortBy(column.key)")= column.label
-        th
+        }
+        th {
           span.visually-hidden Actions
-    tbody
-      tr(v-if="!rows.length")
+        }
+      }
+    }
+    tbody {
+      tr(v-if="!rows.length") {
         td.empty(:colspan="columns.length + 2") No invoices match your filters.
-      tr(v-for="row in rows" :key="row.id" :class="{ selected: selected.has(row.id) }")
-        td
+      }
+      tr(v-for="row in rows" :key="row.id" :class="{ selected: selected.has(row.id) }") {
+        td {
           input(type="checkbox" :checked="selected.has(row.id)" @change="toggle(row.id)" :aria-label="`Select invoice ${row.number}`")
+        }
         td: RouterLink(:to="`/invoices/${row.id}`")= row.number
         td= row.customer
         td= formatDate(row.issuedAt)
         td= formatDate(row.dueAt)
         td.amount= formatMoney(row.total, row.currency)
-        td
+        td {
           StatusBadge(:status="row.status")
-        td.actions
-          button.icon-btn(@click="$emit('send', row)" :disabled="row.status === 'paid'" title="Send")
+        }
+        td.actions {
+          button.icon-btn(@click="$emit('send', row)" :disabled="row.status === 'paid'" title="Send") {
             IconSend(aria-hidden="true")
-          button.icon-btn(@click="$emit('download', row)" title="Download PDF")
+          }
+          button.icon-btn(@click="$emit('download', row)" title="Download PDF") {
             IconDownload(aria-hidden="true")
-          button.icon-btn.danger(@click="$emit('remove', row)" title="Delete")
+          }
+          button.icon-btn.danger(@click="$emit('remove', row)" title="Delete") {
             IconTrash(aria-hidden="true")
-    tfoot
-      tr
-        td(:colspan="columns.length + 2")
-          | Showing #[strong= rows.length] of #[strong= total] invoices,
-          | #[strong= formatMoney(sum, currency)] in total.
-  nav.pagination(aria-label="Pagination")
+          }
+        }
+      }
+    }
+    tfoot {
+      tr {
+        td(:colspan="columns.length + 2") {
+          | Showing #{strong= rows.length} of #{strong= total} invoices,
+          | #{strong= formatMoney(sum, currency)} in total.
+        }
+      }
+    }
+  }
+  nav.pagination(aria-label="Pagination") {
     button.btn(@click="page--" :disabled="page === 1") Previous
-    span Page #[strong= page] of #[strong= pages]
+    span Page #{strong= page} of #{strong= pages}
     button.btn(@click="page++" :disabled="page === pages") Next
+  }
+}

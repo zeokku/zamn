@@ -3,5 +3,5 @@ source: crates/zamn/tests/fixtures.rs
 expression: html(&file)
 ---
 <!DOCTYPE html><html><head><title>Braces</title><meta charset="utf-8"></head><body class="page"><!-- base indentation inside braces is free--><nav id="top"><ul><li><a href="/">Home</a></li><li><a href="/about">About</a></li></ul></nav><main><p>A text block
-  keeps working }</p><pre>line one
+keeps working }</p><pre>line one
 line two</pre><section></section><footer></footer></main><p>after</p></body></html>

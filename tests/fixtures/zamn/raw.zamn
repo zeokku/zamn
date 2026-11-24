@@ -1,0 +1,25 @@
+script
+  if (a < b && c) {
+    go("{");
+  }
+    // relative indentation stays
+/script
+script(src="a.js")
+script(:src="url" defer)
+style(scoped)
+
+  .a > .b { color: red }
+
+/style
+pre |{
+  first line
+    indented
+  last line
+}
+pre {
+  |{
+    one
+      two
+  }
+}
+pre |{ one line }

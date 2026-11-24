@@ -1,0 +1,6 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: report
+---
+3:3 error[UNCLOSED_RAW] This `script` is never closed "script"
+  hint: end it with `/script` on its own line

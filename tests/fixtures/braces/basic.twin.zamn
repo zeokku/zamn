@@ -1,4 +1,6 @@
-div
-  .another-div
-    button Text
-    p
+div {
+.another-div {
+button Text
+p {}
+}
+}

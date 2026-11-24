@@ -1,0 +1,5 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: html(&file)
+---
+<div><b>some text here</b><u>another child</u><b>without pipe</b><span>so next one must go on a new line</span></div><div class="one-liner"><b><u>biba</u></b></div><div class="should-use-new-line"><b>some text</b><u>next child after b</u><s>and another one</s></div><div>some text</div><div>some text</div><div>some text</div><div>| starts with</div><div>| starts with</div><div><div class="first"></div><div class="second"></div><div class="third">piped text</div><div class="forth">text inside it</div><div class="one-liner"><p>some paragraph <b>biba</b> boba</p></div><button class="styled" style="font-size:1em;text-align:center;padding:1rem 0.5rem;transition-property:color, background;"></button></div>

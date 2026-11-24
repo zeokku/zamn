@@ -40,3 +40,26 @@ fn token_snapshots() {
         }
     }
 }
+
+/// Tokens never overlap and come in source order, so tools can walk them.
+#[test]
+fn tokens_are_ordered() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures");
+    for dir in ["zamn", "braces", "errors"] {
+        for entry in std::fs::read_dir(root.join(dir)).unwrap() {
+            let file = entry.unwrap().path();
+            let src = std::fs::read_to_string(&file).unwrap();
+            let tokens = zamn_lexer::lex(&src).tokens;
+            for pair in tokens.windows(2) {
+                assert!(
+                    pair[0].span.start <= pair[0].span.end
+                        && pair[0].span.end <= pair[1].span.start,
+                    "{}: {:?} then {:?}",
+                    file.display(),
+                    pair[0],
+                    pair[1]
+                );
+            }
+        }
+    }
+}

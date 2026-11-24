@@ -49,6 +49,16 @@ zamn's diagnostics the code `zamn/<CODE>`, and
 from vue-eslint-parser without a zamn code and stay with Vue's rule. Without a
 code, both rules would report the same error.
 
+## What eslint-plugin-vue expects from template text and comments
+
+Seen in vue-eslint-parser 10.4 and eslint-plugin-vue 10.12:
+
+- `VText.value` is decoded text (`&amp;` → `&`, `&rarr;` → `→`, an unknown `&foo;` kept as written), and `vue/no-bare-strings-in-template` compares against decoded characters. The tokenizer therefore decodes the character references zamn passes through (with `decodeHTMLStrict` from `entities`, which Vue's compiler also uses); `&copy` without `;` stays as written, as zamn escapes it.
+- `vue/comment-directive` reads directives from every entry in `templateBody.comments`, whatever its type, so `// eslint-disable-next-line` and block `/* eslint-disable */` … `/* eslint-enable */` both work. Its "unused directive" report puts the rule name at `comment.range[0] + 4` (the length of `<!--`), so in zamn it lands 1 or 2 columns off.
+- The `html-comment-*` rules skip comments whose text doesn't start with `<!--`, so zamn comments are safe from them although they have the type `HTMLComment`.
+- vue-eslint-parser sorts template errors by position, so zamn's diagnostics and expression errors come out interleaved.
+- Under Bun's isolated installs, a package's tests can import the package by its own name and get the built `dist/` through `exports`.
+
 ## A Prettier option that is a number or `false`
 
 Prettier checks plugin options by their `type`, and `"int"` rejects `false`.
@@ -60,31 +70,11 @@ a config file or through the API.
 
 ## Comment markers in VS Code, and Better Comments Next
 
-- `comments.lineComment` in `language-configuration.json` is the only place a
-  language says what its comment is. VS Code uses it for "Toggle Line
-  Comment"; it takes one marker. zamn's is `//-`, as in VS Code's pug
-  extension, so toggling never puts a comment into the HTML.
-- Colours do not come from there but from the grammar's scopes. VS Code's pug
-  grammar scopes `//-` as `comment.unbuffered.block.pug` and `//` as
-  `string.comment.buffered.block.pug`, which is why a `//` comment has the
-  colour of a string there. zamn does the same for `//`.
-- Better Comments Next (3.4.6, read from its bundle) does not look at scopes.
-  For the language id of the file it takes `comments.lineComment` (a string;
-  the object form is ignored) from the extension that contributes the
-  language, then the same of every language in the `embeddedLanguages` of the
-  grammar contributed **for that language id**, in order. Entries of the
-  `better-comments.languages` setting replace a language's `comments` and add
-  to its embedded languages.
-- It builds one regex from those markers, `(//-+|//+|...)`, in that order, and
-  then wants whitespace and a tag (`TODO`, `!`, `?`) straight after the marker
-  that matched. If `//` comes before `//-`, `//- TODO` matches `//` and fails
-  on the `-`.
-- In a `.vue` file the language is `vue`: its own marker is `<!-- -->`, and
-  `//` comes from the embedded script languages. Our injection grammar has no
-  `language`, so its `embeddedLanguages` are never seen, and embedded
-  languages come after `//` anyway. The only way to get `//-` in front is to
-  give `vue` itself the line comment `//-` through `better-comments.languages`,
-  which the extension does with `configurationDefaults`.
+- `comments.lineComment` in `language-configuration.json` is the only place a language says what its comment is. VS Code uses it for "Toggle Line Comment"; it takes one marker. zamn's is `//`, which is left out of the HTML, so toggling never puts a comment into the page; `blockComment` is `/*` `*/`, also left out.
+- Colours do not come from there but from the grammar's scopes. VS Code's pug grammar scopes `//-` as `comment.unbuffered.block.pug` and `//` as `string.comment.buffered.block.pug`, which is why a buffered comment has the colour of a string there. zamn does the same: `//` and `/* */` are `comment.line.double-slash.zamn` and `comment.block.zamn`, while `//!` and `/*! */`, which go into the HTML, are `string.comment.buffered.block.zamn`.
+- Better Comments Next (3.4.6, read from its bundle) does not look at scopes. For the language id of the file it takes `comments.lineComment` (a string; the object form is ignored) from the extension that contributes the language, then the same of every language in the `embeddedLanguages` of the grammar contributed **for that language id**, in order. Entries of the `better-comments.languages` setting replace a language's `comments` and add to its embedded languages.
+- It builds one regex from those markers and then wants a space or tab and a tag (`TODO`, `!`, `?`) straight after the marker: `(?<PRE>(?:^|[ \t])${mark}[ \t])(?<TAG>...)` (the same in 3.3.21 and 3.4.6). So `// TODO` and `/* TODO */` (the block form only at the start of a line) are decorated, but `//! text` is not read as its `!` tag, and `//! TODO` or `/*! note */` are not decorated at all.
+- In a `.vue` file the language is `vue`: its own marker is `<!-- -->`, and `//` comes from the embedded script languages. Our injection grammar has no `language`, so its `embeddedLanguages` are never seen. The extension still gives `vue` the line comment `//` through `better-comments.languages` in `configurationDefaults`; since `//` already comes from the script languages, that entry is probably redundant now that zamn's marker is `//`.
 
 ## zamn in the docs' code blocks
 
@@ -218,11 +208,23 @@ the current agent advice is here.
 
 ## prettier-plugin-zamn with `tabWidth: 0`
 
-`tabWidth: 0` prints every brace block with no indentation, the flat form the
-token measurements use. It breaks text blocks (`p.`, `script.`), whose lines
-must stay indented deeper than their tag, and puts multi-line attribute values
-at column 0. The token corpus avoids both; `docs/test/corpus.test.ts` would
-catch it if a page used them.
+`tabWidth: 0` prints every brace block with no indentation, the flat form the token measurements use. It is safe for `|{ }` text and `script`/`style` raw content, whose common indentation the compiler strips. It still puts the continuation lines of a multi-line attribute value at column 0, which changes a quoted value such as a multi-line `:class="{…}"`. The token corpus avoids that; `docs/test/corpus.test.ts` would catch it if a page used one.
+
+## Formatting zamn text
+
+- The parser joins two text statements (`| x` or `|{ }`, not a bare `|`) with a `"\n"` only when a line break separates them. On one line they join with nothing, and a comment between them stops the join. A formatter must neither split them onto separate lines nor merge them.
+- In `lex()` output, `Text` values have escapes resolved, and a token after an escape starts after the backslash. To copy text as written, slice the source between the surrounding tokens instead of joining token values.
+- Prettier 3.10.1's `IntSupportOption` type has no `exception` field, although Prettier reads it (see "A Prettier option that is a number or `false`"). The plugin types the option as `IntSupportOption & { exception }`.
+
+## zamn in the Vue language tools
+
+Seen in `@vue/language-core` and `@vue/language-service` 3.3.14:
+
+- vue-tsc 3.3 needs a TypeScript with the JS API: it reads `typescript/lib/tsc.js` and patches it. The `typescript` 7.0 package has none (its main export is `lib/version.cjs`, and `lib/tsc.js` only launches the native binary), so vue-language-plugin-zamn and the example keep TypeScript 6 while the other packages build with 7.
+- What a template plugin passes to `onError` shows as an error in the editor (severity 1) and what it passes to `onWarn` as a warning (severity 2), per `vue-compiler-dom-errors.js`. vue-tsc prints neither. A template with any errors or warnings is not updated incrementally (`updateSFCTemplate`).
+- Vue's directive comments (`@vue-generic`, `@vue-expect-error`, `@vue-skip`, `@vue-ignore`) are read from HTML comment nodes, so in zamn they must be written `//!` or `/*! */`.
+- Vue's compiler errors share `loc` objects with AST nodes, so code that moves offsets back onto the zamn source must move each position object once.
+- `getElementTagOffsets` uses end-tag offsets only when `lang === "html"`, so for zamn only the offset of a start tag's name matters.
 
 ## `backdrop-filter` and Lightning CSS
 
@@ -254,3 +256,11 @@ The skill stays as it is for now: the examples add input to every conversation t
 ## Claude Code writes temporary files to its scratchpad
 
 Claude Code's system prompt tells Claude to put temporary files in a session scratchpad directory. In `docs:generate`, where Bash may run `zamn` and nothing else, Claude often checked its answer with `cat > <scratchpad>/page.zamn <<'EOF'` followed by `zamn`, which was denied, until the skill said to pipe the template into `zamn` instead of writing a temporary file. Even then, 3 runs in 18 still tried the file first. Checking an answer that is not in a file means writing the code twice, so it roughly doubles what Claude writes for a page.
+
+## Building the packages with TypeScript 7
+
+The JS packages are written in TypeScript (`src/*.ts`) and built with `tsc -p .` into `dist/`, with the shared settings in `tsconfig.base.json`. Seen with `typescript` 7.0.2 and Node 26.8:
+
+- `tsc` emits JavaScript and declarations, as before 7.0. `${configDir}` works in `rootDir`, `outDir` and `include` of an extended config, so the base config can name each package's `src/` and `dist/`.
+- `export { X as "module.exports" }` (see above) compiles as written, into both the `.js` and the `.d.ts`, with `module` and `moduleResolution` set to `nodenext`. Node's `require()` of the emitted ES module then returns `X` itself.
+- Published packages must ship JavaScript: Node refuses to strip types from files under `node_modules`, so the hosts that load the plugins (ESLint, Prettier, Volar, VS Code) can't use `.ts` sources directly.

@@ -46,8 +46,12 @@ struct Parser<'a> {
 }
 
 impl<'a> Parser<'a> {
+    fn kind(&self, i: usize) -> TokenKind {
+        self.toks.get(i).map_or(Eos, |t| t.kind)
+    }
+
     fn peek(&self) -> TokenKind {
-        self.toks.get(self.i).map_or(Eos, |t| t.kind)
+        self.kind(self.i)
     }
 
     fn next(&mut self) -> Token {
@@ -83,40 +87,34 @@ impl<'a> Parser<'a> {
 
     /// Whether the token at `i` is a `|` with nothing after it.
     fn bare_pipe(&self, i: usize) -> bool {
-        let kind = |i: usize| self.toks.get(i).map_or(Eos, |t| t.kind);
-        kind(i) == Pipe && !matches!(kind(i + 1), Text | InterpStart)
+        self.kind(i) == Pipe && !matches!(self.kind(i + 1), Text | Mustache | InterpStart)
+    }
+
+    /// Whether the statement at `i` is text: `| text` or `|{ text }`.
+    fn text_statement(&self, i: usize) -> bool {
+        self.kind(i) == PipeOpen || (self.kind(i) == Pipe && !self.bare_pipe(i))
     }
 
     /// Statements up to the end of the enclosing block.
     fn items(&mut self, out: &mut Vec<Node>) {
-        let mut last_pipe = false;
+        let mut last_text = false;
         loop {
             match self.peek() {
-                Eos | Outdent | BraceClose | InterpEnd => break,
+                Eos | BraceClose => break,
                 Newline => {
                     let t = self.next();
-                    // Consecutive `|` lines are joined with a line break,
-                    // unless one of them is a bare `|`, which is a space.
-                    if last_pipe && self.peek() == Pipe && !self.bare_pipe(self.i) {
+                    // Lines of text are joined with a line break, unless
+                    // one of them is a bare `|`, which is a space.
+                    if last_text && self.text_statement(self.i) {
                         out.push(Node::Text(ast::Text {
                             value: "\n".into(),
                             span: t.span,
                         }));
                     }
                 }
-                Indent => {
-                    let t = self.next();
-                    self.diags.push(Diagnostic::new(
-                        "UNEXPECTED_INDENT",
-                        "unexpected indentation: the line above cannot have children",
-                        t.span,
-                    ));
-                    self.items(out);
-                    self.accept(Outdent);
-                }
-                kind => {
+                _ => {
                     let before = self.i;
-                    last_pipe = kind == Pipe && !self.bare_pipe(before);
+                    last_text = self.text_statement(before);
                     self.statement(out);
                     if self.i == before {
                         self.unexpected();
@@ -128,38 +126,21 @@ impl<'a> Parser<'a> {
 
     fn statement(&mut self, out: &mut Vec<Node>) {
         match self.peek() {
-            Comment | SilentComment => {
+            Comment | SilentComment | BlockComment | SilentBlockComment => {
                 let t = self.next();
-                let buffered = t.kind == Comment;
-                let value = self.text(t)[if buffered { 2 } else { 3 }..].to_string();
-                let mut block = None;
-                if self.accept(TextBlockStart).is_some() {
-                    let mut s = String::new();
-                    loop {
-                        match self.peek() {
-                            Text => {
-                                let t = self.next();
-                                s.push_str(self.text(t));
-                            }
-                            TextNewline => {
-                                self.next();
-                                s.push('\n');
-                            }
-                            _ => break,
-                        }
-                    }
-                    self.accept(TextBlockEnd);
-                    block = Some(s);
+                let raw = self.text(t);
+                let buffered = matches!(t.kind, Comment | BlockComment);
+                let block = matches!(t.kind, BlockComment | SilentBlockComment);
+                let marker = if buffered { 3 } else { 2 };
+                let mut value = &raw[marker.min(raw.len())..];
+                if block && raw.len() >= marker + 2 {
+                    value = value.strip_suffix("*/").unwrap_or(value);
                 }
-                let span = Span {
-                    start: t.span.start,
-                    end: self.prev_end(),
-                };
                 out.push(Node::Comment(ast::Comment {
                     buffered,
-                    value,
                     block,
-                    span,
+                    value: value.to_string(),
+                    span: t.span,
                 }));
             }
             Doctype => {
@@ -171,23 +152,9 @@ impl<'a> Parser<'a> {
                 }));
             }
             Eq => self.interpolation(out),
-            Pipe => {
-                let bare = self.bare_pipe(self.i);
-                let pipe = self.next();
-                if bare {
-                    // Whitespace at the end of a line is ignored, so this is
-                    // how a space between two lines is written.
-                    out.push(Node::Text(ast::Text {
-                        value: " ".into(),
-                        span: pipe.span,
-                    }));
-                }
-                self.inline(out);
-            }
-            Dot => {
-                self.next();
-                self.text_block(out);
-            }
+            Pipe | PipeOpen => self.pipe(out),
+            // Text without a `|`, already reported by the lexer.
+            Text | Mustache | InterpStart => self.inline(out),
             Tag | Id | Class => {
                 let el = self.element();
                 out.push(Node::Element(el));
@@ -207,45 +174,72 @@ impl<'a> Parser<'a> {
         }
     }
 
-    /// Text and `#[...]` interpolations on one line.
+    /// `|`, `| text` or `|{ text }`.
+    fn pipe(&mut self, out: &mut Vec<Node>) {
+        if self.bare_pipe(self.i) {
+            // Whitespace at the end of a line is ignored, so this is how a
+            // space between two lines is written.
+            let t = self.next();
+            out.push(Node::Text(ast::Text {
+                value: " ".into(),
+                span: t.span,
+            }));
+            return;
+        }
+        let open = self.next();
+        self.inline(out);
+        if open.kind == PipeOpen {
+            self.accept(PipeClose);
+        }
+    }
+
+    /// Text, mustaches and `#{...}` inline elements. Consecutive `Text` and
+    /// `TextNewline` tokens make one `Text` node.
     fn inline(&mut self, out: &mut Vec<Node>) {
+        let mut text: Option<ast::Text> = None;
+        fn flush(text: &mut Option<ast::Text>, out: &mut Vec<Node>) {
+            if let Some(t) = text.take() {
+                out.push(Node::Text(t));
+            }
+        }
         loop {
             match self.peek() {
-                Text => {
+                Text | TextNewline => {
                     let t = self.next();
-                    out.push(Node::Text(ast::Text {
+                    let value = if t.kind == Text { self.text(t) } else { "\n" };
+                    match &mut text {
+                        Some(prev) => {
+                            prev.value.push_str(value);
+                            prev.span = prev.span.to(t.span);
+                        }
+                        None => {
+                            text = Some(ast::Text {
+                                value: value.to_string(),
+                                span: t.span,
+                            })
+                        }
+                    }
+                }
+                Mustache => {
+                    flush(&mut text, out);
+                    let t = self.next();
+                    out.push(Node::Mustache(ast::Mustache {
                         value: self.text(t).to_string(),
                         span: t.span,
                     }));
                 }
                 InterpStart => {
+                    flush(&mut text, out);
                     self.next();
-                    self.statement(out);
+                    if self.peek() != InterpEnd {
+                        self.statement(out);
+                    }
                     self.accept(InterpEnd);
                 }
                 _ => break,
             }
         }
-    }
-
-    fn text_block(&mut self, out: &mut Vec<Node>) {
-        if self.accept(TextBlockStart).is_none() {
-            return;
-        }
-        loop {
-            match self.peek() {
-                Text | InterpStart => self.inline(out),
-                TextNewline => {
-                    let t = self.next();
-                    out.push(Node::Text(ast::Text {
-                        value: "\n".into(),
-                        span: t.span,
-                    }));
-                }
-                _ => break,
-            }
-        }
-        self.accept(TextBlockEnd);
+        flush(&mut text, out);
     }
 
     fn element(&mut self) -> Element {
@@ -256,7 +250,7 @@ impl<'a> Parser<'a> {
             attrs: Vec::new(),
             children: Vec::new(),
             braced: false,
-            self_closing: false,
+            raw: false,
             span: Span::default(),
         };
         if let Some(t) = self.accept(Tag) {
@@ -300,10 +294,6 @@ impl<'a> Parser<'a> {
         }
 
         match self.peek() {
-            Slash => {
-                self.next();
-                el.self_closing = true;
-            }
             Colon => {
                 let colon = self.next();
                 let before = self.i;
@@ -317,22 +307,21 @@ impl<'a> Parser<'a> {
                 }
             }
             Eq => self.interpolation(&mut el.children),
-            Dot => {
-                self.next();
-                self.text_block(&mut el.children);
-            }
             BraceOpen => {
                 self.next();
                 el.braced = true;
                 self.items(&mut el.children);
                 self.accept(BraceClose);
             }
-            Text | InterpStart => self.inline(&mut el.children),
+            Pipe | PipeOpen => self.pipe(&mut el.children),
+            Text | Mustache | InterpStart => self.inline(&mut el.children),
+            RawStart => {
+                self.next();
+                el.raw = true;
+                self.inline(&mut el.children);
+                self.accept(RawEnd);
+            }
             _ => {}
-        }
-        if self.accept(Indent).is_some() {
-            self.items(&mut el.children);
-            self.accept(Outdent);
         }
         el.span = Span {
             start,
@@ -457,9 +446,32 @@ fn is_binding(name: &str) -> bool {
         && !name.ends_with([':', '@', '#', '.'])
 }
 
-/// `style={color: 'red', 'font-size': 12}` as CSS, as pug writes it:
-/// `color:red;font-size:12;`. Keys are names or quoted strings, values quoted
-/// strings or numbers; anything else is `None`.
+/// A CSS property name for a `style={}` key: `--custom` as it is, camelCase
+/// to kebab-case as React does (`fontSize` → `font-size`, `WebkitX` →
+/// `-webkit-x`, `msX` → `-ms-x`).
+fn css_property(key: &str) -> String {
+    if key.starts_with("--") {
+        return key.to_string();
+    }
+    let mut out = String::with_capacity(key.len() + 4);
+    for c in key.chars() {
+        if c.is_ascii_uppercase() {
+            out.push('-');
+            out.push(c.to_ascii_lowercase());
+        } else {
+            out.push(c);
+        }
+    }
+    if out.starts_with("ms-") {
+        out.insert(0, '-');
+    }
+    out
+}
+
+/// `style={fontSize: 1em, 'text-align': 'center'}` as CSS:
+/// `font-size:1em;text-align:center;`. Keys are names (which may hold `-`)
+/// or quoted strings; values are quoted strings, or bare text up to a `,` or
+/// `}` outside brackets and quotes. Anything else is `None`.
 fn style_object(raw: &str) -> Option<String> {
     let b = raw.as_bytes();
     let mut p = 1;
@@ -495,7 +507,9 @@ fn style_object(raw: &str) -> Option<String> {
             string(&mut p)?
         } else {
             let start = p;
-            while p < b.len() && (b[p].is_ascii_alphanumeric() || matches!(b[p], b'_' | b'$')) {
+            while p < b.len()
+                && (b[p].is_ascii_alphanumeric() || matches!(b[p], b'_' | b'$' | b'-'))
+            {
                 p += 1;
             }
             if p == start || b[start].is_ascii_digit() {
@@ -513,18 +527,32 @@ fn style_object(raw: &str) -> Option<String> {
             b'"' | b'\'' => string(&mut p)?,
             _ => {
                 let start = p;
-                if b[p] == b'-' {
+                let mut depth = 0usize;
+                while p < b.len() {
+                    match b[p] {
+                        b',' | b'}' if depth == 0 => break,
+                        b'"' | b'\'' => {
+                            let mut e = p + 1;
+                            while e < b.len() && b[e] != b[p] {
+                                e += if b[e] == b'\\' { 2 } else { 1 };
+                            }
+                            p = e;
+                        }
+                        b'(' | b'[' => depth += 1,
+                        b')' | b']' => depth = depth.checked_sub(1)?,
+                        b'{' | b'`' => return None,
+                        _ => {}
+                    }
                     p += 1;
                 }
-                while p < b.len() && (b[p].is_ascii_digit() || b[p] == b'.') {
-                    p += 1;
+                let value = raw.get(start..p)?.trim();
+                if value.is_empty() || p >= b.len() {
+                    return None;
                 }
-                let number = &raw[start..p];
-                number.parse::<f64>().ok()?;
-                number.to_string()
+                value.to_string()
             }
         };
-        css.push_str(&key);
+        css.push_str(&css_property(&key));
         css.push(':');
         css.push_str(&value);
         css.push(';');
@@ -537,7 +565,7 @@ fn style_object(raw: &str) -> Option<String> {
     }
 }
 
-/// Resolve JavaScript string escapes, so quoted values mean what they meant in pug.
+/// Resolve JavaScript string escapes in a quoted value.
 fn unescape(s: &str) -> String {
     if !s.contains('\\') {
         return s.to_string();
@@ -600,6 +628,12 @@ fn unescape(s: &str) -> String {
 mod tests {
     use super::*;
 
+    fn ok(src: &str) -> Vec<Node> {
+        let r = parse(src);
+        assert!(r.diagnostics.is_empty(), "{src:?}: {:?}", r.diagnostics);
+        r.ast.nodes
+    }
+
     fn el(n: &Node) -> &Element {
         match n {
             Node::Element(e) => e,
@@ -607,66 +641,186 @@ mod tests {
         }
     }
 
+    /// Children as a compact list: element names, `"text"`s, mustaches.
+    fn shape(nodes: &[Node]) -> Vec<String> {
+        nodes
+            .iter()
+            .map(|c| match c {
+                Node::Text(t) => format!("{:?}", t.value),
+                Node::Element(e) => e.name.clone(),
+                Node::Mustache(m) => m.value.clone(),
+                Node::Interpolation(i) => format!("= {}", i.expr),
+                Node::Comment(c) => format!("comment {:?}", c.value),
+                Node::Doctype(d) => format!("doctype {}", d.value),
+            })
+            .collect()
+    }
+
     #[test]
-    fn braces_match_indentation() {
-        let a = parse("div\n  .x {\n    button Text\n    p { }\n  }\n");
-        assert!(a.diagnostics.is_empty(), "{:?}", a.diagnostics);
-        let div = el(&a.ast.nodes[0]);
-        let x = el(&div.children[0]);
+    fn braces_nest() {
+        let nodes = ok("div {\n  .x {\n    button Text\n    p {}\n  }\n}\n");
+        let x = el(&el(&nodes[0]).children[0]);
         assert!(x.braced && x.name == "div" && x.name_span.is_none());
-        assert_eq!(x.children.len(), 2);
-        assert_eq!(el(&x.children[0]).name, "button");
+        assert_eq!(shape(&x.children), ["button", "p"]);
         assert!(el(&x.children[1]).braced);
     }
 
     #[test]
     fn whitespace_at_the_end_of_a_line_is_ignored() {
-        let a = parse("p text \t\n  | piped  \nb \n");
-        assert!(a.diagnostics.is_empty(), "{:?}", a.diagnostics);
-        let texts = |n: &Node| -> Vec<String> {
-            el(n)
-                .children
-                .iter()
-                .map(|c| match c {
-                    Node::Text(t) => t.value.clone(),
-                    other => panic!("not text: {other:?}"),
-                })
-                .collect()
-        };
-        assert_eq!(texts(&a.ast.nodes[0]), ["text", "piped"]);
-        assert!(el(&a.ast.nodes[1]).children.is_empty());
+        let nodes = ok("p text \t\np {\n  | piped  \n}\nb \n");
+        assert_eq!(shape(&el(&nodes[0]).children), ["\"text\""]);
+        assert_eq!(shape(&el(&nodes[1]).children), ["\"piped\""]);
+        assert!(el(&nodes[2]).children.is_empty());
     }
 
     #[test]
     fn a_bare_pipe_is_a_space() {
         // No line break joins a bare `|` to the `|` lines around it.
-        let a = parse("p\n  b this\n  |  \n  | is\n  |\n  u cool\n  | a\n  | b\n");
-        assert!(a.diagnostics.is_empty(), "{:?}", a.diagnostics);
-        let shape: Vec<String> = el(&a.ast.nodes[0])
-            .children
-            .iter()
-            .map(|c| match c {
-                Node::Text(t) => format!("{:?}", t.value),
-                Node::Element(e) => e.name.clone(),
-                other => panic!("unexpected: {other:?}"),
-            })
-            .collect();
+        let nodes = ok("p {\n  b this\n  |  \n  | is\n  |\n  u cool\n  | a\n  |{ b }\n}\n");
         assert_eq!(
-            shape,
+            shape(&el(&nodes[0]).children),
             ["b", "\" \"", "\"is\"", "\" \"", "u", "\"a\"", "\"\\n\"", "\"b\""]
         );
     }
 
     #[test]
+    fn text_forms_are_the_same() {
+        let a = ok("div some text\ndiv | some text\ndiv |{ some text }");
+        for n in &a {
+            assert_eq!(shape(&el(n).children), ["\"some text\""]);
+        }
+        let nodes = ok("div \\| x\ndiv | | x");
+        assert_eq!(shape(&el(&nodes[0]).children), ["\"| x\""]);
+        assert_eq!(shape(&el(&nodes[1]).children), ["\"| x\""]);
+    }
+
+    #[test]
+    fn escapes_are_resolved() {
+        let nodes = ok("p a \\{ b \\} \\#{c\\} \\#[d] e\\f");
+        let children = &el(&nodes[0]).children;
+        assert_eq!(shape(children), ["\"a { b } #{c} #[d] e\\\\f\""]);
+        assert_eq!(
+            children[0]
+                .span()
+                .slice("p a \\{ b \\} \\#{c\\} \\#[d] e\\f"),
+            "a \\{ b \\} \\#{c\\} \\#[d] e\\f"
+        );
+    }
+
+    #[test]
+    fn mustaches_and_inline_elements() {
+        let nodes = ok("p { | a {{ b }} #{b biba #{i x}} boba }");
+        let p = el(&nodes[0]);
+        assert_eq!(
+            shape(&p.children),
+            ["\"a \"", "{{ b }}", "\" \"", "b", "\" boba\""]
+        );
+        assert_eq!(shape(&el(&p.children[3]).children), ["\"biba \"", "i"]);
+    }
+
+    #[test]
+    fn multi_line_text_blocks() {
+        let nodes = ok("pre |{\n    line one\n      indented\n\n    last\n  }");
+        assert_eq!(
+            shape(&el(&nodes[0]).children),
+            ["\"line one\\n  indented\\n\\nlast\""]
+        );
+    }
+
+    #[test]
+    fn raw_content() {
+        let nodes = ok(
+            "script\n  if (a < b) {\n    go()\n  }\n/script\nscript(src=\"a.js\")\nstyle\n/style",
+        );
+        let script = el(&nodes[0]);
+        assert!(script.raw && !script.braced);
+        assert_eq!(shape(&script.children), ["\"if (a < b) {\\n  go()\\n}\""]);
+        assert!(!el(&nodes[1]).raw && el(&nodes[1]).children.is_empty());
+        assert!(el(&nodes[2]).raw && el(&nodes[2]).children.is_empty());
+    }
+
+    #[test]
+    fn comments_and_doctype() {
+        let nodes = ok("doctype html\n// silent\n//! shown\n/*!\n  block\n*/\n/**/");
+        assert_eq!(
+            shape(&nodes),
+            [
+                "doctype html",
+                "comment \" silent\"",
+                "comment \" shown\"",
+                "comment \"\\n  block\\n\"",
+                "comment \"\""
+            ]
+        );
+        let Node::Comment(c) = &nodes[3] else {
+            panic!()
+        };
+        assert!(c.buffered && c.block);
+        let Node::Comment(c) = &nodes[1] else {
+            panic!()
+        };
+        assert!(!c.buffered && !c.block);
+    }
+
+    #[test]
+    fn block_expansion() {
+        let nodes = ok("ul { li: a(href=\"/\") Home }");
+        let li = el(&el(&nodes[0]).children[0]);
+        assert_eq!(shape(&li.children), ["a"]);
+        assert!(parse("p: ")
+            .diagnostics
+            .iter()
+            .any(|d| d.code == "MISSING_EXPANSION"));
+    }
+
+    #[test]
     fn attribute_values() {
-        let a = parse(r#"a(href="\x41\'b" :to='x' disabled n=1 off=false)"#);
-        assert!(a.diagnostics.is_empty(), "{:?}", a.diagnostics);
-        let attrs = &el(&a.ast.nodes[0]).attrs;
+        let nodes = ok(r#"a(href="\x41\'b" :to='x' disabled n=1 off=false)"#);
+        let attrs = &el(&nodes[0]).attrs;
         assert_eq!(attrs[0].value, AttrValue::Str("A'b".into()));
         assert_eq!(attrs[1].name, ":to");
         assert_eq!(attrs[2].value, AttrValue::Bool(true));
         assert_eq!(attrs[3].value, AttrValue::Str("1".into()));
         assert_eq!(attrs[4].value, AttrValue::Bool(false));
+    }
+
+    #[test]
+    fn style_objects() {
+        let style = |src: &str| -> String {
+            let nodes = ok(src);
+            match &el(&nodes[0]).attrs[0].value {
+                AttrValue::Str(s) => s.clone(),
+                other => panic!("{other:?}"),
+            }
+        };
+        assert_eq!(
+            style("button(style={\n  fontSize: 1em,\n  'text-align': 'center',\n  padding: 1rem 0.5rem,\n  transitionProperty: \"color, background\"\n})"),
+            "font-size:1em;text-align:center;padding:1rem 0.5rem;transition-property:color, background;"
+        );
+        assert_eq!(
+            style("p(style={WebkitTransition: none, msFlex: 1, --brand: red, font-size: 2px, color: c})"),
+            "-webkit-transition:none;-ms-flex:1;--brand:red;font-size:2px;color:c;"
+        );
+        assert_eq!(
+            style("p(style={color: rgb(0, 0, 0), background: url('a,b'), grid: [a] 1fr,})"),
+            "color:rgb(0, 0, 0);background:url('a,b');grid:[a] 1fr;"
+        );
+        assert_eq!(style("p(style={})"), "");
+        // A binding is left alone.
+        assert_eq!(style("p(:style={ fontSize: x })"), "{ fontSize: x }");
+        for src in [
+            "p(style={a: {b: 1}})",
+            "p(style={...x})",
+            "p(style={a: 'x' + y})",
+        ] {
+            assert!(
+                parse(src)
+                    .diagnostics
+                    .iter()
+                    .any(|d| d.code == "JS_EXPRESSION"),
+                "{src}"
+            );
+        }
     }
 
     #[test]
@@ -683,5 +837,13 @@ mod tests {
                 "{src}"
             );
         }
+    }
+
+    #[test]
+    fn errors_still_give_an_ast() {
+        let r = parse("{{ x }}\n#{b y}\np ok");
+        let codes: Vec<_> = r.diagnostics.iter().map(|d| d.code).collect();
+        assert_eq!(codes, ["UNEXPECTED_TEXT", "UNEXPECTED_TEXT"]);
+        assert_eq!(shape(&r.ast.nodes), ["{{ x }}", "b", "p"]);
     }
 }

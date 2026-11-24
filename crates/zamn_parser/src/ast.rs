@@ -11,6 +11,7 @@ pub struct Ast {
 pub enum Node {
     Element(Element),
     Text(Text),
+    Mustache(Mustache),
     Interpolation(Interpolation),
     Comment(Comment),
     Doctype(Doctype),
@@ -21,6 +22,7 @@ impl Node {
         match self {
             Node::Element(n) => n.span,
             Node::Text(n) => n.span,
+            Node::Mustache(n) => n.span,
             Node::Interpolation(n) => n.span,
             Node::Comment(n) => n.span,
             Node::Doctype(n) => n.span,
@@ -37,10 +39,11 @@ pub struct Element {
     /// `#id`, `.class` and `(...)` attributes in source order.
     pub attrs: Vec<Attribute>,
     pub children: Vec<Node>,
-    /// Children were written inside `{ }` rather than by indentation.
+    /// Children were written inside `{ }`.
     pub braced: bool,
-    /// Written with a trailing `/`.
-    pub self_closing: bool,
+    /// `script` or `style` with raw content ended by `/script` or `/style`.
+    /// Its children are `Text` nodes, one per line run, never escaped.
+    pub raw: bool,
     pub span: Span,
 }
 
@@ -73,8 +76,17 @@ pub struct Attribute {
     pub span: Span,
 }
 
+/// Text as written, with escapes resolved; codegen escapes it for HTML.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Text {
+    pub value: String,
+    pub span: Span,
+}
+
+/// `{{ ... }}` in text, written to the output as it is.
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub struct Mustache {
+    /// The whole mustache, braces included.
     pub value: String,
     pub span: Span,
 }
@@ -88,19 +100,23 @@ pub struct Interpolation {
     pub span: Span,
 }
 
+/// `// text`, `//! text`, `/* ... */` or `/*! ... */`.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Comment {
-    /// `false` for `//-` comments, which are not emitted.
+    /// `true` for `//!` and `/*!`, which are emitted as `<!--value-->`.
     pub buffered: bool,
-    /// Text on the comment line itself.
+    /// `true` for `/* */` and `/*! */`.
+    pub block: bool,
+    /// Everything after the marker (`//`, `//!`, `/*`, `/*!`), up to the end
+    /// of the line or the `*/`, as written.
     pub value: String,
-    /// The indented block under the comment, if any.
-    pub block: Option<String>,
     pub span: Span,
 }
 
+/// `doctype X`, emitted as `<!DOCTYPE X>`.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Doctype {
+    /// `X`, trimmed.
     pub value: String,
     pub span: Span,
 }

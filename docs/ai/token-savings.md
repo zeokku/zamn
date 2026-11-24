@@ -1,16 +1,14 @@
 # Token savings
 
-zamn says the same thing as HTML with less text: no closing tags, no `class="..."`
-around class names, no angle brackets. Less text is usually fewer tokens, but
-tokenizers are trained on a lot of HTML and very little zamn, so it had to be
-measured, in two ways:
+zamn says the same thing as HTML with less text: no closing tags, no `class="..."` around class names, no angle brackets. Less text is usually fewer tokens, but tokenizers are trained on a lot of HTML and very little zamn, so it had to be measured, in three ways:
 
-- **[The size of a page](#the-size-of-a-page)**: the same pages in each form, counted
-  by tokenizers. This is what reading, storing and sending a page costs.
-- **[Writing it with Claude](#writing-it-with-claude)**: Claude writes each page
-  from a description, as HTML and as zamn, and every token it spends is counted,
-  thinking included. This is what generating a page costs.
+- **[The size of a page](#the-size-of-a-page)**: the same pages in each form, counted by tokenizers. This is what reading, storing and sending a page costs.
+- **[Writing it with Claude](#writing-it-with-claude)**: Claude writes each page from a description, as HTML and as zamn, and every token it spends is counted, thinking included. This is what generating a page costs.
 - **[Editing it with Claude](#editing-it-with-claude)**: Claude makes a few changes to each page in a file, as HTML and as zamn. Pages are written once and edited many times, so this is most of what a page costs over its life.
+
+::: info Measured on the previous syntax
+Every number on this page was measured before zamn moved to braces only: children could also be nested by indentation, one-line blocks had to close on their line, and text was not escaped. The pages and the method are the same; the numbers will be measured again. The "1-space indentation" form only existed in that syntax.
+:::
 
 ## The size of a page
 
@@ -35,18 +33,14 @@ Per page:
 
 What it shows:
 
-- **The code is about a third smaller**, as the counts above say. Claude writes
-  formatted HTML, and readable zamn is that much smaller than it.
+- **The code is about a third smaller**, as the counts above say. Claude writes formatted HTML, and readable zamn is that much smaller than it.
 - **Thinking takes back most of that.** In a fresh conversation, Claude thinks before writing zamn and often doesn't before writing HTML: it has written HTML millions of times, and zamn only from the rules in its context. For one page, the whole answer is 5 to 10% smaller in zamn. In a chat, the gap is mostly on the first page, and over six pages the answers are about a sixth smaller.
-- **Squeezing the code doesn't pay.** The tersest form is the smallest code but takes the most thinking, so the answer comes out no smaller than HTML, and it is one of the arms that wrote invalid zamn: a block opened on one line and closed on a later one. The skill now asks for readable zamn.
+- **Squeezing the code doesn't pay.** The tersest form is the smallest code but takes the most thinking, so the answer comes out no smaller than HTML, and it is one of the arms that wrote invalid zamn: a block opened on one line and closed on a later one, which the previous syntax didn't allow. The skill now asks for readable zamn.
 - **A checklist changes nothing.** Four usual mistakes to check before answering leave thinking where it was. Neither did other wordings of the same rules (explaining zamn as CSS selectors nested like SCSS, a much shorter skill).
 - **Checking the answer costs more than it saves.** With the compiler at hand, Claude thinks about a third less and every page is valid, but it writes the code twice, once to check it and once to answer, and reads the conversation again for the extra call. The answer comes out about 70% bigger. A page written to a file needs no second copy: the check is one short command.
-- **The skill costs input once per conversation.** Loading it means reading its
-  body and two extra model calls that read the conversation again, almost all of it
-  from cache. In a chat it is paid on the first page only.
+- **The skill costs input once per conversation.** Loading it means reading its body and two extra model calls that read the conversation again, almost all of it from cache. In a chat it is paid on the first page only.
 
-Each arm runs three times, and thinking varies a lot from one run to the next, so
-read these as directions, not exact figures.
+Each arm runs three times, and thinking varies a lot from one run to the next, so read these as directions, not exact figures.
 
 ## Editing it with Claude
 
@@ -70,19 +64,15 @@ Claude sometimes reached for `sed` or `python3` to make a change, which this set
 
 ## Read once
 
-An agent reads the rules or the skill before it writes any zamn, once per
-conversation. The size of a page sets how many pages it takes to make that back:
+An agent reads the rules or the skill before it writes any zamn, once per conversation. The size of a page sets how many pages it takes to make that back:
 
 <!--@include: ../data/token-overhead.md-->
 
-The rules sit in every conversation of a project that has them, whether it writes
-zamn or not. The skill costs its description everywhere and its body only where it
-is used.
+The rules sit in every conversation of a project that has them, whether it writes zamn or not. The skill costs its description everywhere and its body only where it is used.
 
 ## Method
 
-The corpus is six hand-written pages in `docs/token-corpus/`, chosen to look like
-what agents are asked to build:
+The corpus is six hand-written pages in `docs/token-corpus/`, chosen to look like what agents are asked to build:
 
 | Page | What |
 |---|---|
@@ -95,45 +85,30 @@ what agents are asked to build:
 
 ### The size of a page
 
-Each page is written once, in zamn. The other forms are made from it, so every form
-holds the same page:
+Each page is written once, in zamn. The other forms are made from it, so every form holds the same page:
 
 | Form | How |
 |---|---|
-| zamn, flat braces | Prettier with `tabWidth: 0`: braces around every block, no indentation |
+| zamn, flat braces | Prettier with `tabWidth: 0`: no indentation |
 | zamn, one-line blocks | flat braces, with every block that can close on its line written on one: `ul{li{a x}}` |
 | zamn, one-line blocks, simple values unquoted | the same, with quotes left off as the [agent rules](./rules) allow: simple values (`href=/docs`) and bindings that are one `{ }` or `[ ]` group (`:class={ on: x }`) |
-| zamn, 1-space indentation | Prettier with `zamnBlockStyle: "preserve"` and `tabWidth: 1`: no braces |
+| zamn, 1-space indentation | previous syntax only: Prettier with `tabWidth: 1` and no braces, nesting by indentation |
 | zamn, formatted | Prettier with prettier-plugin-zamn's defaults |
-| HTML, minified | `compile(source, { doctype: "html" })` |
+| HTML, minified | `compile(source)` |
 | HTML, formatted | the minified HTML through Prettier's HTML formatter |
 
-The terse zamn forms also set `zamnMaxAttributesPerLine: false` and an unlimited
-`printWidth`, so attributes stay on one line. A test checks that all five zamn forms
-compile to identical HTML.
+The terse zamn forms also set `zamnMaxAttributesPerLine: false` and an unlimited `printWidth`, so attributes stay on one line. A test checks that all the zamn forms compile to identical HTML.
 
 Tokens are counted with:
 
-- **OpenAI**: `o200k_base`, the encoding of GPT-4o, GPT-4.1, GPT-5 and the o-series,
-  through [gpt-tokenizer](https://www.npmjs.com/package/gpt-tokenizer);
-- **Claude**: the [token counting endpoint](https://platform.claude.com/docs/en/build-with-claude/token-counting)
-  for the current Opus model. A message carries a few tokens of its own, so the
-  count of a one-token message, less one, is subtracted from every count.
+- **OpenAI**: `o200k_base`, the encoding of GPT-4o, GPT-4.1, GPT-5 and the o-series, through [gpt-tokenizer](https://www.npmjs.com/package/gpt-tokenizer);
+- **Claude**: the [token counting endpoint](https://platform.claude.com/docs/en/build-with-claude/token-counting) for the current Opus model. A message carries a few tokens of its own, so the count of a one-token message, less one, is subtracted from every count.
 
 ### Writing it with Claude
 
-Each page has a plain-language description next to it (`name.task.txt`) that says
-what the page holds without saying how to write it. The script runs Claude Code
-(`claude -p`) with the current Opus model, in an empty directory: no `CLAUDE.md`,
-no project settings, no MCP servers, and no tools but the one that loads skills.
-The zamn arms have the skill installed there, and Claude loads it on its own. Claude
-answers with the code and nothing else, in one go; it cannot compile its answer and
-try again. The script then checks it: zamn must compile, HTML must parse.
+Each page has a plain-language description next to it (`name.task.txt`) that says what the page holds without saying how to write it. The script runs Claude Code (`claude -p`) with the current Opus model, in an empty directory: no `CLAUDE.md`, no project settings, no MCP servers, and no tools but the one that loads skills. The zamn arms have the skill installed there, and Claude loads it on its own. Claude answers with the code and nothing else, in one go; it cannot compile its answer and try again. The script then checks it: zamn must compile, HTML must parse.
 
-The token counts are what Claude Code reports for the model: everything it read,
-cached or not, and everything it wrote, with thinking as part of the output. Claude
-Code's own system prompt is in every arm, so it adds the same to each. The size of
-the code itself is counted with `o200k_base`, as above.
+The token counts are what Claude Code reports for the model: everything it read, cached or not, and everything it wrote, with thinking as part of the output. Claude Code's own system prompt is in every arm, so it adds the same to each. The size of the code itself is counted with `o200k_base`, as above.
 
 ### Editing it with Claude
 
@@ -141,22 +116,12 @@ Each page also has an edit (`name.edit.txt`): two to four changes of the kind pa
 
 ## What it means
 
-- **Against formatted HTML**, which is what models write, a zamn page is about a
-  third smaller, even formatted. Every agent and person that reads it later saves
-  that.
-- **Against minified HTML**, formatted zamn is about even. Only the terse forms are
-  smaller, and they cost more to write than they save.
-- **Generating zamn** costs about what generating HTML does for a single page, and
-  less over a longer session, once the rules are paid for and the pages add up. The
-  extra thinking may shrink as models see more zamn; today it is there.
-- **One-line blocks** save under 1% over flat braces. A block folds only when
-  every child but the last ends in `}` or `/`, because text runs to the closing
-  `}`, and most blocks hold text. A newline costs about what a space does.
-- **Quotes** cost about 3%. Most values HTML allows unquoted (paths, `type`,
-  `name`, Vue expressions like `form.email`) save a token or two each; the
-  sign-up form, full of them, drops by 10%.
-- **Utility classes** (`dashboard-card`) save the least: a long `class="..."` string
-  costs the same in both. Semantic markup with `.class` shorthand saves the most.
+- **Against formatted HTML**, which is what models write, a zamn page is about a third smaller, even formatted. Every agent and person that reads it later saves that.
+- **Against minified HTML**, formatted zamn is about even. Only the terse forms are smaller, and they cost more to write than they save.
+- **Generating zamn** costs about what generating HTML does for a single page, and less over a longer session, once the rules are paid for and the pages add up. The extra thinking may shrink as models see more zamn; today it is there.
+- **One-line blocks** save under 1% over flat braces. A block folds only when every child but the last ends with a `}`, because text runs to the closing `}`, and most blocks hold text. A newline costs about what a space does.
+- **Quotes** cost about 3%. Most values HTML allows unquoted (paths, `type`, `name`, Vue expressions like `form.email`) save a token or two each; the sign-up form, full of them, drops by 10%.
+- **Utility classes** (`dashboard-card`) save the least: a long `class="..."` string costs the same in both. Semantic markup with `.class` shorthand saves the most.
 
 ## Run it yourself
 

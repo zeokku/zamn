@@ -7,8 +7,6 @@ export default {
   printWidth: 100,
   // Formats <template lang="zamn">.
   plugins: ["prettier-plugin-zamn"],
-  // 'braces' (the default) or 'preserve', which keeps indentation where it is written
-  zamnBlockStyle: "braces",
   // How many attributes fit on the line of a tag (3 is the default). 0: always
   // one per line, -1: as written, false: always on the line of the tag
   zamnMaxAttributesPerLine: 3,

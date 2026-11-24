@@ -1,0 +1,5 @@
+p before
+div {
+  script
+    let a = 1
+}

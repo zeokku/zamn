@@ -43,45 +43,55 @@ fn name(file: &Path) -> String {
     file.file_stem().unwrap().to_string_lossy().into_owned()
 }
 
-/// Static pug must compile to exactly what pug produces. The expected HTML is
-/// written by `bun scripts/pug-parity.ts --write` from real pug, which is
-/// given the source without the whitespace at the end of lines.
-///
-/// A bare `|` is a space in zamn and an empty line of text in pug, so a
-/// fixture that has one is compared with runs of whitespace collapsed.
-#[test]
-fn matches_pug() {
-    for file in fixtures("pug", "pug") {
-        let expected = std::fs::read_to_string(file.with_extension("html"))
-            .unwrap_or_else(|_| panic!("no expected HTML for {}", file.display()));
-        let source = std::fs::read_to_string(&file).unwrap();
-        let actual = html(&file);
-        if source.lines().any(|line| line.trim() == "|") {
-            let collapse = |s: &str| s.split_whitespace().collect::<Vec<_>>().join(" ");
-            assert_eq!(collapse(&actual), collapse(&expected), "{}", file.display());
-        } else {
-            assert_eq!(actual, expected, "{}", file.display());
+/// The AST as JSON without its spans, which differ between twins.
+fn shape(src: &str) -> serde_json::Value {
+    fn strip(v: &mut serde_json::Value) {
+        match v {
+            serde_json::Value::Object(map) => {
+                map.retain(|k, _| k != "span" && !k.ends_with("Span"));
+                map.values_mut().for_each(strip);
+            }
+            serde_json::Value::Array(items) => items.iter_mut().for_each(strip),
+            _ => {}
         }
     }
+    let mut v = serde_json::to_value(zamn::parser::parse(src).ast).unwrap();
+    strip(&mut v);
+    v
 }
 
-/// A brace block and its indentation-only twin are the same document.
+/// Indentation means nothing: `X.twin.zamn` is `X.zamn` with all leading
+/// indentation stripped, and gives the same tokens and AST.
 #[test]
-fn braces_equal_indentation() {
+fn indentation_is_cosmetic() {
     let mut pairs = 0;
     for file in fixtures("braces", "zamn") {
         let Some(base) = file.to_str().unwrap().strip_suffix(".twin.zamn") else {
             continue;
         };
-        assert_eq!(
-            html(Path::new(&format!("{base}.zamn"))),
-            html(&file),
-            "{}",
-            file.display()
-        );
+        let original = std::fs::read_to_string(format!("{base}.zamn")).unwrap();
+        let twin = std::fs::read_to_string(&file).unwrap();
+        let kinds = |src: &str| -> Vec<_> {
+            zamn::lexer::lex(src)
+                .tokens
+                .iter()
+                .map(|t| t.kind)
+                .collect()
+        };
+        assert_eq!(kinds(&original), kinds(&twin), "{}", file.display());
+        assert_eq!(shape(&original), shape(&twin), "{}", file.display());
+        for src in [&original, &twin] {
+            let codes: Vec<_> = zamn::parser::parse(src)
+                .diagnostics
+                .iter()
+                .map(|d| d.code)
+                .filter(|&c| c != "MISLEADING_INDENTATION")
+                .collect();
+            assert!(codes.is_empty(), "{}: {codes:?}", file.display());
+        }
         pairs += 1;
     }
-    assert!(pairs >= 3);
+    assert!(pairs >= 5);
 }
 
 #[test]
@@ -111,9 +121,10 @@ fn error_snapshots() {
 }
 
 #[test]
-fn doctype_option_is_terse() {
-    let mut options = CompileOptions::default();
-    options.codegen.doctype = Some("html".into());
-    let out = compile("input(disabled)\nbr", &options);
-    assert_eq!(out.code, "<input disabled><br>");
+fn booleans_are_terse() {
+    let out = compile(
+        "input(disabled checked=true hidden=false)\nbr",
+        &CompileOptions::default(),
+    );
+    assert_eq!(out.code, "<input disabled checked><br>");
 }

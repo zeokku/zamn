@@ -4,8 +4,9 @@ ul.nav{li{a(href="/") Home} li{a(href="/about") About}}
 p{b {{ msg }}}
 p{span= user ? {name: "}"}.name : ""}
 p{b closes \} and opens \{ literally}
-p{b{| bold}| and #[i more] }
-p{img(src="a.png")/ br/}
+p{b{| bold}| and #{i more} }
+p{img(src="a.png")
+br}
 p{a: b x}
 p{}
 section {
@@ -14,3 +15,8 @@ section {
     li{p{| a}}
   }
 }
+.one-liner { b { u biba }}
+.should-use-new-line { b some text
+u next child after b
+s and another one}
+div { /* a note */ b {i x} /*! kept */ }

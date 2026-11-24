@@ -4,8 +4,7 @@
 bun add zamn
 ```
 
-The package is the Rust compiler built to WebAssembly. It has three functions, all
-synchronous:
+The package is the Rust compiler built to WebAssembly. It has three functions, all synchronous:
 
 ```ts
 import { compile, lex, parse, ZamnError } from "zamn";
@@ -13,13 +12,13 @@ import { compile, lex, parse, ZamnError } from "zamn";
 
 | | Returns | Throws |
 |---|---|---|
-| [`compile(source, options?)`](#compile) | `{ code, map }` | a [`ZamnError`](#zamnerror) if the template has errors |
+| [`compile(source, options?)`](#compile) | `{ code, map, warnings }` | a [`ZamnError`](#zamnerror) if the template has errors |
 | [`parse(source)`](#parse) | `{ ast, diagnostics }` | never |
 | [`lex(source)`](#lex) | `{ tokens, diagnostics }` | never |
 
-Positions everywhere are the way JavaScript tooling (ESLint, Babel) expects them:
-`range` is a pair of UTF-16 offsets into the source, and `loc` has a 1-based `line`
-and a 0-based `column` in UTF-16 code units.
+Positions everywhere are the way JavaScript tooling (ESLint, Babel) expects them: `range` is a pair of UTF-16 offsets into the source, so `source.slice(...range)` is the text, and `loc` has a 1-based `line`, a 0-based `column` in UTF-16 code units and the `offset` of that point, as in Vue's compiler. Every token, node, attribute, nested `*Span` and diagnostic has both.
+
+The types are exported from the package: `import type { Root, Token, Diagnostic } from "zamn"`.
 
 ## compile
 
@@ -30,7 +29,7 @@ function compile(source: string, options?: CompileOptions): CompileResult;
 Compiles a template to HTML.
 
 ```ts
-const { code, map } = compile(source, {
+const { code, map, warnings } = compile(source, {
   filename: "page.zamn",
   sourceMap: true,
 });
@@ -48,16 +47,10 @@ interface CompileOptions {
   sourcesContent?: boolean;
   /** Delimiters for `= expr`. Defaults to ["{{", "}}"]. */
   interpolation?: [string, string];
-  /** Assume a doctype without writing it. "html" for Vue templates. */
-  doctype?: string;
 }
 ```
 
-- `doctype` sets how void elements and boolean attributes are written, as a
-  `doctype` line at the top would, without writing one. Use `"html"` for anything
-  that ends up inside a page, such as Vue templates. See [Doctypes](../guide/syntax/doctypes#assumed-doctype).
-- `interpolation` changes what `= expr` writes: with `["${", "}"]`, `p= user` is
-  `<p>${ user }</p>`.
+`interpolation` changes what `= expr` writes: with `["${", "}"]`, `p= user` is `<p>${ user }</p>`. The output is always HTML5, for a full page and for a Vue template alike.
 
 ### Result
 
@@ -66,6 +59,8 @@ interface CompileResult {
   code: string;
   /** Present when `sourceMap` is true. */
   map: SourceMap | null;
+  /** Diagnostics that don't stop compilation, such as MISLEADING_INDENTATION. */
+  warnings: Diagnostic[];
 }
 
 interface SourceMap {
@@ -77,17 +72,17 @@ interface SourceMap {
 }
 ```
 
-The map is a standard [source map v3](https://tc39.es/ecma426/). It maps every
-element, attribute, text and expression in the HTML back to where it was written,
-so errors in a framework's compiled template point at the zamn source.
+The map is a standard [source map v3](https://tc39.es/ecma426/). It maps every element, attribute, text and expression in the HTML back to where it was written, so errors in a framework's compiled template point at the zamn source.
+
+`compile` throws only for errors. Warnings come back in `warnings`, and are worth showing to whoever wrote the template.
 
 ## ZamnError
 
 ```ts
 class ZamnError extends Error {
-  /** The code of the first diagnostic. */
+  /** The code of the first error. */
   code: string;
-  /** Every problem in the template. */
+  /** Every error in the template, followed by any warnings. */
   diagnostics: Diagnostic[];
   /** The filename, and where the first problem is: what Vite and Rollup print. */
   id: string;
@@ -95,15 +90,14 @@ class ZamnError extends Error {
 }
 ```
 
-`compile` checks the whole template before throwing, so `diagnostics` holds every
-problem, not just the first:
+`compile` checks the whole template before throwing, so `diagnostics` holds every problem, not just the first:
 
 ```ts
 try {
-  compile("if user\n  p Hi\np(title=a + b)", { filename: "x.zamn" });
+  compile("- const x = 1\np(title=a + b)", { filename: "x.zamn" });
 } catch (error) {
   if (error instanceof ZamnError) {
-    error.message; // "`if` (control flow) is not supported (and 1 more)"
+    error.message; // "Unbuffered code (`- ...`) is not supported (and 1 more)"
     error.diagnostics.map((d) => d.code); // ["UNSUPPORTED_SYNTAX", "JS_EXPRESSION"]
   }
 }
@@ -113,8 +107,10 @@ try {
 
 ```ts
 interface Diagnostic {
-  /** "UNSUPPORTED_SYNTAX", "INCONSISTENT_INDENTATION", … */
+  /** "UNSUPPORTED_SYNTAX", "MISLEADING_INDENTATION", … */
   code: string;
+  /** Errors stop `compile`; warnings don't. */
+  severity: "error" | "warning";
   message: string;
   /** What to do instead, when there is something to say. */
   hint?: string;
@@ -129,6 +125,8 @@ interface Position {
   line: number;
   /** 0-based, in UTF-16 code units. */
   column: number;
+  /** UTF-16 offset into the source: an index into the JS string. */
+  offset: number;
 }
 ```
 
@@ -140,9 +138,7 @@ Every code is listed under [Diagnostics](./diagnostics).
 function parse(source: string): { ast: Root; diagnostics: Diagnostic[] };
 ```
 
-Returns the syntax tree. It never throws: problems are returned as diagnostics, and
-the parser carries on after each one, so editors and linters get a tree for a
-template that is still being written.
+Returns the syntax tree. It never throws: problems are returned as diagnostics, and the parser carries on after each one, so editors and linters get a tree for a template that is still being written.
 
 ```ts
 interface Root {
@@ -152,7 +148,7 @@ interface Root {
   loc: Loc;
 }
 
-type Node = Element | Text | Interpolation | Comment | Doctype;
+type Node = Element | Text | Mustache | Interpolation | Comment | Doctype;
 
 interface Element {
   type: "Element";
@@ -164,8 +160,8 @@ interface Element {
   children: Node[];
   /** Children were written in `{ }`. */
   braced: boolean;
-  /** Written with a trailing `/`. */
-  selfClosing: boolean;
+  /** `script` or `style` with raw content, ended by `/script` or `/style`. */
+  raw: boolean;
   range: [number, number];
   loc: Loc;
 }
@@ -184,9 +180,18 @@ interface Attribute {
   loc: Loc;
 }
 
-/** Text, piped text, text blocks. */
+/** Text, piped text, `|{ }` blocks, raw content: escapes resolved, not yet HTML-escaped. */
 interface Text {
   type: "Text";
+  value: string;
+  range: [number, number];
+  loc: Loc;
+}
+
+/** `{{ ... }}` in text, written to the output as it is. */
+interface Mustache {
+  type: "Mustache";
+  /** The whole mustache, braces included. */
   value: string;
   range: [number, number];
   loc: Loc;
@@ -201,21 +206,22 @@ interface Interpolation {
   loc: Loc;
 }
 
+/** `// text`, `//! text`, `/* ... *\/` or `/*! ... *\/`. */
 interface Comment {
   type: "Comment";
-  /** false for `//-`, which is not written to the HTML. */
+  /** true for `//!` and `/*!`, which are written to the HTML as `<!--value-->`. */
   buffered: boolean;
-  /** The rest of the comment's line. */
+  /** true for `/* *\/` and `/*! *\/`. */
+  block: boolean;
+  /** Everything after the marker, up to the end of the line or the `*\/`, as written. */
   value: string;
-  /** The indented lines under it, if any. */
-  block: string | null;
   range: [number, number];
   loc: Loc;
 }
 
 interface Doctype {
   type: "Doctype";
-  /** "html", "xml", … */
+  /** "html" for `doctype html`. */
   value: string;
   range: [number, number];
   loc: Loc;
@@ -227,8 +233,7 @@ interface Located {
 }
 ```
 
-`.class` and `#id` are attributes in the tree, with `shorthand` set, so code that
-looks for classes sees all of them.
+`.class` and `#id` are attributes in the tree, with `shorthand` set, so code that looks for classes sees all of them.
 
 ## lex
 
@@ -249,18 +254,32 @@ lex("p.a Hi").tokens.map((t) => [t.type, t.value]);
 // [["Tag", "p"], ["Class", ".a"], ["Text", "Hi"], ["Eos", ""]]
 ```
 
-The token types are `Tag`, `Id`, `Class`, `AttrsOpen`, `AttrName`, `AttrEq`,
-`AttrEqRaw`, `AttrValue`, `AttrsClose`, `Text`, `Pipe`, `Dot`, `TextBlockStart`,
-`TextNewline`, `TextBlockEnd`, `InterpStart`, `InterpEnd`, `Colon`, `Slash`, `Eq`,
-`Expr`, `Comment`, `SilentComment`, `Doctype`, `BraceOpen`, `BraceClose`, and the
-layout tokens `Newline`, `Indent`, `Outdent` and `Eos`. Syntax highlighters and
-formatters use them; most code wants `parse`.
+The token types are:
+
+| Type | What |
+|---|---|
+| `Tag`, `Id`, `Class` | the tag name, `#id` and `.class`, with their `#` and `.` |
+| `AttrsOpen`, `AttrName`, `AttrEq`, `AttrEqRaw`, `AttrValue`, `AttrsClose` | `(`, a name, `=`, `!=`, a value, `)` |
+| `BraceOpen`, `BraceClose` | the `{` and `}` of a block |
+| `Text` | text, and each line of raw content; a `\` that escapes a brace, `\|` or `#{` is left out of the range |
+| `Pipe` | `\|` before text, or a bare `\|` (one space) |
+| `PipeOpen`, `PipeClose` | the `\|{` and `}` of a text block |
+| `TextNewline` | a line break inside a `\|{ }` block or raw content |
+| `Mustache` | `{{ ... }}` in text, braces included |
+| `InterpStart`, `InterpEnd` | the `#{` and `}` of an inline element |
+| `Colon` | `:` block expansion |
+| `Eq`, `Expr` | `=` and the expression after it |
+| `RawStart`, `RawEnd` | where the content of `script` or `style` starts (zero-width, at the end of the head's line), and its `/script` or `/style` line |
+| `Comment`, `SilentComment` | `//! text` and `// text`, whole |
+| `BlockComment`, `SilentBlockComment` | `/*! ... */` and `/* ... */`, whole |
+| `Doctype` | the whole `doctype ...` line |
+| `Newline`, `Eos` | the break between two statements, and the end of the source |
+
+Syntax highlighters and formatters use them; most code wants `parse`.
 
 ## In the browser
 
-Bundlers that follow the `browser` export condition (Vite, webpack, esbuild) pick a
-build that loads the WebAssembly asynchronously. Call its default export once
-before anything else:
+Bundlers that follow the `browser` export condition (Vite, webpack, esbuild) pick a build that loads the WebAssembly asynchronously. Call its default export once before anything else:
 
 ```ts
 import init, { compile } from "zamn";
@@ -269,5 +288,4 @@ await init();
 compile("p Hello").code; // "<p>Hello</p>"
 ```
 
-In Node, Bun and Deno the module is ready as soon as it is imported. The
-[playground](../playground) uses the browser build.
+In Node, Bun and Deno the module is ready as soon as it is imported. The [playground](../playground) uses the browser build.

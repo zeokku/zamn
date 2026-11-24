@@ -17,8 +17,7 @@ The Rust workspace uses cargo. Everything JavaScript uses Bun, not Node.js:
   changing Rust code and before `bun test`.
 - In TypeScript tests, write multi-line zamn templates with the `zamn` tag from
   `tests/zamn.ts`, not `"\n"`-joined strings.
-- `tests/fixtures/pug` is gitignored: files deleted there cannot be restored
-  from git.
+- `tests/fixtures/pug` holds pug's own test cases, committed and kept for the coming pug converter; nothing uses them yet. The gitignored `/pug/` at the repository root is a local clone of pug, not part of the repository.
 
 ## Commits
 

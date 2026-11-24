@@ -1,0 +1,713 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: json
+---
+{
+  "nodes": [
+    {
+      "type": "Element",
+      "name": "a",
+      "nameSpan": {
+        "start": 0,
+        "end": 1
+      },
+      "attrs": [
+        {
+          "name": "href",
+          "nameSpan": {
+            "start": 2,
+            "end": 6
+          },
+          "value": "/",
+          "valueSpan": {
+            "start": 7,
+            "end": 8
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 2,
+            "end": 8
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "Home",
+          "span": {
+            "start": 10,
+            "end": 14
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 0,
+        "end": 14
+      }
+    },
+    {
+      "type": "Element",
+      "name": "a",
+      "nameSpan": {
+        "start": 15,
+        "end": 16
+      },
+      "attrs": [
+        {
+          "name": "href",
+          "nameSpan": {
+            "start": 17,
+            "end": 21
+          },
+          "value": "/docs/?q#top",
+          "valueSpan": {
+            "start": 22,
+            "end": 34
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 17,
+            "end": 34
+          }
+        },
+        {
+          "name": "target",
+          "nameSpan": {
+            "start": 35,
+            "end": 41
+          },
+          "value": "_blank",
+          "valueSpan": {
+            "start": 42,
+            "end": 48
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 35,
+            "end": 48
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "Docs",
+          "span": {
+            "start": 50,
+            "end": 54
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 15,
+        "end": 54
+      }
+    },
+    {
+      "type": "Element",
+      "name": "a",
+      "nameSpan": {
+        "start": 55,
+        "end": 56
+      },
+      "attrs": [
+        {
+          "name": "href",
+          "nameSpan": {
+            "start": 57,
+            "end": 61
+          },
+          "value": "a+b",
+          "valueSpan": {
+            "start": 62,
+            "end": 65
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 57,
+            "end": 65
+          }
+        },
+        {
+          "name": "n",
+          "nameSpan": {
+            "start": 66,
+            "end": 67
+          },
+          "value": "f(1)",
+          "valueSpan": {
+            "start": 68,
+            "end": 72
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 66,
+            "end": 72
+          }
+        },
+        {
+          "name": "i",
+          "nameSpan": {
+            "start": 73,
+            "end": 74
+          },
+          "value": "a[0]",
+          "valueSpan": {
+            "start": 75,
+            "end": 79
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 73,
+            "end": 79
+          }
+        },
+        {
+          "name": "w",
+          "nameSpan": {
+            "start": 80,
+            "end": 81
+          },
+          "value": "50%",
+          "valueSpan": {
+            "start": 82,
+            "end": 85
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 80,
+            "end": 85
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "x",
+          "span": {
+            "start": 87,
+            "end": 88
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 55,
+        "end": 88
+      }
+    },
+    {
+      "type": "Element",
+      "name": "input",
+      "nameSpan": {
+        "start": 89,
+        "end": 94
+      },
+      "attrs": [
+        {
+          "name": "type",
+          "nameSpan": {
+            "start": 95,
+            "end": 99
+          },
+          "value": "checkbox",
+          "valueSpan": {
+            "start": 100,
+            "end": 108
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 95,
+            "end": 108
+          }
+        },
+        {
+          "name": "checked",
+          "nameSpan": {
+            "start": 109,
+            "end": 116
+          },
+          "value": true,
+          "valueSpan": {
+            "start": 117,
+            "end": 121
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 109,
+            "end": 121
+          }
+        },
+        {
+          "name": "hidden",
+          "nameSpan": {
+            "start": 122,
+            "end": 128
+          },
+          "value": false,
+          "valueSpan": {
+            "start": 129,
+            "end": 134
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 122,
+            "end": 134
+          }
+        }
+      ],
+      "children": [],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 89,
+        "end": 135
+      }
+    },
+    {
+      "type": "Element",
+      "name": "RouterLink",
+      "nameSpan": {
+        "start": 136,
+        "end": 146
+      },
+      "attrs": [
+        {
+          "name": ":to",
+          "nameSpan": {
+            "start": 147,
+            "end": 150
+          },
+          "value": "/about",
+          "valueSpan": {
+            "start": 151,
+            "end": 157
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 147,
+            "end": 157
+          }
+        },
+        {
+          "name": ":class",
+          "nameSpan": {
+            "start": 158,
+            "end": 164
+          },
+          "value": "{ active: onAbout, 'is-new': fresh }",
+          "valueSpan": {
+            "start": 165,
+            "end": 201
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 158,
+            "end": 201
+          }
+        },
+        {
+          "name": "@click",
+          "nameSpan": {
+            "start": 202,
+            "end": 208
+          },
+          "value": "go()",
+          "valueSpan": {
+            "start": 209,
+            "end": 213
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 202,
+            "end": 213
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "About",
+          "span": {
+            "start": 215,
+            "end": 220
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 136,
+        "end": 220
+      }
+    },
+    {
+      "type": "Element",
+      "name": "Table",
+      "nameSpan": {
+        "start": 221,
+        "end": 226
+      },
+      "attrs": [
+        {
+          "name": "v-bind",
+          "nameSpan": {
+            "start": 227,
+            "end": 233
+          },
+          "value": "[a, b]",
+          "valueSpan": {
+            "start": 234,
+            "end": 240
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 227,
+            "end": 240
+          }
+        },
+        {
+          "name": "#default",
+          "nameSpan": {
+            "start": 241,
+            "end": 249
+          },
+          "value": "(row)",
+          "valueSpan": {
+            "start": 250,
+            "end": 255
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 241,
+            "end": 255
+          }
+        },
+        {
+          "name": ".prop",
+          "nameSpan": {
+            "start": 256,
+            "end": 261
+          },
+          "value": "x",
+          "valueSpan": {
+            "start": 262,
+            "end": 263
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 256,
+            "end": 263
+          }
+        }
+      ],
+      "children": [],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 221,
+        "end": 264
+      }
+    },
+    {
+      "type": "Element",
+      "name": "p",
+      "nameSpan": {
+        "start": 265,
+        "end": 266
+      },
+      "attrs": [
+        {
+          "name": "style",
+          "nameSpan": {
+            "start": 267,
+            "end": 272
+          },
+          "value": "color:red;font-size:12px;margin:0;",
+          "valueSpan": {
+            "start": 273,
+            "end": 320
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 267,
+            "end": 320
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "Styled",
+          "span": {
+            "start": 322,
+            "end": 328
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 265,
+        "end": 328
+      }
+    },
+    {
+      "type": "Element",
+      "name": "p",
+      "nameSpan": {
+        "start": 329,
+        "end": 330
+      },
+      "attrs": [
+        {
+          "name": "style",
+          "nameSpan": {
+            "start": 331,
+            "end": 336
+          },
+          "value": "",
+          "valueSpan": {
+            "start": 337,
+            "end": 339
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 331,
+            "end": 339
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "Empty style",
+          "span": {
+            "start": 341,
+            "end": 352
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 329,
+        "end": 352
+      }
+    },
+    {
+      "type": "Element",
+      "name": "a",
+      "nameSpan": {
+        "start": 353,
+        "end": 354
+      },
+      "attrs": [
+        {
+          "name": "style",
+          "nameSpan": {
+            "start": 355,
+            "end": 360
+          },
+          "value": "color:c;",
+          "valueSpan": {
+            "start": 361,
+            "end": 371
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 355,
+            "end": 371
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "Bare value",
+          "span": {
+            "start": 373,
+            "end": 383
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 353,
+        "end": 383
+      }
+    },
+    {
+      "type": "Element",
+      "name": "button",
+      "nameSpan": {
+        "start": 384,
+        "end": 390
+      },
+      "attrs": [
+        {
+          "name": "style",
+          "nameSpan": {
+            "start": 391,
+            "end": 396
+          },
+          "value": "font-size:1em;text-align:center;padding:1rem 0.5rem;transition-property:color, background;",
+          "valueSpan": {
+            "start": 397,
+            "end": 501
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 391,
+            "end": 501
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "Casing",
+          "span": {
+            "start": 503,
+            "end": 509
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 384,
+        "end": 509
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 510,
+        "end": 513
+      },
+      "attrs": [
+        {
+          "name": "style",
+          "nameSpan": {
+            "start": 514,
+            "end": 519
+          },
+          "value": "-webkit-transition:none;-ms-flex:1;--brand:red;background:url('a,b') rgb(0, 0, 0);",
+          "valueSpan": {
+            "start": 520,
+            "end": 606
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 514,
+            "end": 606
+          }
+        }
+      ],
+      "children": [],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 510,
+        "end": 607
+      }
+    },
+    {
+      "type": "Element",
+      "name": "input",
+      "nameSpan": {
+        "start": 608,
+        "end": 613
+      },
+      "attrs": [
+        {
+          "name": "disabled",
+          "nameSpan": {
+            "start": 614,
+            "end": 622
+          },
+          "value": true,
+          "valueSpan": null,
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 614,
+            "end": 622
+          }
+        },
+        {
+          "name": "readonly",
+          "nameSpan": {
+            "start": 623,
+            "end": 631
+          },
+          "value": true,
+          "valueSpan": {
+            "start": 632,
+            "end": 636
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 623,
+            "end": 636
+          }
+        },
+        {
+          "name": "required",
+          "nameSpan": {
+            "start": 637,
+            "end": 645
+          },
+          "value": false,
+          "valueSpan": {
+            "start": 646,
+            "end": 651
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 637,
+            "end": 651
+          }
+        }
+      ],
+      "children": [],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 608,
+        "end": 652
+      }
+    }
+  ]
+}

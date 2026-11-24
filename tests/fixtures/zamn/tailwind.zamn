@@ -1,0 +1,6 @@
+div.w-[10px].hover:bg-red-500.md:w-1/2.bg-red-500/50 x
+div.group-hover/item:flex.[&>*]:p-2.data-[state=open]:block y
+div.content-['a'].bg-(--brand).!font-bold.font-bold! z
+div.@container.@md:flex.*:p-2.from-10%.-mt-4.p-0.5.2xl:flex
+div.supports-[display:grid]:grid.bg-[url('/a.png')]
+li.a: b expansion after a class

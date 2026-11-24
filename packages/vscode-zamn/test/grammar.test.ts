@@ -50,7 +50,7 @@ const registry = new textmate.Registry({
     // grammars that match nothing: a rule that includes a grammar that
     // cannot be found is dropped.
     const nothing = { patterns: [{ match: "(?!)" }] };
-    return { scopeName, ...nothing, repository: { expression: nothing } } as any;
+    return { scopeName, ...nothing, repository: { expression: nothing, "property-values": nothing } } as any;
   },
   getInjections: (scopeName) => (scopeName === "text.html.vue" ? ["zamn.vue-injection"] : []),
 });
@@ -70,7 +70,7 @@ async function tokens(source: string, scopeName = "source.zamn") {
       const text = line.slice(token.startIndex, token.endIndex);
       if (!text.trim()) continue;
       const scopes = token.scopes
-        .filter((s) => !/^(source\.zamn|text\.html\.vue|meta\.(line\.tag|attributes|text-block)\.zamn)$/.test(s))
+        .filter((s) => !/^(source\.zamn|text\.html\.vue|meta\.(tag|attributes|raw)\.zamn)$/.test(s))
         .map((s) => s.replace(/\.zamn$/, ""));
       out.push(scopes.length ? `${text}  ${scopes.join(" ")}` : text);
     }
@@ -78,24 +78,64 @@ async function tokens(source: string, scopeName = "source.zamn") {
   return out;
 }
 
+const TAG = "entity.name.tag";
+const ID = "entity.other.attribute-name.id";
+const CLASS = "entity.other.attribute-name.class";
+const BEGIN = "{  punctuation.section.block.begin";
+const END = "}  punctuation.section.block.end";
+const PIPE = "|  punctuation.definition.text";
+const MUSTACHE = "meta.interpolation.expression";
+const INLINE = "meta.interpolation.tag";
+const ESCAPE = "constant.character.escape";
+
 test("tags, ids, classes and text", async () => {
   expect(await tokens("main#app.page Hello .not #a-class")).toEqual([
-    "main  entity.name.tag",
-    "#app  entity.other.attribute-name.id",
-    ".page  entity.other.attribute-name.class",
+    `main  ${TAG}`,
+    `#app  ${ID}`,
+    `.page  ${CLASS}`,
     "Hello .not #a-class",
   ]);
-  expect(await tokens(".card\n  MyButton/\n  svg:path")).toEqual([
-    ".card  entity.other.attribute-name.class",
-    "MyButton  entity.name.tag",
-    "/  punctuation.definition.tag.self-closing",
-    "svg:path  entity.name.tag",
+  expect(await tokens("MyButton\nsvg:path")).toEqual([`MyButton  ${TAG}`, `svg:path  ${TAG}`]);
+});
+
+test("Tailwind classes", async () => {
+  const classes = [
+    ".w-[10px]",
+    ".hover:bg-red-500",
+    ".md:w-1/2",
+    ".bg-red-500/50",
+    ".[&>*]:p-2",
+    ".data-[state=open]:x",
+    ".content-['a']",
+    ".bg-(--brand)",
+    ".!font-bold",
+    ".font-bold!",
+    ".@md:flex",
+    ".*:p-2",
+    ".from-10%",
+    ".-mt-4",
+    ".p-0.5",
+  ];
+  const expected = classes.map((c) => `${c}  ${CLASS}`);
+  // at the start of a statement, after a tag, and inside a one-line block
+  expect(await tokens(`${classes.join("")} x`)).toEqual([...expected, "x"]);
+  expect(await tokens(`div${classes.join("")} x`)).toEqual([`div  ${TAG}`, ...expected, "x"]);
+  expect(await tokens(`p{${classes.join("")}}`)).toEqual([`p  ${TAG}`, BEGIN, ...expected, END]);
+  // `:` and `/` that no class character follows are not part of the class
+  expect(await tokens("li.a: b x\n.a/")).toEqual([
+    `li  ${TAG}`,
+    `.a  ${CLASS}`,
+    ":  punctuation.separator.expansion",
+    `b  ${TAG}`,
+    "x",
+    `.a  ${CLASS}`,
+    "/  invalid.illegal.unsupported",
   ]);
 });
 
 test("attributes", async () => {
   expect(await tokens(`a(href="/a\\"b", target='_blank' n=1 on=true bare=word disabled) x`)).toEqual([
-    "a  entity.name.tag",
+    `a  ${TAG}`,
     "(  punctuation.section.attributes.begin",
     "href  entity.other.attribute-name",
     "=  keyword.operator.assignment",
@@ -137,7 +177,7 @@ test("directives hold expressions, over several lines too", async () => {
   `;
   const directive = "meta.attribute.directive";
   expect(await tokens(source)).toEqual([
-    "Card  entity.name.tag",
+    `Card  ${TAG}`,
     "(  punctuation.section.attributes.begin",
     `v-for  ${directive} entity.other.attribute-name.directive`,
     `=  ${directive} keyword.operator.assignment`,
@@ -162,61 +202,10 @@ test("directives hold expressions, over several lines too", async () => {
   ]);
 });
 
-test("braces, expansion, output and interpolation", async () => {
-  const source = zamn`
-    ul.list {
-      li: a(href="/") Home
-      p= message
-      p {{ a }} and #[b= c] \\#[d]
-      footer { }
-    }
-    = total
-  `;
-  const mustache = "meta.interpolation.expression";
-  const interpolation = "meta.interpolation.tag";
-  expect(await tokens(source)).toEqual([
-    "ul  entity.name.tag",
-    ".list  entity.other.attribute-name.class",
-    "{  punctuation.section.block.begin",
-    "li  entity.name.tag",
-    ":  punctuation.separator.expansion",
-    "a  entity.name.tag",
-    "(  punctuation.section.attributes.begin",
-    "href  entity.other.attribute-name",
-    "=  keyword.operator.assignment",
-    '"  string.quoted.double punctuation.definition.string.begin',
-    "/  string.quoted.double",
-    '"  string.quoted.double punctuation.definition.string.end',
-    ")  punctuation.section.attributes.end",
-    "Home",
-    "p  entity.name.tag",
-    "=  keyword.operator.output",
-    " message  source.ts.embedded",
-    "p  entity.name.tag",
-    `{{  ${mustache} punctuation.definition.interpolation.begin`,
-    ` a   ${mustache} source.ts.embedded`,
-    `}}  ${mustache} punctuation.definition.interpolation.end`,
-    " and ",
-    `#[  ${interpolation} punctuation.section.embedded.begin`,
-    `b  ${interpolation} entity.name.tag`,
-    `=  ${interpolation} keyword.operator.output`,
-    ` c  ${interpolation} source.ts.embedded`,
-    `]  ${interpolation} punctuation.section.embedded.end`,
-    "\\#[  constant.character.escape",
-    "d]",
-    "footer  entity.name.tag",
-    "{  punctuation.section.block.begin",
-    "}  punctuation.section.block.end",
-    "}  punctuation.section.block.end",
-    "=  keyword.operator.output",
-    " total  source.ts.embedded",
-  ]);
-});
-
-test("unquoted values and bindings in brackets", async () => {
+test("unquoted values, bindings in brackets and style objects", async () => {
   const directive = "meta.attribute.directive";
-  expect(await tokens("a(href=/docs/ :class={ on: x } style={color: 'red'}) x")).toEqual([
-    "a  entity.name.tag",
+  expect(await tokens("a(href=/docs/ :class={ on: x } :style={a: b}) x")).toEqual([
+    `a  ${TAG}`,
     "(  punctuation.section.attributes.begin",
     "href  entity.other.attribute-name",
     "=  keyword.operator.assignment",
@@ -226,132 +215,359 @@ test("unquoted values and bindings in brackets", async () => {
     `{  ${directive} source.ts.embedded meta.brace`,
     ` on: x   ${directive} source.ts.embedded`,
     `}  ${directive} source.ts.embedded meta.brace`,
-    `style  ${directive} entity.other.attribute-name.directive`,
+    `:style  ${directive} entity.other.attribute-name.directive`,
     `=  ${directive} keyword.operator.assignment`,
     `{  ${directive} source.ts.embedded meta.brace`,
-    `color: 'red'  ${directive} source.ts.embedded`,
+    `a: b  ${directive} source.ts.embedded`,
     `}  ${directive} source.ts.embedded meta.brace`,
     ")  punctuation.section.attributes.end",
     "x",
   ]);
+  // Values are CSS (`source.css#property-values`, a grammar that matches
+  // nothing here); a `,` in parentheses does not end one.
+  const style = "meta.attribute.style";
+  const value = `${style} meta.property-value`;
+  expect(await tokens("a(style={fontSize: 12px, 'font-weight': bold, --brand: rgb(0, 0, 0), color: 'red'})")).toEqual([
+    `a  ${TAG}`,
+    "(  punctuation.section.attributes.begin",
+    `style  ${style} entity.other.attribute-name`,
+    `=  ${style} keyword.operator.assignment`,
+    `{  ${style} punctuation.section.style.begin`,
+    `fontSize  ${style} support.type.property-name`,
+    `:  ${style} punctuation.separator.key-value`,
+    `12px  ${value}`,
+    `,  ${style} punctuation.separator.comma`,
+    `'  ${style} punctuation.definition.string.begin`,
+    `font-weight  ${style} support.type.property-name`,
+    `'  ${style} punctuation.definition.string.end`,
+    `:  ${style} punctuation.separator.key-value`,
+    `bold  ${value}`,
+    `,  ${style} punctuation.separator.comma`,
+    `--brand  ${style} variable.other.custom-property`,
+    `:  ${style} punctuation.separator.key-value`,
+    `rgb  ${value}`,
+    `(  ${value}`,
+    `0, 0, 0  ${value}`,
+    `)  ${value}`,
+    `,  ${style} punctuation.separator.comma`,
+    `color  ${style} support.type.property-name`,
+    `:  ${style} punctuation.separator.key-value`,
+    `'  ${value} string.quoted.single punctuation.definition.string.begin`,
+    `red  ${value} string.quoted.single`,
+    `'  ${value} string.quoted.single punctuation.definition.string.end`,
+    `}  ${style} punctuation.section.style.end`,
+    ")  punctuation.section.attributes.end",
+  ]);
 });
 
-test("blocks on one line", async () => {
+test("blocks over lines, expansion and output", async () => {
   const source = zamn`
-    .cl{.cl2 {b text {x} \\}}}
-    ul{li{img/ br/} li(id="a")= msg}
-    p{| {{ a }} and #[i c]}
-    p {{ b }} \\{d}
+    ul.list {
+      li: a(href="/") Home
+      p= message
+      footer { }
+      .a {
+        .b {
+          p x }}
+    }
+    = total
   `;
-  const begin = "{  punctuation.section.block.begin";
-  const end = "}  punctuation.section.block.end";
   expect(await tokens(source)).toEqual([
-    ".cl  entity.other.attribute-name.class",
-    begin,
-    ".cl2  entity.other.attribute-name.class",
-    begin,
-    "b  entity.name.tag",
-    "text ",
-    "{",
-    "x",
-    "}",
-    "\\}  constant.character.escape",
-    end,
-    end,
-    "ul  entity.name.tag",
-    begin,
-    "li  entity.name.tag",
-    begin,
-    "img  entity.name.tag",
-    "/  punctuation.definition.tag.self-closing",
-    "br  entity.name.tag",
-    "/  punctuation.definition.tag.self-closing",
-    end,
-    "li  entity.name.tag",
+    `ul  ${TAG}`,
+    `.list  ${CLASS}`,
+    BEGIN,
+    `li  ${TAG}`,
+    ":  punctuation.separator.expansion",
+    `a  ${TAG}`,
     "(  punctuation.section.attributes.begin",
-    "id  entity.other.attribute-name",
+    "href  entity.other.attribute-name",
     "=  keyword.operator.assignment",
     '"  string.quoted.double punctuation.definition.string.begin',
-    "a  string.quoted.double",
+    "/  string.quoted.double",
     '"  string.quoted.double punctuation.definition.string.end',
     ")  punctuation.section.attributes.end",
+    "Home",
+    `p  ${TAG}`,
     "=  keyword.operator.output",
-    " msg  source.ts.embedded",
-    end,
-    "p  entity.name.tag",
-    begin,
-    "|  punctuation.definition.text",
-    "{{  meta.interpolation.expression punctuation.definition.interpolation.begin",
-    " a   meta.interpolation.expression source.ts.embedded",
-    "}}  meta.interpolation.expression punctuation.definition.interpolation.end",
-    " and ",
-    "#[  meta.interpolation.tag punctuation.section.embedded.begin",
-    "i  meta.interpolation.tag entity.name.tag",
-    "c  meta.interpolation.tag",
-    "]  meta.interpolation.tag punctuation.section.embedded.end",
-    end,
-    "p  entity.name.tag",
-    "{{  meta.interpolation.expression punctuation.definition.interpolation.begin",
-    " b   meta.interpolation.expression source.ts.embedded",
-    "}}  meta.interpolation.expression punctuation.definition.interpolation.end",
-    "\\{  constant.character.escape",
-    "d}",
+    " message  source.ts.embedded",
+    `footer  ${TAG}`,
+    BEGIN,
+    END,
+    `.a  ${CLASS}`,
+    BEGIN,
+    `.b  ${CLASS}`,
+    BEGIN,
+    `p  ${TAG}`,
+    "x ",
+    END,
+    END,
+    END,
+    "=  keyword.operator.output",
+    " total  source.ts.embedded",
   ]);
 });
 
-test("comments, text blocks and pipes end where the indentation does", async () => {
+test("blocks on one line: a statement may follow a `}`", async () => {
+  expect(await tokens("ul {li{a x} li{b y}}\n.cl{.cl2{b text \\{x\\} \\}}}")).toEqual([
+    `ul  ${TAG}`,
+    BEGIN,
+    `li  ${TAG}`,
+    BEGIN,
+    `a  ${TAG}`,
+    "x",
+    END,
+    `li  ${TAG}`,
+    BEGIN,
+    `b  ${TAG}`,
+    "y",
+    END,
+    END,
+    `.cl  ${CLASS}`,
+    BEGIN,
+    `.cl2  ${CLASS}`,
+    BEGIN,
+    `b  ${TAG}`,
+    "text ",
+    `\\{  ${ESCAPE}`,
+    "x",
+    `\\}  ${ESCAPE}`,
+    `\\}  ${ESCAPE}`,
+    END,
+    END,
+  ]);
+});
+
+test("text: mustaches, #{} inline elements, escapes and unescaped braces", async () => {
   const source = zamn`
-    div
-      // note
-        more .note
-      //- silent
-      p.lead(title="t").
-        Text. With {{ x }}
-          .deeper
-      | piped .text
-      p Ends with a dot.
-      span after
+    p some {{ a }} and #{b= c} \\#{d\\} \\#[e] #[f]
+    p { | some #{b biba #{i x}} boba }
+    p {{ x }}}
+    div{{ y }}
+    p bad { brace
   `;
   expect(await tokens(source)).toEqual([
-    "div  entity.name.tag",
-    "//  string.comment.buffered.block punctuation.definition.comment",
-    " note  string.comment.buffered.block",
-    "    more .note  string.comment.buffered.block",
-    "//-  comment.block.silent punctuation.definition.comment",
-    " silent  comment.block.silent",
-    "p  entity.name.tag",
-    ".lead  entity.other.attribute-name.class",
-    "(  punctuation.section.attributes.begin",
-    "title  entity.other.attribute-name",
-    "=  keyword.operator.assignment",
-    '"  string.quoted.double punctuation.definition.string.begin',
-    "t  string.quoted.double",
-    '"  string.quoted.double punctuation.definition.string.end',
-    ")  punctuation.section.attributes.end",
-    ".  punctuation.definition.text-block",
-    "    Text. With ",
-    "{{  meta.interpolation.expression punctuation.definition.interpolation.begin",
-    " x   meta.interpolation.expression source.ts.embedded",
-    "}}  meta.interpolation.expression punctuation.definition.interpolation.end",
-    "      .deeper",
-    "|  punctuation.definition.text",
-    "piped .text",
-    "p  entity.name.tag",
-    "Ends with a dot.",
-    "span  entity.name.tag",
-    "after",
+    `p  ${TAG}`,
+    "some ",
+    `{{  ${MUSTACHE} punctuation.definition.interpolation.begin`,
+    ` a   ${MUSTACHE} source.ts.embedded`,
+    `}}  ${MUSTACHE} punctuation.definition.interpolation.end`,
+    " and ",
+    `#{  ${INLINE} punctuation.section.embedded.begin`,
+    `b  ${INLINE} ${TAG}`,
+    `=  ${INLINE} keyword.operator.output`,
+    ` c  ${INLINE} source.ts.embedded`,
+    `}  ${INLINE} punctuation.section.embedded.end`,
+    `\\#{  ${ESCAPE}`,
+    "d",
+    `\\}  ${ESCAPE}`,
+    `\\#[  ${ESCAPE}`,
+    "e] ",
+    "#[  invalid.illegal.unsupported",
+    "f]",
+    `p  ${TAG}`,
+    BEGIN,
+    PIPE,
+    " some ",
+    `#{  ${INLINE} punctuation.section.embedded.begin`,
+    `b  ${INLINE} ${TAG}`,
+    `biba   ${INLINE}`,
+    `#{  ${INLINE} ${INLINE} punctuation.section.embedded.begin`,
+    `i  ${INLINE} ${INLINE} ${TAG}`,
+    `x  ${INLINE} ${INLINE}`,
+    `}  ${INLINE} ${INLINE} punctuation.section.embedded.end`,
+    `}  ${INLINE} punctuation.section.embedded.end`,
+    " boba ",
+    END,
+    // `}}` closes a mustache, and the `}` after it a block
+    `p  ${TAG}`,
+    `{{  ${MUSTACHE} punctuation.definition.interpolation.begin`,
+    ` x   ${MUSTACHE} source.ts.embedded`,
+    `}}  ${MUSTACHE} punctuation.definition.interpolation.end`,
+    END,
+    `div  ${TAG}`,
+    `{{  ${MUSTACHE} punctuation.definition.interpolation.begin`,
+    ` y   ${MUSTACHE} source.ts.embedded`,
+    `}}  ${MUSTACHE} punctuation.definition.interpolation.end`,
+    `p  ${TAG}`,
+    "bad ",
+    "{  invalid.illegal.unescaped-brace",
+    " brace",
   ]);
 });
 
-test("doctype, HTML lines and what zamn does not support", async () => {
+test("pipes: `| text`, `div | text`, `|{ }` and `\\|`", async () => {
+  const source = zamn`
+    | text
+    div | some text
+    div |{ some text }
+    div|{ x }
+    | { y }
+    div \\| x
+    pre |{
+      line {{ a }} #{b c}
+        \\} deeper
+    }
+  `;
+  expect(await tokens(source)).toEqual([
+    PIPE,
+    " text",
+    `div  ${TAG}`,
+    PIPE,
+    " some text",
+    `div  ${TAG}`,
+    PIPE,
+    BEGIN,
+    " some text ",
+    END,
+    `div  ${TAG}`,
+    PIPE,
+    BEGIN,
+    " x ",
+    END,
+    PIPE,
+    BEGIN,
+    " y ",
+    END,
+    `div  ${TAG}`,
+    `\\|  ${ESCAPE}`,
+    " x",
+    `pre  ${TAG}`,
+    PIPE,
+    BEGIN,
+    "  line ",
+    `{{  ${MUSTACHE} punctuation.definition.interpolation.begin`,
+    ` a   ${MUSTACHE} source.ts.embedded`,
+    `}}  ${MUSTACHE} punctuation.definition.interpolation.end`,
+    `#{  ${INLINE} punctuation.section.embedded.begin`,
+    `b  ${INLINE} ${TAG}`,
+    `c  ${INLINE}`,
+    `}  ${INLINE} punctuation.section.embedded.end`,
+    `\\}  ${ESCAPE}`,
+    " deeper",
+    END,
+  ]);
+});
+
+test("comments: `//` and `/* */` are left out, `//!` and `/*! */` are emitted", async () => {
+  const source = zamn`
+    // silent }
+    //! shown
+    //- dash
+    div { /* note */ b x } // after
+    /*! kept
+      } still */
+    /*
+      gone
+    */
+    p see https://x.y // and /* this */
+  `;
+  const silent = "comment.line.double-slash";
+  const block = "comment.block";
+  const buffered = "string.comment.buffered.block";
+  expect(await tokens(source)).toEqual([
+    `//  ${silent} punctuation.definition.comment`,
+    ` silent }  ${silent}`,
+    `//!  ${buffered} punctuation.definition.comment`,
+    ` shown  ${buffered}`,
+    `//  ${silent} punctuation.definition.comment`,
+    `- dash  ${silent}`,
+    `div  ${TAG}`,
+    BEGIN,
+    `/*  ${block} punctuation.definition.comment`,
+    ` note   ${block}`,
+    `*/  ${block} punctuation.definition.comment`,
+    `b  ${TAG}`,
+    "x ",
+    END,
+    `//  ${silent} punctuation.definition.comment`,
+    ` after  ${silent}`,
+    `/*!  ${buffered} punctuation.definition.comment`,
+    ` kept  ${buffered}`,
+    `  } still   ${buffered}`,
+    `*/  ${buffered} punctuation.definition.comment`,
+    `/*  ${block} punctuation.definition.comment`,
+    `  gone  ${block}`,
+    `*/  ${block} punctuation.definition.comment`,
+    `p  ${TAG}`,
+    "see https://x.y // and /* this */",
+  ]);
+});
+
+test("script and style: raw content up to `/script` and `/style`", async () => {
+  const source = zamn`
+    script.a(type="module")
+    (function () {})()
+    if (a) { go() }
+      const s = "/script"
+    /script
+    script(src="a.js")
+    script(:src="x")
+    head {
+      style
+      .a { color: red }
+      /style
+    }
+    /script
+    /div
+  `;
+  expect(await tokens(source)).toEqual([
+    `script  ${TAG}`,
+    `.a  ${CLASS}`,
+    "(  punctuation.section.attributes.begin",
+    "type  entity.other.attribute-name",
+    "=  keyword.operator.assignment",
+    '"  string.quoted.double punctuation.definition.string.begin',
+    "module  string.quoted.double",
+    '"  string.quoted.double punctuation.definition.string.end',
+    ")  punctuation.section.attributes.end",
+    "(function () {})()  source.js.embedded",
+    "if (a) { go() }  source.js.embedded",
+    '  const s = "/script"  source.js.embedded',
+    "/  punctuation.definition.tag.end",
+    `script  ${TAG}`,
+    // with `src`, a script has no content
+    `script  ${TAG}`,
+    "(  punctuation.section.attributes.begin",
+    "src  entity.other.attribute-name",
+    "=  keyword.operator.assignment",
+    '"  string.quoted.double punctuation.definition.string.begin',
+    "a.js  string.quoted.double",
+    '"  string.quoted.double punctuation.definition.string.end',
+    ")  punctuation.section.attributes.end",
+    `script  ${TAG}`,
+    "(  punctuation.section.attributes.begin",
+    ":src  meta.attribute.directive entity.other.attribute-name.directive",
+    "=  meta.attribute.directive keyword.operator.assignment",
+    '"  meta.attribute.directive punctuation.definition.string.begin',
+    "x  meta.attribute.directive source.ts.embedded",
+    '"  meta.attribute.directive punctuation.definition.string.end',
+    ")  punctuation.section.attributes.end",
+    `head  ${TAG}`,
+    BEGIN,
+    `style  ${TAG}`,
+    "  .a { color: red }  source.css.embedded",
+    "/  punctuation.definition.tag.end",
+    `style  ${TAG}`,
+    END,
+    "/script  invalid.illegal.unmatched-close",
+    "/div  invalid.illegal.unmatched-close",
+  ]);
+});
+
+test("doctype, and what zamn does not have", async () => {
   const source = zamn`
     doctype html
     <div :a="b">{{ c }}</div>
     if user
     - var x = 1
     +card
+    {{ a }} text
+    #{b x}
+    img/
+    p.
     p ok
   `;
+  const unexpected = "invalid.illegal.unexpected-text";
   expect(await tokens(source)).toEqual([
     "doctype  meta.tag.sgml.doctype entity.name.tag.doctype",
     "html  meta.tag.sgml.doctype string.unquoted.doctype",
@@ -360,7 +576,20 @@ test("doctype, HTML lines and what zamn does not support", async () => {
     " user",
     "- var x = 1  invalid.illegal.unsupported",
     "+card  invalid.illegal.unsupported",
-    "p  entity.name.tag",
+    // text must start with `|`
+    `{{  ${unexpected} ${MUSTACHE} punctuation.definition.interpolation.begin`,
+    ` a   ${unexpected} ${MUSTACHE} source.ts.embedded`,
+    `}}  ${unexpected} ${MUSTACHE} punctuation.definition.interpolation.end`,
+    ` text  ${unexpected}`,
+    `#{  ${unexpected} ${INLINE} punctuation.section.embedded.begin`,
+    `b  ${unexpected} ${INLINE} ${TAG}`,
+    `x  ${unexpected} ${INLINE}`,
+    `}  ${unexpected} ${INLINE} punctuation.section.embedded.end`,
+    `img  ${TAG}`,
+    "/  invalid.illegal.unsupported",
+    `p  ${TAG}`,
+    ".  invalid.illegal.unsupported",
+    `p  ${TAG}`,
     "ok",
   ]);
 });
@@ -379,8 +608,8 @@ test("is injected into <template lang=\"zamn\"> of a Vue file, and only there", 
     "template  entity.name.tag.template.html",
     ' lang="zamn"  meta.tag-stuff',
     ">  meta.tag-stuff",
-    "p  entity.name.tag",
-    ".a  entity.other.attribute-name.class",
+    `p  ${TAG}`,
+    `.a  ${CLASS}`,
     "=  keyword.operator.output",
     " b  source.ts.embedded",
     "</  punctuation.definition.tag.begin.html",
@@ -395,8 +624,20 @@ test("is injected into <template lang=\"zamn\"> of a Vue file, and only there", 
   ]);
 });
 
-test("the comment of the language is the one left out of the output", async () => {
-  const { comments } = await Bun.file(resolve(syntaxes, "../language-configuration.json")).json();
+test("the comments of the language are the ones left out of the output", async () => {
+  const { comments, folding } = await Bun.file(resolve(syntaxes, "../language-configuration.json")).json();
   // A string: tools that read it, Better Comments among them, skip the object form.
-  expect(comments).toEqual({ lineComment: "//-" });
+  expect(comments).toEqual({ lineComment: "//", blockComment: ["/*", "*/"] });
+  // Nesting is by braces: no off-side folding.
+  expect(folding).toBeUndefined();
+});
+
+test("every embedded scope is mapped to its language", async () => {
+  const { contributes } = await Bun.file(resolve(syntaxes, "../package.json")).json();
+  const grammar = await Bun.file(resolve(syntaxes, "zamn.tmLanguage.json")).text();
+  const scopes = [...new Set(grammar.match(/source\.\w+\.embedded\.zamn/g))].sort();
+  expect(scopes).toEqual(["source.css.embedded.zamn", "source.js.embedded.zamn", "source.ts.embedded.zamn"]);
+  for (const { embeddedLanguages } of contributes.grammars) {
+    for (const scope of scopes) expect(embeddedLanguages[scope]).toBeString();
+  }
 });

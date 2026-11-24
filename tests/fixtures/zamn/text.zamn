@@ -1,17 +1,20 @@
-p Hello #[em world], \#[escaped]
-p
+p Hello #{em world}, \#[escaped]
+p {
   | piped
   | text
+}
 p <b>html</b> in text
-| <i>stays</i> as it is
-script.
+| <i>escaped</i> as well
+script
   if (a < b) {
     go();
   }
+/script
 
-// a comment
-//- a silent comment
-//
+//! a comment
+// a silent comment
+/*!
   block comment
     stays raw
-p ünïcödé 😀 #[b ok]
+*/
+p ünïcödé 😀 #{b ok}

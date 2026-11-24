@@ -46,9 +46,71 @@ fn reads_stdin_without_a_file() {
 
 #[test]
 fn reads_stdin_for_a_dash() {
-    let out = zamn(&["-", "--doctype", "html"], "input(disabled)\n");
+    let out = zamn(&["-"], "input(disabled)\n");
     assert!(out.status.success());
     assert_eq!(text(&out.stdout), "<input disabled>\n");
+}
+
+#[test]
+fn output_is_html5_with_escaped_text() {
+    let out = zamn(
+        &[],
+        "doctype html\ndiv some text <b>real bold lol</b> &nbsp;\nimg(src=a.png)\n",
+    );
+    assert!(out.status.success(), "{}", text(&out.stderr));
+    assert_eq!(
+        text(&out.stdout),
+        "<!DOCTYPE html><div>some text &lt;b&gt;real bold lol&lt;/b&gt; &nbsp;</div><img src=\"a.png\">\n"
+    );
+}
+
+#[test]
+fn doctype_option_is_gone() {
+    let out = zamn(&["--doctype", "html"], "p hi\n");
+    assert_eq!(out.status.code(), Some(2));
+    assert!(text(&out.stderr).starts_with("unknown option --doctype"));
+    let out = zamn(&["--help"], "");
+    assert!(!text(&out.stdout).contains("doctype"));
+}
+
+/// Indented deeper than the line before, with no block open.
+const MISLEADING: &str = "div {\n  p a\n    p b\n}\n";
+
+#[test]
+fn warnings_are_printed_and_the_html_still_written() {
+    let out = zamn(&[], MISLEADING);
+    assert!(out.status.success(), "{}", text(&out.stderr));
+    assert_eq!(text(&out.stdout), "<div><p>a</p><p>b</p></div>\n");
+    let stderr = text(&out.stderr);
+    assert!(
+        stderr.starts_with("<stdin>:3:") && stderr.contains(": warning[MISLEADING_INDENTATION]: "),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn validate_exits_0_on_warnings_only() {
+    let file = Temp::new("warn.zamn", MISLEADING);
+    let out = zamn(&["--validate", file.path()], "");
+    assert!(out.status.success(), "{}", text(&out.stderr));
+    assert!(out.stdout.is_empty());
+    let stderr = text(&out.stderr);
+    assert!(
+        stderr.contains("warn.zamn:3:") && stderr.contains(": warning[MISLEADING_INDENTATION]: "),
+        "{stderr}"
+    );
+    assert!(!stderr.contains("error["), "{stderr}");
+
+    // A warning beside an error: the error decides.
+    let bad = Temp::new("unclosed.zamn", "p {\n");
+    let out = zamn(&["--validate", file.path(), bad.path()], "");
+    assert_eq!(out.status.code(), Some(1));
+    let stderr = text(&out.stderr);
+    assert!(
+        stderr.contains("warning[MISLEADING_INDENTATION]"),
+        "{stderr}"
+    );
+    assert!(stderr.contains("error[UNCLOSED_BRACE]"), "{stderr}");
 }
 
 #[test]

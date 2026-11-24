@@ -12,25 +12,43 @@ p Hello, world.
 <p>Hello, world.</p>
 ```
 
-Text is not escaped, so HTML written in text goes through as it is. Entities too:
+A `|` after the tag, or text in `|{ }`, says the same thing. These three are identical:
 
 ```zamn
-p Ready? <b>Go</b> &rarr;
+div some text
+div | some text
+div |{ some text }
 ```
 
 ```html
-<p>Ready? <b>Go</b> &rarr;</p>
+<div>some text</div><div>some text</div><div>some text</div>
 ```
+
+## Escaping
+
+Text is HTML-escaped: `<` and `>` become `&lt;` and `&gt;`, and `&` becomes `&amp;`, unless it starts a character reference such as `&rarr;`, `&#123;` or `&#x1F;`, which passes through:
+
+```zamn
+p Ready? <b>Go</b> &rarr; Tom & Jerry
+```
+
+```html
+<p>Ready? &lt;b&gt;Go&lt;/b&gt; &rarr; Tom &amp; Jerry</p>
+```
+
+So text shows tags as text, and you write elements as elements: `p Ready? #{b Go}` (see [inline elements](#inline-elements)). The same goes for `pre`. There is no way to write raw HTML in text; for HTML that comes from data, use your framework, such as Vue's `v-html`.
+
+Not escaped: the content of [`script` and `style`](./script-style), [mustaches and `= expr`](./interpolation), and [comments](./comments).
 
 ## Piped text
 
-A line that starts with `|` is text, anywhere an element could be. Consecutive `|`
-lines are joined with a line break:
+A statement that is only text starts with `|`, anywhere an element could be. Consecutive `|` lines are joined with a line break:
 
 ```zamn
-p
+p {
   | The first line
   | and the second.
+}
 ```
 
 ```html
@@ -38,19 +56,30 @@ p
 and the second.</p>
 ```
 
-## Whitespace
-
-Whitespace at the end of a line is ignored everywhere. The output has no whitespace
-between elements unless you write it, and a `|` on its own is one space. That's how
-a space between two lines is written:
+Text that begins with a mustache or an inline element needs the `|` too: a statement that starts with `{{` or `#{` is an error (`UNEXPECTED_TEXT`).
 
 ```zamn
-p
+p {
+  | {{ greeting }}, #{b world}
+}
+```
+
+```html
+<p>{{ greeting }}, <b>world</b></p>
+```
+
+## Whitespace
+
+Whitespace at the end of a line is ignored everywhere. The output has no whitespace between elements unless you write it, and a `|` on its own is one space. That's how a space between two lines is written:
+
+```zamn
+p {
   b this
   |
   | is
   |
   u cool
+}
 ```
 
 ```html
@@ -59,61 +88,84 @@ p
 
 ## Text blocks
 
-A tag followed by a `.` takes the indented lines under it as text, with their line
-breaks and any deeper indentation kept. This suits `script`, `style` and `pre`:
+`|{ ... }` holds text that may span lines. On one line it is trimmed. Over several lines:
+
+- a blank first and last line are dropped, so the text can start on the line after the `{` and end on the line before the `}`;
+- the indentation the lines have in common is stripped, and deeper indentation is kept;
+- the lines are joined with line breaks.
 
 ```zamn
-script.
-  if (a < b) {
-    go();
-  }
+pre |{
+  function go() \{
+    return a < b;
+  \}
+}
 ```
 
 ```html
-<script>if (a < b) {
-  go();
-}</script>
+<pre>function go() {
+  return a &lt; b;
+}</pre>
 ```
 
-A `.` on a line of its own does the same inside an element:
+It can stand on its own inside a block, and holds [inline elements](#inline-elements):
 
 ```zamn
-p
-  .
+p {
+  |{
     A block of text
-    under a dot.
+    over two lines, with #{em inline} elements.
+  }
+}
 ```
 
 ```html
 <p>A block of text
-under a dot.</p>
+over two lines, with <em>inline</em> elements.</p>
 ```
 
-## Inline tags
+Whitespace around the `|` is optional: `div |{ … }`, `div | { … }` and `div|{ … }` are the same, as are `|{ … }` and `| { … }` on their own. That is why text that starts with a brace is written `| \{ …`.
 
-`#[...]` puts an element in the middle of text. It takes everything an element
-takes: classes, attributes, `= expr`, `:` expansion, and its own text:
+## Escapes
+
+- `\{` and `\}` are literal braces. Any other brace in text is either a [mustache](./interpolation#inside-text) (`{{ }}`), a bare `{` (an error, `UNESCAPED_BRACE`) or a `}` that closes the block. See [Braces in text](./brace-blocks#braces-in-text).
+- `\|` at the start of text is a literal `|`, and the space after it is kept.
+- `\#{` is a literal `#{`, and `\#[` a literal `#[`.
+- Any other backslash is just a backslash.
 
 ```zamn
-p Read the #[a(href="/docs") docs] or #[em: b ask].
+p \| x
+p Write \#{ to start an inline element.
+p C:\temp
+```
+
+```html
+<p>| x</p><p>Write #{ to start an inline element.</p><p>C:\temp</p>
+```
+
+`p \| x` is the same as `p | | x`.
+
+## Inline elements
+
+`#{...}` puts an element in the middle of text. It holds exactly one statement, so it takes everything an element takes: classes, attributes, `= expr`, `:` expansion, and its own text, which runs to the `}`:
+
+```zamn
+p Read the #{a(href="/docs") docs} or #{em: b ask}.
 ```
 
 ```html
 <p>Read the <a href="/docs">docs</a> or <em><b>ask</b></em>.</p>
 ```
 
-It works in piped text and in text blocks too. For a literal `#[`, escape it as
-`\#[`:
+It works in piped text and in `|{ }` blocks too, and inline elements nest:
 
 ```zamn
-p Write \#[b bold] for bold.
+p { | some #{b biba #{i boba}} text }
 ```
 
 ```html
-<p>Write #[b bold] for bold.</p>
+<p>some <b>biba <i>boba</i></b> text</p>
 ```
-
-An inline tag must close on the same line (`NO_END_BRACKET`).
 
 ## Text outside elements
 

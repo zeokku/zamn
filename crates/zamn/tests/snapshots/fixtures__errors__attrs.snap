@@ -18,7 +18,7 @@ attrs.zamn:9:5: error[INVALID_ATTRIBUTE_VALUE]: An unquoted attribute value cann
   hint: put the value in quotes
 attrs.zamn:10:5: error[INVALID_ATTRIBUTE_VALUE]: An unquoted attribute value cannot contain whitespace or any of " ' ` = < >
   hint: put the value in quotes
-attrs.zamn:11:9: error[JS_EXPRESSION]: JavaScript expressions are not supported in attribute values
+attrs.zamn:11:10: error[JS_EXPRESSION]: JavaScript expressions are not supported in attribute values
   hint: zamn has no JavaScript; quote the value, or write a binding such as `:href` for your framework
-attrs.zamn:12:10: error[JS_EXPRESSION]: JavaScript expressions are not supported in attribute values
+attrs.zamn:12:9: error[JS_EXPRESSION]: JavaScript expressions are not supported in attribute values
   hint: zamn has no JavaScript; quote the value, or write a binding such as `:href` for your framework

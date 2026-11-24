@@ -1,0 +1,36 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: report
+---
+1:1 error[UNSUPPORTED_SYNTAX] Unbuffered code (`- ...`) is not supported "- var x = 1"
+  hint: zamn has no JavaScript; move the logic into your component
+2:1 error[UNSUPPORTED_SYNTAX] `if` (control flow) is not supported "if x {"
+  hint: zamn has no control flow; use your framework's directives, e.g. `div(v-if="cond")`
+7:1 error[UNSUPPORTED_SYNTAX] `each` (control flow) is not supported "each item in items {"
+  hint: zamn has no control flow; use your framework's directives, e.g. `div(v-if="cond")`
+10:1 error[UNSUPPORTED_SYNTAX] `mixin` (mixins) is not supported "mixin card {"
+  hint: use a component instead
+13:1 error[UNSUPPORTED_SYNTAX] A mixin call is not supported "+card"
+  hint: use a component instead
+14:1 error[UNSUPPORTED_SYNTAX] `extends` (template inheritance) is not supported "extends layout"
+  hint: a zamn template is a single file; compose with components instead
+15:1 error[UNSUPPORTED_SYNTAX] `block` (template inheritance) is not supported "block content {"
+  hint: a zamn template is a single file; compose with components instead
+18:2 error[UNSUPPORTED_SYNTAX] Unescaped buffered code (`!=`) is not supported "!= html"
+  hint: use `=` for `{{ }}` interpolation, or `v-html` for raw HTML
+19:4 error[UNSUPPORTED_SYNTAX] `&attributes` is not supported "&attributes(attrs)"
+  hint: zamn has no JavaScript; list the attributes explicitly
+20:1 error[UNSUPPORTED_SYNTAX] A filter is not supported ":markdown"
+  hint: zamn has no filters
+21:1 error[UNSUPPORTED_SYNTAX] `include` (includes) is not supported "include partials/item"
+  hint: a zamn template is a single file; compose with components instead
+22:1 error[UNSUPPORTED_SYNTAX] `include` (includes) is not supported "include:md readme.md"
+  hint: a zamn template is a single file; compose with components instead
+23:1 error[UNSUPPORTED_SYNTAX] A line of HTML is not supported "<div class=\"raw\">"
+  hint: write it as an element (`b bold`); text is escaped
+26:3 error[UNSUPPORTED_SYNTAX] `#[...]` is not supported "#["
+  hint: write an inline element as `#{...}`
+27:2 error[UNSUPPORTED_SYNTAX] A text block (`tag.`) is not supported "."
+  hint: write text in `|{ ... }`; a `script` or `style` takes the lines below it, ended by `/script` or `/style`
+28:4 error[UNSUPPORTED_SYNTAX] A self-closing `/` is not supported "/"
+  hint: drop the `/`: HTML elements such as `img` need no closing

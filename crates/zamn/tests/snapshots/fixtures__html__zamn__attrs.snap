@@ -2,4 +2,4 @@
 source: crates/zamn/tests/fixtures.rs
 expression: html(&file)
 ---
-<a href="/">Home</a><a href="/docs/?q#top" target="_blank">Docs</a><a href="a+b" n="f(1)" i="a[0]" w="50%">x</a><input type="checkbox" checked="checked"/><RouterLink :to="/about" :class="{ active: onAbout, 'is-new': fresh }" @click="go()">About</RouterLink><Table v-bind="[a, b]" #default="(row)" .prop="x"></Table><p style="color:red;font-size:12px;margin:0;">Styled</p><p>Empty style</p>
+<a href="/">Home</a><a href="/docs/?q#top" target="_blank">Docs</a><a href="a+b" n="f(1)" i="a[0]" w="50%">x</a><input type="checkbox" checked><RouterLink :to="/about" :class="{ active: onAbout, 'is-new': fresh }" @click="go()">About</RouterLink><Table v-bind="[a, b]" #default="(row)" .prop="x"></Table><p style="color:red;font-size:12px;margin:0;">Styled</p><p>Empty style</p><a style="color:c;">Bare value</a><button style="font-size:1em;text-align:center;padding:1rem 0.5rem;transition-property:color, background;">Casing</button><div style="-webkit-transition:none;-ms-flex:1;--brand:red;background:url('a,b') rgb(0, 0, 0);"></div><input disabled readonly>

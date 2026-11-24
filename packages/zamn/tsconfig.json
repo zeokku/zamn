@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.base.json",
+  // The web bindings of wasm-bindgen use DOM types (Response, URL).
+  "compilerOptions": { "lib": ["es2023", "dom"] }
+}

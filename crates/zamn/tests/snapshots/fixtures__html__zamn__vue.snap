@@ -2,4 +2,4 @@
 source: crates/zamn/tests/fixtures.rs
 expression: html(&file)
 ---
-<div class="card" :class="{ active: isActive }" @click="select(item)"><h2 class="title">{{ item.title }}</h2><p v-if="item.body &amp;&amp; item.body.length &gt; 0">{{ item.body }}</p>{{ footer }}<MyButton v-model.trim="value" #default="{ row }" disabled="disabled">Go</MyButton><input type="checkbox" checked="checked"/><img src="/a.png" alt="say &quot;hi&quot;"/><p>Plain <strong>{{ count }}</strong> items, #{not} interpolated</p></div>
+<div class="card" :class="{ active: isActive }" @click="select(item)"><h2 class="title">{{ item.title }}</h2><p v-if="item.body &amp;&amp; item.body.length &gt; 0">{{ item.body }}</p>{{ footer }}<MyButton v-model.trim="value" #default="{ row }" disabled>Go</MyButton><input type="checkbox" checked><img src="/a.png" alt="say &quot;hi&quot;"><p>Plain <strong>{{ count }}</strong> items, #{not} interpolated</p></div>

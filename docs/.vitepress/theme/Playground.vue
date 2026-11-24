@@ -7,6 +7,7 @@ import { formatHtml } from "./format";
 type Api = typeof import("zamn");
 interface Problem {
   code: string;
+  severity: "error" | "warning";
   message: string;
   hint?: string;
   loc: { start: { line: number; column: number } };
@@ -26,15 +27,21 @@ html(lang="en") {
   head {
     meta(charset="utf-8")
     title Hello
+    style
+      h1 > em { color: tomato }
+    /style
   }
   body {
-    h1 Hello, #[em world]
+    h1 Hello, #{em world}
     p {
-      | Text is not escaped, so
-      |
-      b HTML
-      |
-      | works too.
+      | Text is escaped, so <b>tags</b> show as text,
+      | while entities pass through: &rarr;
+    }
+    /* left out of the HTML */
+    //! written as an HTML comment
+    .flex.gap-2.md:w-1/2(style={fontSize: 14px}) {
+      button(disabled) Off
+      input(type="checkbox" checked)
     }
   }
 }`,
@@ -44,16 +51,24 @@ html(lang="en") {
   | is
   |
   u cool
+}
+pre |{
+  keeps its
+    relative indentation
 }`,
-  Errors: `ul
+  Errors: `ul {
   each item in items
-    li= item
+  li An open { brace
+  p Hello {{ name
+}
 a(href=base + "/docs") Docs
-p.5`,
+p Some text
+  b bold
+script
+  go()`,
 };
 
 const source = ref(presets["Vue component"]!);
-const terse = ref(true);
 const formatted = ref(true);
 const api = shallowRef<Api | null>(null);
 const loadError = ref("");
@@ -65,7 +80,6 @@ onMounted(async () => {
       source.value = decodeURIComponent(escape(atob(hash.slice(4))));
     } catch {}
   }
-  if (location.hash.includes("&doctype=0")) terse.value = false;
   if (location.hash.includes("&raw=1")) formatted.value = false;
   try {
     const mod = await import("zamn");
@@ -76,14 +90,12 @@ onMounted(async () => {
   }
 });
 
+// Errors leave no HTML to show; warnings are listed above it.
 const result = computed(() => {
   if (!api.value) return { html: "", problems: [] as Problem[] };
   try {
-    const { code } = api.value.compile(source.value, {
-      filename: "playground.zamn",
-      doctype: terse.value ? "html" : undefined,
-    });
-    return { html: code, problems: [] as Problem[] };
+    const { code, warnings } = api.value.compile(source.value, { filename: "playground.zamn" });
+    return { html: code, problems: warnings as Problem[] };
   } catch (error) {
     return { html: "", problems: ((error as { diagnostics?: Problem[] }).diagnostics ?? []) as Problem[] };
   }
@@ -111,9 +123,9 @@ watch(
 );
 
 // Keep the source in the URL, so a playground can be shared by its link.
-watch([source, terse, formatted], () => {
+watch([source, formatted], () => {
   const encoded = btoa(unescape(encodeURIComponent(source.value)));
-  const flags = (terse.value ? "" : "&doctype=0") + (formatted.value ? "" : "&raw=1");
+  const flags = formatted.value ? "" : "&raw=1";
   history.replaceState(null, "", `#src=${encoded}${flags}`);
 });
 
@@ -146,10 +158,6 @@ const sizes = computed(() => ({ zamn: source.value.length, html: result.value.ht
           <option v-for="(_, name) in presets" :key="name" :value="name">{{ name }}</option>
         </select>
       </label>
-      <label title="Write boolean attributes and void elements the HTML way, as Vue templates need">
-        <input v-model="terse" type="checkbox" />
-        <code>doctype: "html"</code>
-      </label>
       <label title="Lay the HTML out with Prettier. The compiler writes it on one line.">
         <input v-model="formatted" type="checkbox" />
         Formatted
@@ -171,15 +179,17 @@ const sizes = computed(() => ({ zamn: source.value.length, html: result.value.ht
         <header>HTML <span v-if="result.html">{{ sizes.html }} characters</span></header>
         <p v-if="loadError" class="problem">Could not load the compiler: {{ loadError }}</p>
         <p v-else-if="!api" class="muted">Loading the compiler…</p>
-        <ul v-else-if="result.problems.length" class="problems">
-          <li v-for="(p, i) in result.problems" :key="i" class="problem">
-            <strong>{{ p.loc.start.line }}:{{ p.loc.start.column + 1 }}</strong>
-            <code>{{ p.code }}</code>
-            {{ p.message }}
-            <div v-if="p.hint" class="hint">{{ p.hint }}</div>
-          </li>
-        </ul>
-        <pre v-else><code>{{ shown }}</code></pre>
+        <template v-else>
+          <ul v-if="result.problems.length" class="problems">
+            <li v-for="(p, i) in result.problems" :key="i" :class="p.severity === 'warning' ? 'warning' : 'problem'">
+              <strong>{{ p.loc.start.line }}:{{ p.loc.start.column + 1 }}</strong>
+              <code>{{ p.code }}</code>
+              {{ p.message }}
+              <div v-if="p.hint" class="hint">{{ p.hint }}</div>
+            </li>
+          </ul>
+          <pre v-if="result.html"><code>{{ shown }}</code></pre>
+        </template>
       </section>
     </div>
   </div>
@@ -295,6 +305,15 @@ textarea:focus {
   padding: 1px 6px;
   border-radius: 6px;
   background: var(--vp-c-danger-soft);
+}
+.warning {
+  color: var(--vp-c-warning-1);
+}
+.warning code {
+  margin: 0 6px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--vp-c-warning-soft);
 }
 .hint {
   color: var(--vp-c-text-2);

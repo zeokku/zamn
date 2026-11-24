@@ -1,0 +1,24 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: report
+---
+1:8 error[JS_EXPRESSION] JavaScript expressions are not supported in attribute values "url + '/x'"
+  hint: zamn has no JavaScript; quote the value, or write a binding such as `:href` for your framework
+2:9 error[JS_EXPRESSION] JavaScript expressions are not supported in attribute values "['a', 'b']"
+  hint: zamn has no JavaScript; quote the value, or write a binding such as `:href` for your framework
+3:9 error[JS_EXPRESSION] JavaScript expressions are not supported in attribute values "'a' + b"
+  hint: zamn has no JavaScript; quote the value, or write a binding such as `:href` for your framework
+4:9 error[JS_EXPRESSION] JavaScript expressions are not supported in attribute values "`t ${x}`"
+  hint: zamn has no JavaScript; quote the value, or write a binding such as `:href` for your framework
+5:8 error[MISSING_ATTRIBUTE_VALUE] missing attribute value "="
+6:12 error[DUPLICATE_ATTRIBUTE] Duplicate attribute "href" is not allowed. "href=\"y\""
+7:3 error[DUPLICATE_ATTRIBUTE] Duplicate attribute "id" is not allowed. "#b"
+8:2 error[NO_END_BRACKET] The end of the file was reached with no closing bracket `)` found. "("
+9:5 error[INVALID_ATTRIBUTE_VALUE] An unquoted attribute value cannot contain whitespace or any of " ' ` = < > "a=b"
+  hint: put the value in quotes
+10:5 error[INVALID_ATTRIBUTE_VALUE] An unquoted attribute value cannot contain whitespace or any of " ' ` = < > "f(a, b)"
+  hint: put the value in quotes
+11:10 error[JS_EXPRESSION] JavaScript expressions are not supported in attribute values "{ a: 1 }"
+  hint: zamn has no JavaScript; quote the value, or write a binding such as `:href` for your framework
+12:9 error[JS_EXPRESSION] JavaScript expressions are not supported in attribute values "{a: {b: 1}}"
+  hint: zamn has no JavaScript; quote the value, or write a binding such as `:href` for your framework

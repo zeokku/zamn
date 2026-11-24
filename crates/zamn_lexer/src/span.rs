@@ -29,11 +29,13 @@ impl Span {
 }
 
 /// 1-based line, 0-based column counted in UTF-16 code units (the ESTree /
-/// ESLint / source map convention).
+/// ESLint / source map convention), and the UTF-16 offset of the same point
+/// (an index into a JS string).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 pub struct Position {
     pub line: u32,
     pub column: u32,
+    pub offset: u32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -93,9 +95,15 @@ impl<'a> LineIndex<'a> {
     pub fn position(&self, offset: u32) -> Position {
         let offset = offset.min(self.src.len() as u32);
         let line = self.line_of(offset);
+        let column = self.column(line, offset);
         Position {
             line: line as u32 + 1,
-            column: self.column(line, offset),
+            column,
+            offset: if self.ascii {
+                offset
+            } else {
+                self.utf16_starts[line] + column
+            },
         }
     }
 
@@ -130,10 +138,24 @@ mod tests {
         let src = "a\n😀b\nc";
         let idx = LineIndex::new(src);
         let b = src.find('b').unwrap() as u32;
-        assert_eq!(idx.position(b), Position { line: 2, column: 2 });
+        assert_eq!(
+            idx.position(b),
+            Position {
+                line: 2,
+                column: 2,
+                offset: 4
+            }
+        );
         assert_eq!(idx.utf16(b), 4);
         let c = src.find('c').unwrap() as u32;
-        assert_eq!(idx.position(c), Position { line: 3, column: 0 });
+        assert_eq!(
+            idx.position(c),
+            Position {
+                line: 3,
+                column: 0,
+                offset: 6
+            }
+        );
         assert_eq!(idx.utf16(c), 6);
     }
 }

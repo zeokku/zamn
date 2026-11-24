@@ -47,7 +47,9 @@ in the result is moved back onto the zamn source. The HTML is not what
 still gets checked where it can be read, and source text is copied without
 changing its length so positions inside expressions stay exact.
 
-zamn's own diagnostics are reported as template errors.
+zamn's own diagnostics are reported as template errors, and its warnings (`MISLEADING_INDENTATION`) as template warnings. The editor shows both; `vue-tsc` reports type errors only, as it does for HTML templates.
+
+Vue's directive comments, such as `@vue-generic {T}` or `@vue-expect-error`, must reach Vue's compiler, so write them as `//!` comments (which become HTML comments), not `//`.
 
 ## Limits
 

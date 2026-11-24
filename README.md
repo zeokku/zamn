@@ -1,71 +1,104 @@
 # zamn
 
-A static, pug-flavoured way to write HTML, written in Rust.
+A static way to write HTML, with `{ }` blocks instead of closing tags, written in Rust.
 
-Same syntax as [pug](https://pugjs.org) for tags, classes, ids, attributes,
-text, comments and doctypes, but with no JavaScript, no control flow and no
-includes: a template is a single file. Existing static pug compiles to the
-same HTML, but for the two cases below (a bare `|`, and text that starts with
-`{` and ends with `}`).
+Tags, `.class`, `#id` and `(attributes)` on one line, children in braces, and no JavaScript, no control flow and no includes: a template is a single file that compiles to one HTML string, with a source map. The syntax for tags, classes and attributes was inspired by [pug](https://pugjs.org)'s.
 
 ```
-div
+div {
   .another-div {
     button(@click="go") Text
     p= message
   }
+}
 ```
 
 ```html
 <div><div class="another-div"><button @click="go">Text</button><p>{{ message }}</p></div></div>
 ```
 
-## Differences from pug
+## Syntax
 
-- **Brace blocks.** An element may hold its children in `{ }`. A `{` that ends
-  the line of the tag opens a block over the lines below, closed by a `}` on
-  its own line; inside, the first line sets the base indentation and
-  indentation nests as usual. A block can also open and close on one line:
-  `.cl{.cl2{b text}}`, `ul {li{a x} li{b y}}`. Inside it, text runs to the
-  closing `}` (write `\}` and `\{` for literal braces), and a child that ends
-  with `}` may be followed by another. `{{` never opens a block, so
-  `p {{ msg }}` is text; write `p \{` for text that starts with a brace.
-  In pug, `p {b}` is the text `{b}`: this is where static pug compiles
-  differently.
-- **`tag= expr`** emits `{{ expr }}`. The expression is not parsed.
-- **Whitespace at the end of a line** is ignored everywhere: `b text  ` is
-  `<b>text</b>`. A `|` on its own is one space, and is how a space between two
-  lines is written:
+**Blocks.** Children go only in `{ }`. A `{` straight after the tag head (tag, classes, ids, attributes) opens a block, which closes at its matching `}`, on the same line or a later one. A statement ends at the end of its line, at a `}` that closes its block, or at the `}` that ends its own block, after which another may follow: `ul { li { a(href="/") Home } li { b y } }`. `}}` closes two blocks. `tag: child` puts one child on the same line: `li: a(href="/") Home`.
 
-  ```
-  p {
-    b this
-    |
-    | is
-    |
-    u cool
-  }
-  ```
+**Indentation means nothing.** Indent for people (Prettier does it for you). A line indented as if it were a child, without braces, is a sibling, and zamn warns about it (`MISLEADING_INDENTATION`):
 
-  ```html
-  <p><b>this</b> is <u>cool</u></p>
-  ```
+```
+p Some text
+  b bold
+```
 
-  In pug a bare `|` is an empty line of text, so here static pug compiles to
-  different (but equivalently rendered) whitespace.
-- **Braces in text** are text. Only a `{` straight after the tag and its
-  attributes opens a block: `p some { text }` and `| { text }` are text.
-- **Attribute values** are quoted strings, or unquoted as HTML allows them
-  (`href=/docs/`; a `,` or `)` ends the value). `true` makes a boolean
-  attribute; `false`, `null` and `undefined` drop it. A binding takes a value
-  in brackets without quotes (`:class={ active: on }`), and
-  `style={color: 'red'}` is written as CSS, as in pug. `!=` skips
-  escaping. Vue-style names work: `:to`, `@click`, `#slot`, `v-model.trim`.
-- **`#{...}`** in text is not special.
-- **Removed**, each with its own error: `- code`, `!=`, `if`/`else`/`unless`,
-  `case`/`when`, `each`/`for`/`while`, mixins, `include`, `extends`/`block`,
-  filters, `&attributes`, and lines of HTML (`<b>bold</b>` on a line of its
-  own: write `b bold`, or `| <b>bold</b>`, since text is not escaped).
+```html
+<p>Some text</p><b>bold</b>
+```
+
+**Text.** `p Hello`, `p | Hello` and `p |{ Hello }` are the same. A statement of text starts with `|`; a bare `|` is one space, and is how a space between two lines is written. `|{ }` may span lines: blank first and last lines are dropped and the common indentation is stripped.
+
+```
+p {
+  b this
+  |
+  | is
+  |
+  u cool
+}
+pre |{
+  if (a < b) \{
+    go();
+  \}
+}
+```
+
+```html
+<p><b>this</b> is <u>cool</u></p><pre>if (a &lt; b) {
+  go();
+}</pre>
+```
+
+**Escaping.** Text is HTML-escaped: `<`, `>` and `&` become entities, but a character reference such as `&nbsp;` or `&rarr;` passes through. Tags written in text show as text; for HTML from data, use your framework (`div(v-html="html")`). In text, `{{ expr }}` is a mustache, copied as it is; every other brace is written `\{` or `\}`. `\|` and `\#{` are a literal `|` and `#{`.
+
+**Inline elements and interpolation.** `#{...}` holds one element in the middle of text, and `= expr` writes `{{ expr }}`:
+
+```
+p Hello {{ user.name }}, read #{a(href="/docs") the docs} or #{em: b ask}.
+h1= title
+```
+
+```html
+<p>Hello {{ user.name }}, read <a href="/docs">the docs</a> or <em><b>ask</b></em>.</p><h1>{{ title }}</h1>
+```
+
+**Scripts and styles** take raw content, not parsed and not escaped, up to a `/script` or `/style` line. `script(src="/a.js")` has neither.
+
+```
+script
+  if (a < b && ready) { go() }
+/script
+```
+
+```html
+<script>if (a < b && ready) { go() }</script>
+```
+
+**Comments.** `// note` and `/* ... */` are left out of the HTML; `//! note` and `/*! ... */` are written as HTML comments. Block comments may span lines, and go wherever a statement can start.
+
+**Attributes** are quoted strings, or unquoted as HTML allows them (`href=/docs/`; a `,` or `)` ends the value). `true` or no value makes a boolean attribute, always written terse (`disabled`); `false`, `null` and `undefined` drop it. A binding takes a value in brackets without quotes (`:class={ active: on }`). `style={...}` is written as CSS, with camelCase keys turned into kebab-case and unquoted values. `!=` skips escaping a value. Vue-style names work: `:to`, `@click`, `#slot`, `v-model.trim`.
+
+```
+.w-1/2.md:flex.hover:bg-sky-700(style={fontSize: 12px, color: rgb(0, 0, 0)}) {
+  input(type="checkbox" checked hidden=false)
+}
+```
+
+```html
+<div class="w-1/2 md:flex hover:bg-sky-700" style="font-size:12px;color:rgb(0, 0, 0);"><input type="checkbox" checked></div>
+```
+
+Class shorthands take Tailwind-style names: `md:flex`, `w-1/2`, `px-2.5`, `[&>*]:p-2`, `!mt-0`, `bg-(--brand)`.
+
+**Output** is always HTML5: `<img>` and `<br>` without a `/`, a closing tag for everything else. `doctype html` writes `<!DOCTYPE html>`.
+
+**Not supported**, each with its own error and a hint: `- code`, `p!= html`, `if`/`else`/`unless`, `case`/`when`, `each`/`for`/`while`, mixins, `include`, `extends`/`block`, filters, `&attributes`, lines of HTML, and the forms zamn writes another way: `#[...]` (write `#{...}`), `tag.` text blocks (`|{ }`, or `/script` content), and `tag/`.
 
 ## Layout
 
@@ -86,26 +119,24 @@ div
 | `docs` | the documentation site (VitePress), with the playground, the blog and the token measurements |
 | `agents` | rules to paste into an agent's context so it writes valid zamn |
 | `skills` | a Claude Code skill for writing zamn |
-| `tests/fixtures` | shared fixtures; `pug/` holds pug's own test cases |
+| `tests/fixtures` | shared fixtures; `pug/` holds pug's own test cases, kept for the coming pug converter |
 
-The lexer and parser never fail: they report every problem as a diagnostic
-(code, message, hint, span) and carry on.
+The lexer and parser never fail: they report every problem as a diagnostic (code, severity, message, hint, span) and carry on. Errors stop compilation; warnings don't.
 
 ## Use
 
 ```sh
 cargo run -p zamn -- page.zamn -o page.html --map page.html.map
-cargo run -p zamn -- --validate page.zamn Component.vue  # errors only, or nothing
+cargo run -p zamn -- --validate page.zamn Component.vue  # errors and warnings, or nothing; fails on errors only
 ```
 
 ```ts
 import { compile, parse } from "zamn";
 
-const { code, map } = compile(source, {
+const { code, map, warnings } = compile(source, {
   filename: "page.zamn",
   sourceMap: true,
-  doctype: "html", // terse output without emitting a doctype (use for Vue)
-});
+}); // throws a ZamnError on errors
 
 const { ast, diagnostics } = parse(source); // ranges and locs are UTF-16, ESLint style
 ```
@@ -116,10 +147,7 @@ const { ast, diagnostics } = parse(source); // ranges and locs are UTF-16, ESLin
 bun install
 bun run build     # Rust workspace + WASM package
 bun run test      # cargo test + package tests
-bun run parity    # diff against real pug on tests/fixtures/pug
 bun run docs:dev  # the documentation site; see docs/README.md
 ```
 
-The WASM build needs `rustup target add wasm32-unknown-unknown` and
-`cargo install wasm-bindgen-cli --version 0.2.130`. Snapshots are updated with
-`INSTA_UPDATE=always cargo test`.
+The WASM build needs `rustup target add wasm32-unknown-unknown` and `cargo install wasm-bindgen-cli --version 0.2.130`. Snapshots are updated with `INSTA_UPDATE=always cargo test`.

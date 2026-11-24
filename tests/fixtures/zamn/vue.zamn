@@ -1,8 +1,9 @@
-.card(:class="{ active: isActive }" @click="select(item)")
+.card(:class="{ active: isActive }" @click="select(item)") {
   h2.title= item.title
   p(v-if="item.body && item.body.length > 0")= item.body
   = footer
   MyButton(v-model.trim="value" #default="{ row }" disabled) Go
-  input(type="checkbox" checked=true hidden=false)/
+  input(type="checkbox" checked=true hidden=false)
   img(src="/a.png" alt='say "hi"')
-  p Plain #[strong= count] items, #{not} interpolated
+  p Plain #{strong= count} items, \#{not\} interpolated
+}

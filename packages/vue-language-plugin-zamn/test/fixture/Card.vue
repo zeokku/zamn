@@ -4,7 +4,8 @@ defineEmits<{ select: [id: number] }>();
 </script>
 
 <template lang="zamn">
-.card
+.card {
   h2.title= title
   slot(:row="{ id: 1 }")
+}
 </template>

@@ -26,7 +26,6 @@ export const variants = {
   zamnFlat: "zamn, flat braces",
   zamnOneLine: "zamn, one-line blocks",
   zamnUnquoted: "zamn, one-line blocks, simple values unquoted",
-  zamnIndent: "zamn, 1-space indentation",
   zamnFormatted: "zamn, formatted",
   htmlMinified: "HTML, minified",
   htmlFormatted: "HTML, formatted",
@@ -39,17 +38,14 @@ const zamn = (source: string, options: prettier.Options = {}) =>
 /** Every form of one page. */
 export async function render(source: string): Promise<Record<Variant, string>> {
   const terse = { zamnMaxAttributesPerLine: false, printWidth: Number.MAX_SAFE_INTEGER } as const;
-  const htmlMinified = compile(source, { doctype: "html" }).code;
+  const htmlMinified = compile(source).code;
   return {
-    // Braces around every block, and no indentation at all: a brace block's
-    // base indentation is free.
+    // No indentation at all: it means nothing to zamn.
     zamnFlat: await zamn(source, { ...terse, tabWidth: 0 }),
-    // Flat braces, with every block that can close on its line written on one.
+    // Flat braces, with every block that can be written on one line folded onto it.
     zamnOneLine: oneLine(await zamn(source, { ...terse, tabWidth: 0 })),
     // The same, with quotes left off as the agent rules allow.
     zamnUnquoted: unquote(oneLine(await zamn(source, { ...terse, tabWidth: 0 }))),
-    // No braces, one space per level.
-    zamnIndent: await zamn(source, { ...terse, tabWidth: 1, zamnBlockStyle: "preserve" }),
     // What prettier-plugin-zamn prints with its default options.
     zamnFormatted: await zamn(source),
     htmlMinified,
@@ -61,40 +57,52 @@ export async function render(source: string): Promise<Record<Variant, string>> {
   };
 }
 
-type Line = string | { head: string; children: Line[] };
+/** `ends`: the line ends with a `}` after which another statement may follow. */
+type Line = { text: string; ends: boolean; comment?: boolean } | { head: string; children: Line[] };
 
 /**
  * Folds the blocks of the flat-braces form onto one line where zamn allows it:
  * `ul {` / `li{a x}` / `}` becomes `ul{li{a x}}`. Text and `= expr` run to the
- * closing `}`, so a block folds only if every child but the last ends in `}`
- * or `/`. The input must have no text blocks (`p.`) or values that span lines.
+ * closing `}`, so a block folds only if every child but the last ends with a
+ * `}` that closes its own block or `|{ }`, and the last is no `//` comment,
+ * which would run past the `}`. Blocks that hold lines of a
+ * `|{ }`, of raw `script`/`style` content or of a value that spans lines
+ * never fold, since those lines don't end that way.
  */
 export function oneLine(flat: string): string {
   const lines = flat.replace(/\n$/, "").split("\n");
-  const opens = new Set<number>();
+  // The last token of each line, by the 0-based line it ends on.
+  const last = new Map<number, string>();
   for (const token of lex(flat).tokens) {
-    if (token.type === "BraceOpen") opens.add(token.loc.start.line - 1);
+    if (["Newline", "TextNewline", "Eos"].includes(token.type)) continue;
+    last.set(token.loc.end.line - 1, token.type);
   }
   const root: Line[] = [];
   const stack = [root];
   lines.forEach((line, i) => {
-    if (line === "}") stack.pop();
-    else if (opens.has(i)) {
+    const type = last.get(i);
+    if (line === "}" && type === "BraceClose" && stack.length > 1) stack.pop();
+    else if (type === "BraceOpen") {
       const block = { head: line.slice(0, -1).trimEnd(), children: [] };
       stack.at(-1)!.push(block);
       stack.push(block.children);
-    } else stack.at(-1)!.push(line);
-  });
-  const print = (line: Line): string[] => {
-    if (typeof line === "string") return [line];
-    const children = line.children.map(print);
-    const folded = children.every((c) => c.length === 1) ? children.map((c) => c[0]) : null;
-    if (folded && folded.slice(0, -1).every((c) => /[}/]$/.test(c))) {
-      return [`${line.head}{${folded.join(" ")}}`];
+    } else {
+      const ends = type === "BraceClose" || type === "PipeClose";
+      // A `//` comment runs to the end of the line, so it can't be folded.
+      stack.at(-1)!.push({ text: line, ends, comment: type === "Comment" || type === "SilentComment" });
     }
-    return [`${line.head} {`, ...children.flat(), "}"];
+  });
+  type Printed = { text: string; ends: boolean; comment?: boolean }[];
+  const print = (line: Line): Printed => {
+    if ("text" in line) return [line];
+    const children = line.children.map(print);
+    const folded = children.every((c) => c.length === 1) ? children.map((c) => c[0]!) : null;
+    if (folded && folded.slice(0, -1).every((c) => c.ends) && !folded.at(-1)?.comment) {
+      return [{ text: `${line.head}{${folded.map((c) => c.text).join(" ")}}`, ends: true }];
+    }
+    return [{ text: `${line.head} {`, ends: false }, ...children.flat(), { text: "}", ends: true }];
   };
-  return root.flatMap(print).join("\n") + "\n";
+  return root.flatMap(print).map((l) => l.text).join("\n") + "\n";
 }
 
 /** Whether zamn copies this attribute's bracketed value as written: a binding. */

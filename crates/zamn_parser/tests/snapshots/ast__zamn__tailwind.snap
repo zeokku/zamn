@@ -1,0 +1,541 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: json
+---
+{
+  "nodes": [
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 0,
+        "end": 3
+      },
+      "attrs": [
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 3,
+            "end": 12
+          },
+          "value": "w-[10px]",
+          "valueSpan": {
+            "start": 4,
+            "end": 12
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 3,
+            "end": 12
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 12,
+            "end": 29
+          },
+          "value": "hover:bg-red-500",
+          "valueSpan": {
+            "start": 13,
+            "end": 29
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 12,
+            "end": 29
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 29,
+            "end": 38
+          },
+          "value": "md:w-1/2",
+          "valueSpan": {
+            "start": 30,
+            "end": 38
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 29,
+            "end": 38
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 38,
+            "end": 52
+          },
+          "value": "bg-red-500/50",
+          "valueSpan": {
+            "start": 39,
+            "end": 52
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 38,
+            "end": 52
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "x",
+          "span": {
+            "start": 53,
+            "end": 54
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 0,
+        "end": 54
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 55,
+        "end": 58
+      },
+      "attrs": [
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 58,
+            "end": 80
+          },
+          "value": "group-hover/item:flex",
+          "valueSpan": {
+            "start": 59,
+            "end": 80
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 58,
+            "end": 80
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 80,
+            "end": 90
+          },
+          "value": "[&>*]:p-2",
+          "valueSpan": {
+            "start": 81,
+            "end": 90
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 80,
+            "end": 90
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 90,
+            "end": 114
+          },
+          "value": "data-[state=open]:block",
+          "valueSpan": {
+            "start": 91,
+            "end": 114
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 90,
+            "end": 114
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "y",
+          "span": {
+            "start": 115,
+            "end": 116
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 55,
+        "end": 116
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 117,
+        "end": 120
+      },
+      "attrs": [
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 120,
+            "end": 134
+          },
+          "value": "content-['a']",
+          "valueSpan": {
+            "start": 121,
+            "end": 134
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 120,
+            "end": 134
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 134,
+            "end": 147
+          },
+          "value": "bg-(--brand)",
+          "valueSpan": {
+            "start": 135,
+            "end": 147
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 134,
+            "end": 147
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 147,
+            "end": 158
+          },
+          "value": "!font-bold",
+          "valueSpan": {
+            "start": 148,
+            "end": 158
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 147,
+            "end": 158
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 158,
+            "end": 169
+          },
+          "value": "font-bold!",
+          "valueSpan": {
+            "start": 159,
+            "end": 169
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 158,
+            "end": 169
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "z",
+          "span": {
+            "start": 170,
+            "end": 171
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 117,
+        "end": 171
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 172,
+        "end": 175
+      },
+      "attrs": [
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 175,
+            "end": 186
+          },
+          "value": "@container",
+          "valueSpan": {
+            "start": 176,
+            "end": 186
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 175,
+            "end": 186
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 186,
+            "end": 195
+          },
+          "value": "@md:flex",
+          "valueSpan": {
+            "start": 187,
+            "end": 195
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 186,
+            "end": 195
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 195,
+            "end": 201
+          },
+          "value": "*:p-2",
+          "valueSpan": {
+            "start": 196,
+            "end": 201
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 195,
+            "end": 201
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 201,
+            "end": 210
+          },
+          "value": "from-10%",
+          "valueSpan": {
+            "start": 202,
+            "end": 210
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 201,
+            "end": 210
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 210,
+            "end": 216
+          },
+          "value": "-mt-4",
+          "valueSpan": {
+            "start": 211,
+            "end": 216
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 210,
+            "end": 216
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 216,
+            "end": 222
+          },
+          "value": "p-0.5",
+          "valueSpan": {
+            "start": 217,
+            "end": 222
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 216,
+            "end": 222
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 222,
+            "end": 231
+          },
+          "value": "2xl:flex",
+          "valueSpan": {
+            "start": 223,
+            "end": 231
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 222,
+            "end": 231
+          }
+        }
+      ],
+      "children": [],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 172,
+        "end": 231
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 232,
+        "end": 235
+      },
+      "attrs": [
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 235,
+            "end": 264
+          },
+          "value": "supports-[display:grid]:grid",
+          "valueSpan": {
+            "start": 236,
+            "end": 264
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 235,
+            "end": 264
+          }
+        },
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 264,
+            "end": 283
+          },
+          "value": "bg-[url('/a.png')]",
+          "valueSpan": {
+            "start": 265,
+            "end": 283
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 264,
+            "end": 283
+          }
+        }
+      ],
+      "children": [],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 232,
+        "end": 283
+      }
+    },
+    {
+      "type": "Element",
+      "name": "li",
+      "nameSpan": {
+        "start": 284,
+        "end": 286
+      },
+      "attrs": [
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 286,
+            "end": 288
+          },
+          "value": "a",
+          "valueSpan": {
+            "start": 287,
+            "end": 288
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 286,
+            "end": 288
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Element",
+          "name": "b",
+          "nameSpan": {
+            "start": 290,
+            "end": 291
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "expansion after a class",
+              "span": {
+                "start": 292,
+                "end": 315
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 290,
+            "end": 315
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 284,
+        "end": 315
+      }
+    }
+  ]
+}

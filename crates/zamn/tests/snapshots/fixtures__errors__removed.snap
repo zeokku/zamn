@@ -6,31 +6,31 @@ removed.zamn:1:1: error[UNSUPPORTED_SYNTAX]: Unbuffered code (`- ...`) is not su
   hint: zamn has no JavaScript; move the logic into your component
 removed.zamn:2:1: error[UNSUPPORTED_SYNTAX]: `if` (control flow) is not supported
   hint: zamn has no control flow; use your framework's directives, e.g. `div(v-if="cond")`
-removed.zamn:4:1: error[UNSUPPORTED_SYNTAX]: `else` (control flow) is not supported
+removed.zamn:7:1: error[UNSUPPORTED_SYNTAX]: `each` (control flow) is not supported
   hint: zamn has no control flow; use your framework's directives, e.g. `div(v-if="cond")`
-removed.zamn:6:1: error[UNSUPPORTED_SYNTAX]: `each` (control flow) is not supported
-  hint: zamn has no control flow; use your framework's directives, e.g. `div(v-if="cond")`
-removed.zamn:8:1: error[UNSUPPORTED_SYNTAX]: `mixin` (mixins) is not supported
+removed.zamn:10:1: error[UNSUPPORTED_SYNTAX]: `mixin` (mixins) is not supported
   hint: use a component instead
-removed.zamn:10:1: error[UNSUPPORTED_SYNTAX]: A mixin call is not supported
+removed.zamn:13:1: error[UNSUPPORTED_SYNTAX]: A mixin call is not supported
   hint: use a component instead
-removed.zamn:11:1: error[UNSUPPORTED_SYNTAX]: `extends` (template inheritance) is not supported
+removed.zamn:14:1: error[UNSUPPORTED_SYNTAX]: `extends` (template inheritance) is not supported
   hint: a zamn template is a single file; compose with components instead
-removed.zamn:12:1: error[UNSUPPORTED_SYNTAX]: `block` (template inheritance) is not supported
+removed.zamn:15:1: error[UNSUPPORTED_SYNTAX]: `block` (template inheritance) is not supported
   hint: a zamn template is a single file; compose with components instead
-removed.zamn:14:2: error[UNSUPPORTED_SYNTAX]: Unescaped buffered code (`!=`) is not supported
+removed.zamn:18:2: error[UNSUPPORTED_SYNTAX]: Unescaped buffered code (`!=`) is not supported
   hint: use `=` for `{{ }}` interpolation, or `v-html` for raw HTML
-removed.zamn:15:4: error[UNSUPPORTED_SYNTAX]: `&attributes` is not supported
+removed.zamn:19:4: error[UNSUPPORTED_SYNTAX]: `&attributes` is not supported
   hint: zamn has no JavaScript; list the attributes explicitly
-removed.zamn:16:1: error[UNSUPPORTED_SYNTAX]: A filter is not supported
+removed.zamn:20:1: error[UNSUPPORTED_SYNTAX]: A filter is not supported
   hint: zamn has no filters
-removed.zamn:18:1: error[UNSUPPORTED_SYNTAX]: An interpolated tag name (`#{...}`) is not supported
-  hint: write the tag name literally
-removed.zamn:19:1: error[UNSUPPORTED_SYNTAX]: `include` (includes) is not supported
+removed.zamn:21:1: error[UNSUPPORTED_SYNTAX]: `include` (includes) is not supported
   hint: a zamn template is a single file; compose with components instead
-removed.zamn:20:1: error[UNSUPPORTED_SYNTAX]: `include` (includes) is not supported
+removed.zamn:22:1: error[UNSUPPORTED_SYNTAX]: `include` (includes) is not supported
   hint: a zamn template is a single file; compose with components instead
-removed.zamn:21:1: error[UNSUPPORTED_SYNTAX]: A line of HTML is not supported
-  hint: write it as a tag, or as text after `|`
 removed.zamn:23:1: error[UNSUPPORTED_SYNTAX]: A line of HTML is not supported
-  hint: write it as a tag, or as text after `|`
+  hint: write it as an element (`b bold`); text is escaped
+removed.zamn:26:3: error[UNSUPPORTED_SYNTAX]: `#[...]` is not supported
+  hint: write an inline element as `#{...}`
+removed.zamn:27:2: error[UNSUPPORTED_SYNTAX]: A text block (`tag.`) is not supported
+  hint: write text in `|{ ... }`; a `script` or `style` takes the lines below it, ended by `/script` or `/style`
+removed.zamn:28:4: error[UNSUPPORTED_SYNTAX]: A self-closing `/` is not supported
+  hint: drop the `/`: HTML elements such as `img` need no closing

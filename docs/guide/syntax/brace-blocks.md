@@ -1,95 +1,110 @@
 # Brace blocks
 
-An element holds its children in `{ }`. This is the recommended style, and the one
-[Prettier](../../ecosystem/prettier) writes: a block visibly starts and ends, so long
-templates stay easy to follow.
+An element holds its children in `{ }`. It is the only way to nest: a block visibly starts and ends, so long templates stay easy to follow, and indentation is free to show the structure the way you like.
 
 ```zamn
-div
+div {
   .another-div {
     button(@click="go") Text
     p= message
   }
+}
 ```
 
 ```html
 <div><div class="another-div"><button @click="go">Text</button><p>{{ message }}</p></div></div>
 ```
 
-Braces and indentation alone (no braces) mean the same thing and can be mixed, as
-above: the `div` holds its child by indentation.
-
 ## The rules
 
-- **`{` at the end of the tag's line** opens a block over the lines below, after
-  the tag's classes, ids and attributes: `section.main(role="main") {`.
-- **`}` sits on a line of its own.**
-- **`{ }` or `{}` on the tag's line** is an empty block: `p { }` is `<p></p>`.
-- **Inside the braces, the first line sets the base indentation**, and indentation
-  nests from there as usual. The base can be anything, even no indentation at all:
+- **A `{` straight after the tag head** opens a block: after the tag and its classes, ids and attributes, as in `section.main(role="main") {`. The space before it is optional.
+- **The block closes at its matching `}`**, on the same line or on any line after it.
+- **`p {}`** (or `p { }`) is an empty block: `<p></p>`.
+- **Each child is a statement**, and a statement ends at:
+  - the end of its line;
+  - a `}`, which closes the block it is in;
+  - the `}` that ends its own block (or its [`|{ }` text](./text#text-blocks)), after which another statement may follow on the same line.
+
+So a block can open and close on one line, and hold several children there:
 
 ```zamn
-ul {
-li One
-li
-  b Two
+ul.nav { li { a(href="/") Home } li { a(href="/about") About } }
+.card { .card-body { h2 Title }}
+```
+
+```html
+<ul class="nav"><li><a href="/">Home</a></li><li><a href="/about">About</a></li></ul><div class="card"><div class="card-body"><h2>Title</h2></div></div>
+```
+
+`}}` closes two blocks, as in `.card` above, unless it ends a [`{{ }}` mustache](./interpolation#inside-text) in text.
+
+## Text ends its line
+
+Text and `= expr` run to the end of the line, or to the `}` that closes the block they are in. The only way to start another child after text is a new line:
+
+```zamn
+p { b bold i italic }
+p {
+  b bold
+  i italic
 }
 ```
 
 ```html
-<ul><li>One</li><li><b>Two</b></li></ul>
+<p><b>bold i italic</b></p><p><b>bold</b><i>italic</i></p>
 ```
 
-- **After a `}`**, the next line can't be indented deeper: children of a braced
-  element go inside its braces (`INVALID_INDENTATION`).
-- An unclosed `{` (`UNCLOSED_BRACE`) or a `}` with no `{` (`UNMATCHED_BRACE`) is an
-  error.
-
-## Blocks on one line
-
-A block can open and close on the same line. The space before the `{` is optional:
+In `= expr`, braces and quoted strings are counted, so an object literal passes through:
 
 ```zamn
-.card{.card-body{h2 Title}}
-ul.nav {li{a(href="/") Home} li{a(href="/about") About}}
+p {
+  span= ok ? { a: 1 }.a : 0
+}
 ```
 
 ```html
-<div class="card"><div class="card-body"><h2>Title</h2></div></div><ul class="nav"><li><a href="/">Home</a></li><li><a href="/about">About</a></li></ul>
+<p><span>{{ ok ? { a: 1 }.a : 0 }}</span></p>
 ```
 
-- **Each child is a statement**, as on a line of its own: `b{| bold}` is a `b`
-  with the text `bold`, but `b{bold}` is a `b` holding a `<bold>` element.
-- **Text and `= expr` run to the `}` that closes the block.** Braces inside
-  them are counted, so `{{ }}` and object literals pass through. Write `\}`
-  and `\{` for a brace that is not counted. Whitespace before the `}` means
-  nothing, as at the end of a line.
-- **A child that ends with `}` or `/`** may be followed by another child, so text
-  can only be the last one: `div{h2{| Title} p Body}`.
-- **The block closes on its line.** For children over several lines, end the
-  line with `{` instead (`UNCLOSED_BRACE`).
+## Indentation
+
+Indentation means nothing to zamn: the braces alone decide what holds what. Indent with spaces or tabs, by any amount, or not at all:
 
 ```zamn
-p{b {{ user.name }}}
-p{span= ok ? { a: 1 }.a : 0}
-p{b \} and \{ are text}
-p{img(src="a.png")/ br/}
+section {
+h2 Title
+p {
+| Text
+}
+}
 ```
 
 ```html
-<p><b>{{ user.name }}</b></p><p><span>{{ ok ? { a: 1 }.a : 0 }}</span></p><p><b>} and { are text</b></p><p><img src="a.png"/><br/></p>
+<section><h2>Title</h2><p>Text</p></section>
 ```
 
-[Prettier](../../ecosystem/prettier) prints every block over several lines.
+[Prettier](../../ecosystem/prettier) indents every block for you.
 
-## Braces that are text
+Since indentation is not structure, a line indented as if it were a child is a sibling. zamn warns about it (`MISLEADING_INDENTATION`) when a statement is indented deeper than the statement before it in the same block, and that statement left no block open:
 
-Only a `{` straight after the tag and its attributes opens a block. Everywhere
-else a brace is text:
+```zamn warning=MISLEADING_INDENTATION
+p Some text
+  b bold
+```
+
+```html
+<p>Some text</p><b>bold</b>
+```
+
+The `b` is not inside the `p`: put it in braces (`p { | Some text` and `b bold` on the lines below), or indent it as a sibling. It is a warning, not an error: the template still compiles. The first line of a block, continued attribute lists, [`|{ }` text](./text#text-blocks), [script and style content](./script-style) and comments can be indented as you like.
+
+## Braces in text
+
+Only a `{` straight after the tag head opens a block. In text, `{{ ... }}` is a [mustache](./interpolation#inside-text), and every other brace is written `\{` or `\}`:
 
 ```zamn
-p some { text }
-| { more text }
+p some \{ text \}
+| \{ more text \}
 p {{ message }}
 ```
 
@@ -97,17 +112,14 @@ p {{ message }}
 <p>some { text }</p>{ more text }<p>{{ message }}</p>
 ```
 
-`{{` never opens a block, so `p {{ message }}` is text, as Vue expects.
+`{{` never opens a block, so `p {{ message }}` is text, as Vue expects. `p {b}` is a `p` holding a `<b>` element; `p \{b\}` is the text `{b}`.
 
-To start an element's text with a literal brace, escape it:
+A `{` left bare in text is an error (`UNESCAPED_BRACE`), and a bare `}` closes the block, so a brace in text never goes unnoticed.
 
-```zamn
-p \{
-p \{ not a block }
-```
+## Errors
 
-```html
-<p>{</p><p>{ not a block }</p>
-```
+- A `{` that is never closed: `UNCLOSED_BRACE`.
+- A `}` with no `{` to close: `UNMATCHED_BRACE`.
+- A bare `{` in text: `UNESCAPED_BRACE`.
 
-`p {b}` is a `p` holding a `<b>` element; `p \{b}` is the text `{b}`.
+See [Diagnostics](../../reference/diagnostics#blocks).

@@ -1,0 +1,5 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: html(&file)
+---
+<div class="w-[10px] hover:bg-red-500 md:w-1/2 bg-red-500/50">x</div><div class="group-hover/item:flex [&>*]:p-2 data-[state=open]:block">y</div><div class="content-['a'] bg-(--brand) !font-bold font-bold!">z</div><div class="@container @md:flex *:p-2 from-10% -mt-4 p-0.5 2xl:flex"></div><div class="supports-[display:grid]:grid bg-[url('/a.png')]"></div><li class="a"><b>expansion after a class</b></li>

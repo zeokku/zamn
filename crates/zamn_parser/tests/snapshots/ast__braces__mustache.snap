@@ -1,0 +1,222 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: json
+---
+{
+  "nodes": [
+    {
+      "type": "Element",
+      "name": "ul",
+      "nameSpan": {
+        "start": 0,
+        "end": 2
+      },
+      "attrs": [
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 2,
+            "end": 7
+          },
+          "value": "list",
+          "valueSpan": {
+            "start": 3,
+            "end": 7
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 2,
+            "end": 7
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Element",
+          "name": "li",
+          "nameSpan": {
+            "start": 12,
+            "end": 14
+          },
+          "attrs": [
+            {
+              "name": "v-for",
+              "nameSpan": {
+                "start": 15,
+                "end": 20
+              },
+              "value": "item in items",
+              "valueSpan": {
+                "start": 21,
+                "end": 36
+              },
+              "escaped": true,
+              "shorthand": null,
+              "span": {
+                "start": 15,
+                "end": 36
+              }
+            },
+            {
+              "name": ":key",
+              "nameSpan": {
+                "start": 37,
+                "end": 41
+              },
+              "value": "item.id",
+              "valueSpan": {
+                "start": 42,
+                "end": 51
+              },
+              "escaped": true,
+              "shorthand": null,
+              "span": {
+                "start": 37,
+                "end": 51
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "Mustache",
+              "value": "{{ item.name }}",
+              "span": {
+                "start": 53,
+                "end": 68
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 12,
+            "end": 68
+          }
+        },
+        {
+          "type": "Element",
+          "name": "li",
+          "nameSpan": {
+            "start": 71,
+            "end": 73
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Mustache",
+              "value": "{{ a }}",
+              "span": {
+                "start": 74,
+                "end": 81
+              }
+            },
+            {
+              "type": "Text",
+              "value": " and ",
+              "span": {
+                "start": 81,
+                "end": 86
+              }
+            },
+            {
+              "type": "Mustache",
+              "value": "{{ b }}",
+              "span": {
+                "start": 86,
+                "end": 93
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 71,
+            "end": 93
+          }
+        },
+        {
+          "type": "Element",
+          "name": "li",
+          "nameSpan": {
+            "start": 96,
+            "end": 98
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "{ literal brace",
+              "span": {
+                "start": 100,
+                "end": 115
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 96,
+            "end": 115
+          }
+        },
+        {
+          "type": "Element",
+          "name": "li",
+          "nameSpan": {
+            "start": 118,
+            "end": 120
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "{",
+              "span": {
+                "start": 122,
+                "end": 123
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 118,
+            "end": 123
+          }
+        },
+        {
+          "type": "Element",
+          "name": "li",
+          "nameSpan": {
+            "start": 126,
+            "end": 128
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "{ piped brace }",
+              "span": {
+                "start": 138,
+                "end": 154
+              }
+            }
+          ],
+          "braced": true,
+          "raw": false,
+          "span": {
+            "start": 126,
+            "end": 158
+          }
+        }
+      ],
+      "braced": true,
+      "raw": false,
+      "span": {
+        "start": 0,
+        "end": 160
+      }
+    }
+  ]
+}

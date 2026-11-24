@@ -1,0 +1,6 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: html(&file)
+---
+<!-- a comment for the HTML--><!-- kept
+    as written --><div><b>x</b></div><p><b>x /* text, not a comment */</b><a href="https://x.y">https://x.y // text too</a></p>

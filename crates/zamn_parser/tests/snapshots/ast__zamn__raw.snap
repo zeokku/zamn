@@ -1,0 +1,234 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: json
+---
+{
+  "nodes": [
+    {
+      "type": "Element",
+      "name": "script",
+      "nameSpan": {
+        "start": 0,
+        "end": 6
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "if (a < b && c) {\n  go(\"{\");\n}\n  // relative indentation stays",
+          "span": {
+            "start": 9,
+            "end": 77
+          }
+        }
+      ],
+      "braced": false,
+      "raw": true,
+      "span": {
+        "start": 0,
+        "end": 85
+      }
+    },
+    {
+      "type": "Element",
+      "name": "script",
+      "nameSpan": {
+        "start": 86,
+        "end": 92
+      },
+      "attrs": [
+        {
+          "name": "src",
+          "nameSpan": {
+            "start": 93,
+            "end": 96
+          },
+          "value": "a.js",
+          "valueSpan": {
+            "start": 97,
+            "end": 103
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 93,
+            "end": 103
+          }
+        }
+      ],
+      "children": [],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 86,
+        "end": 104
+      }
+    },
+    {
+      "type": "Element",
+      "name": "script",
+      "nameSpan": {
+        "start": 105,
+        "end": 111
+      },
+      "attrs": [
+        {
+          "name": ":src",
+          "nameSpan": {
+            "start": 112,
+            "end": 116
+          },
+          "value": "url",
+          "valueSpan": {
+            "start": 117,
+            "end": 122
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 112,
+            "end": 122
+          }
+        },
+        {
+          "name": "defer",
+          "nameSpan": {
+            "start": 123,
+            "end": 128
+          },
+          "value": true,
+          "valueSpan": null,
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 123,
+            "end": 128
+          }
+        }
+      ],
+      "children": [],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 105,
+        "end": 129
+      }
+    },
+    {
+      "type": "Element",
+      "name": "style",
+      "nameSpan": {
+        "start": 130,
+        "end": 135
+      },
+      "attrs": [
+        {
+          "name": "scoped",
+          "nameSpan": {
+            "start": 136,
+            "end": 142
+          },
+          "value": true,
+          "valueSpan": null,
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 136,
+            "end": 142
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": ".a > .b { color: red }",
+          "span": {
+            "start": 147,
+            "end": 169
+          }
+        }
+      ],
+      "braced": false,
+      "raw": true,
+      "span": {
+        "start": 130,
+        "end": 177
+      }
+    },
+    {
+      "type": "Element",
+      "name": "pre",
+      "nameSpan": {
+        "start": 178,
+        "end": 181
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "first line\n  indented\nlast line",
+          "span": {
+            "start": 187,
+            "end": 222
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 178,
+        "end": 224
+      }
+    },
+    {
+      "type": "Element",
+      "name": "pre",
+      "nameSpan": {
+        "start": 225,
+        "end": 228
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "one\n  two",
+          "span": {
+            "start": 240,
+            "end": 253
+          }
+        }
+      ],
+      "braced": true,
+      "raw": false,
+      "span": {
+        "start": 225,
+        "end": 259
+      }
+    },
+    {
+      "type": "Element",
+      "name": "pre",
+      "nameSpan": {
+        "start": 260,
+        "end": 263
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "one line",
+          "span": {
+            "start": 267,
+            "end": 275
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 260,
+        "end": 277
+      }
+    }
+  ]
+}

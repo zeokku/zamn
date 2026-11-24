@@ -21,19 +21,19 @@ expression: json
             {
               "name": "class",
               "nameSpan": {
-                "start": 6,
-                "end": 18
+                "start": 8,
+                "end": 20
               },
               "value": "another-div",
               "valueSpan": {
-                "start": 7,
-                "end": 18
+                "start": 9,
+                "end": 20
               },
               "escaped": false,
               "shorthand": "Class",
               "span": {
-                "start": 6,
-                "end": 18
+                "start": 8,
+                "end": 20
               }
             }
           ],
@@ -42,8 +42,8 @@ expression: json
               "type": "Element",
               "name": "button",
               "nameSpan": {
-                "start": 25,
-                "end": 31
+                "start": 27,
+                "end": 33
               },
               "attrs": [],
               "children": [
@@ -51,48 +51,48 @@ expression: json
                   "type": "Text",
                   "value": "Text",
                   "span": {
-                    "start": 32,
-                    "end": 36
+                    "start": 34,
+                    "end": 38
                   }
                 }
               ],
               "braced": false,
-              "selfClosing": false,
+              "raw": false,
               "span": {
-                "start": 25,
-                "end": 36
+                "start": 27,
+                "end": 38
               }
             },
             {
               "type": "Element",
               "name": "p",
               "nameSpan": {
-                "start": 41,
-                "end": 42
+                "start": 43,
+                "end": 44
               },
               "attrs": [],
               "children": [],
               "braced": true,
-              "selfClosing": false,
+              "raw": false,
               "span": {
-                "start": 41,
-                "end": 46
+                "start": 43,
+                "end": 47
               }
             }
           ],
           "braced": true,
-          "selfClosing": false,
+          "raw": false,
           "span": {
-            "start": 6,
-            "end": 50
+            "start": 8,
+            "end": 51
           }
         }
       ],
-      "braced": false,
-      "selfClosing": false,
+      "braced": true,
+      "raw": false,
       "span": {
         "start": 0,
-        "end": 51
+        "end": 53
       }
     }
   ]

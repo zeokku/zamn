@@ -1,4 +1,4 @@
-//! zamn: a static, pug-flavoured way to write HTML.
+//! zamn: a static way to write HTML with `{ }` blocks.
 //!
 //! This crate ties the lexer, parser and code generator together.
 
@@ -11,7 +11,7 @@ pub use zamn_parser as parser;
 pub mod vue;
 
 use zamn_codegen::sourcemap;
-use zamn_lexer::{Diagnostic, LineIndex, Loc};
+use zamn_lexer::{Diagnostic, LineIndex, Loc, Severity};
 
 #[derive(Clone, Debug)]
 pub struct CompileOptions {
@@ -39,6 +39,7 @@ impl Default for CompileOptions {
 pub struct FileDiagnostic {
     pub filename: String,
     pub code: &'static str,
+    pub severity: Severity,
     pub message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hint: Option<String>,
@@ -53,11 +54,16 @@ impl FileDiagnostic {
         FileDiagnostic {
             filename: filename.to_string(),
             code: d.code,
+            severity: d.severity,
             message: d.message,
             hint: d.hint,
             range: index.range(d.span),
             loc: index.loc(d.span),
         }
+    }
+
+    pub fn is_error(&self) -> bool {
+        self.severity == Severity::Error
     }
 }
 
@@ -65,10 +71,14 @@ impl std::fmt::Display for FileDiagnostic {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}:{}:{}: error[{}]: {}",
+            "{}:{}:{}: {}[{}]: {}",
             self.filename,
             self.loc.start.line,
             self.loc.start.column + 1,
+            match self.severity {
+                Severity::Error => "error",
+                Severity::Warning => "warning",
+            },
             self.code,
             self.message
         )?;
@@ -80,12 +90,19 @@ impl std::fmt::Display for FileDiagnostic {
 }
 
 pub struct Compiled {
-    /// Best-effort HTML; do not use it when `diagnostics` is non-empty.
+    /// Best-effort HTML; do not use it when `diagnostics` holds an error.
     pub code: String,
     /// Source map JSON, when requested.
     pub map: Option<String>,
-    /// Every diagnostic is an error.
+    /// Errors and warnings, in source order.
     pub diagnostics: Vec<FileDiagnostic>,
+}
+
+impl Compiled {
+    /// Whether any diagnostic is an error (warnings don't count).
+    pub fn has_errors(&self) -> bool {
+        self.diagnostics.iter().any(FileDiagnostic::is_error)
+    }
 }
 
 /// Compile a template to HTML.
@@ -147,4 +164,41 @@ fn generate(source: &str, options: &CompileOptions) -> (String, Option<String>, 
     diagnostics.extend(output.diagnostics);
     diagnostics.sort_by_key(|d| d.span.start);
     (output.html, map, diagnostics)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use zamn_lexer::Span;
+
+    #[test]
+    fn diagnostics_print_their_severity() {
+        let source = "div {\n  p a\n    😀 b\n}";
+        let at = source.find('😀').unwrap();
+        let span = Span::new(at, at + 4);
+        let warning = FileDiagnostic::new(
+            "a.zamn",
+            source,
+            Diagnostic::warning("MISLEADING_INDENTATION", "misleading", span),
+        );
+        assert!(!warning.is_error());
+        assert_eq!(
+            warning.to_string(),
+            "a.zamn:3:5: warning[MISLEADING_INDENTATION]: misleading"
+        );
+        assert_eq!(warning.range, [16, 18]);
+        assert_eq!(warning.loc.end.offset, 18);
+        let error = FileDiagnostic::new(
+            "a.zamn",
+            source,
+            Diagnostic::new("UNCLOSED_BRACE", "unclosed", Span::new(4, 5)).with_hint("close it"),
+        );
+        assert!(error.is_error());
+        assert_eq!(
+            error.to_string(),
+            "a.zamn:1:5: error[UNCLOSED_BRACE]: unclosed\n  hint: close it"
+        );
+        let json = serde_json::to_value(&warning).unwrap();
+        assert_eq!(json["severity"], "warning");
+    }
 }

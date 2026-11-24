@@ -1,0 +1,211 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: json
+---
+{
+  "nodes": [
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 0,
+        "end": 3
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "some text <b>real bold lol</b>",
+          "span": {
+            "start": 4,
+            "end": 34
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 0,
+        "end": 34
+      }
+    },
+    {
+      "type": "Element",
+      "name": "p",
+      "nameSpan": {
+        "start": 35,
+        "end": 36
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "a&nbsp;b &copy 2024 &#123; &#x1F; & a < b > c",
+          "span": {
+            "start": 37,
+            "end": 82
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 35,
+        "end": 82
+      }
+    },
+    {
+      "type": "Element",
+      "name": "p",
+      "nameSpan": {
+        "start": 83,
+        "end": 84
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Mustache",
+          "value": "{{ a < b }}",
+          "span": {
+            "start": 85,
+            "end": 96
+          }
+        },
+        {
+          "type": "Text",
+          "value": " and ",
+          "span": {
+            "start": 96,
+            "end": 101
+          }
+        },
+        {
+          "type": "Mustache",
+          "value": "{{ c && d }}",
+          "span": {
+            "start": 101,
+            "end": 113
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 83,
+        "end": 113
+      }
+    },
+    {
+      "type": "Element",
+      "name": "p",
+      "nameSpan": {
+        "start": 114,
+        "end": 115
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "\"quotes\" and 'apostrophes'",
+          "span": {
+            "start": 116,
+            "end": 142
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 114,
+        "end": 142
+      }
+    },
+    {
+      "type": "Element",
+      "name": "a",
+      "nameSpan": {
+        "start": 143,
+        "end": 144
+      },
+      "attrs": [
+        {
+          "name": "href",
+          "nameSpan": {
+            "start": 145,
+            "end": 149
+          },
+          "value": "/?a=1&b=2",
+          "valueSpan": {
+            "start": 150,
+            "end": 161
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 145,
+            "end": 161
+          }
+        },
+        {
+          "name": "title",
+          "nameSpan": {
+            "start": 162,
+            "end": 167
+          },
+          "value": "<x>",
+          "valueSpan": {
+            "start": 168,
+            "end": 173
+          },
+          "escaped": true,
+          "shorthand": null,
+          "span": {
+            "start": 162,
+            "end": 173
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Text",
+          "value": "Link",
+          "span": {
+            "start": 175,
+            "end": 179
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 143,
+        "end": 179
+      }
+    },
+    {
+      "type": "Element",
+      "name": "pre",
+      "nameSpan": {
+        "start": 180,
+        "end": 183
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "<code> & </code>",
+          "span": {
+            "start": 189,
+            "end": 205
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 180,
+        "end": 207
+      }
+    }
+  ]
+}

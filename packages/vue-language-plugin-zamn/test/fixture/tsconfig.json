@@ -10,6 +10,6 @@
   },
   "include": ["*.vue"],
   "vueCompilerOptions": {
-    "plugins": ["../../index.js"]
+    "plugins": ["../../dist/index.js"]
   }
 }

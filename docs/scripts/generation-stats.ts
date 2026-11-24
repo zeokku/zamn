@@ -182,9 +182,9 @@ export interface GenerationStats {
 const TERSE_STEP = `1. Write the tersest form: every element with children in \`{ }\`, no
    indentation, no optional spaces, attributes on the tag's line. Leave quotes
    off values that don't need them, following the quoting rule above
-   (\`href=/docs\`, \`:class={ active: on }\`, but \`@click="save()"\`). Text blocks
-   (\`tag.\`) and multi-line attribute values keep their indentation. A block
-   whose children allow it may close on its line (\`a(href="/"){img(src="/a.svg")}\`);
+   (\`href=/docs\`, \`:class={ active: on }\`, but \`@click="save()"\`). Multi-line
+   \`|{ }\` text, \`script\`/\`style\` content and attribute values keep their
+   indentation. A block whose children allow it may close on its line (\`a(href="/"){img(src="/a.svg")}\`);
    that saves about 1%, so don't rewrite text to make blocks fit.
 
    \`\`\`zamn
@@ -206,7 +206,7 @@ Check these, the usual mistakes, and nothing else:
 
 - every value with a space, a comma, a quote or a bracket is quoted;
 - every line of text starts with \`|\`, unless it follows its tag on the tag's line;
-- every \`{\` that ends a line has its \`}\` on a line of its own;
+- every \`{\` has its \`}\`, and every other brace in text is written \`\\{\` or \`\\}\`;
 - a \`|\` line on its own wherever two lines need a space between them.
 
 `;
@@ -220,8 +220,8 @@ async function skillText(kind: Skill) {
     return skill.slice(0, at) + CHECKLIST + skill.slice(at);
   }
   const start = skill.indexOf("1. Write readable zamn");
-  const end = skill.indexOf("2. Compile");
-  if (start < 0 || end < 0) throw new Error("SKILL.md: workflow step 1 not found");
+  const end = skill.indexOf("\n2. ", start) + 1;
+  if (start < 0 || end < 1) throw new Error("SKILL.md: workflow step 1 not found");
   return skill.slice(0, start) + TERSE_STEP + skill.slice(end);
 }
 
@@ -253,7 +253,7 @@ function extract(answer: string): string | null {
 async function check(code: string, lang: Lang): Promise<string[]> {
   if (lang === "zamn") {
     try {
-      compile(code, { doctype: "html" });
+      compile(code);
       return [];
     } catch (error) {
       if (error instanceof ZamnError) return error.diagnostics.map((d) => d.code);
@@ -280,7 +280,7 @@ interface Page {
 
 /** What an edit left undone, judged on the HTML, so both languages are judged alike. */
 function undone(code: string, lang: Lang, expect: Page["expect"]): string[] {
-  const html = lang === "zamn" ? compile(code, { doctype: "html" }).code : code;
+  const html = lang === "zamn" ? compile(code).code : code;
   return [
     ...expect.has.filter((s) => !html.includes(s)).map((s) => `MISSING ${s}`),
     ...expect.lacks.filter((s) => html.includes(s)).map((s) => `LEFT ${s}`),

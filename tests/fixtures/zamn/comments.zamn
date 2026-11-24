@@ -1,0 +1,12 @@
+// a silent comment
+//! a comment for the HTML
+//- also silent
+/* silent
+   over lines */
+/*! kept
+    as written */
+div { /* note */ b x }
+p {
+  b x /* text, not a comment */
+  a(href="https://x.y") https://x.y // text too
+}

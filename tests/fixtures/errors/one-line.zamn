@@ -1,8 +1,12 @@
-.a{.b{x}
-.a{.b{x
-p { hello
 div{if x}
-p{b x}
-  i under a closed block
-p{b x} junk
 p{#}
+p{.5}
+p{b #[i x]}
+p{b a { c}}
+p{b x}}
+p{= }
+p{a: }
+p{img/}
+p{script}
+p{#{b x}}
+p{b #{i x} #{u y z}

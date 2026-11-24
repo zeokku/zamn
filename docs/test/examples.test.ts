@@ -2,9 +2,10 @@
 //
 // - a ```zamn block whose next code block is ```html must compile to exactly
 //   that HTML;
-// - ```zamn error=CODE must report that diagnostic code;
-// - any other ```zamn block must compile without errors;
-// - ```zamn doctype=html compiles with `doctype: "html"`, as Vue templates do;
+// - ```zamn error=CODE must report that diagnostic code as an error;
+// - ```zamn warning=CODE must compile, with that warning, and to the HTML of
+//   the next block if it is ```html;
+// - any other ```zamn block must compile without errors or warnings;
 // - ```html format shows the output as Prettier lays it out (.vitepress/theme/format.ts);
 // - ```zamn skip is not checked (fragments, placeholders).
 //
@@ -61,23 +62,26 @@ for (const file of files) {
 
   describe(file, () => {
     for (const block of zamn) {
-      const doctype = option(block.meta, "doctype");
       const error = option(block.meta, "error");
+      const warning = option(block.meta, "warning");
       const next = list[list.indexOf(block) + 1];
 
       test(`line ${block.line}`, async () => {
-        const run = () => compile(block.code, { filename: "example.zamn", doctype });
+        const run = () => compile(block.code, { filename: "example.zamn" });
         if (error) {
           let codes: string[] = [];
           try {
             run();
           } catch (e) {
-            codes = (e as ZamnError).diagnostics.map((d) => d.code);
+            codes = (e as ZamnError).diagnostics.filter((d) => d.severity === "error").map((d) => d.code);
           }
           expect(codes).toContain(error);
           return;
         }
-        const { code } = run();
+        const { code, warnings } = run();
+        const codes = warnings.map((d) => d.code);
+        if (warning) expect(codes).toContain(warning);
+        else expect(codes).toEqual([]);
         if (next?.lang !== "html") return;
         if (/\bformat\b/.test(next.meta)) {
           expect((await prettier.format(code, htmlFormat)).trimEnd()).toBe(next.code);

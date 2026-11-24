@@ -3,8 +3,9 @@ source: crates/zamn/tests/fixtures.rs
 expression: html(&file)
 ---
 <p>Hello <em>world</em>, #[escaped]</p><p>piped
-text</p><p><b>html</b> in text</p><i>stays</i> as it is<script>if (a < b) {
+text</p><p>&lt;b&gt;html&lt;/b&gt; in text</p>&lt;i&gt;escaped&lt;/i&gt; as well<script>if (a < b) {
   go();
-}
-</script><!-- a comment--><!--block comment
-  stays raw--><p>ünïcödé 😀 <b>ok</b></p>
+}</script><!-- a comment--><!--
+  block comment
+    stays raw
+--><p>ünïcödé 😀 <b>ok</b></p>

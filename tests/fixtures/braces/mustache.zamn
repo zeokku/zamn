@@ -3,6 +3,7 @@ ul.list {
   li {{ a }} and {{ b }}
   li \{ literal brace
   li \{
-  li
-    | { piped brace }
+  li {
+    | \{ piped brace \}
+  }
 }

@@ -50,11 +50,7 @@ and Node 22.12 or later.
 
 ## How it works
 
-The template is turned into HTML that Vue's compiler parses, and every position in
-the result is moved back onto the zamn source. That HTML is built from
-[`parse`](../reference/api#parse), not from `compile`, so a template with errors
-is still checked wherever it can be read, and expressions keep their exact
-positions. zamn's own diagnostics are reported as template errors.
+The template is turned into HTML that Vue's compiler parses, and every position in the result is moved back onto the zamn source. That HTML is built from [`parse`](../reference/api#parse), not from `compile`, so a template with errors is still checked wherever it can be read, and expressions keep their exact positions. zamn's own errors are reported as template errors, and its warnings as warnings.
 
 ## Limits
 

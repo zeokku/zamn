@@ -13,8 +13,7 @@ const zamn = {
     done: (error: unknown, html?: string) => void,
   ) {
     try {
-      // `doctype: 'html'` writes boolean attributes as `disabled`.
-      done(null, compile(source, { filename: options.filename, doctype: "html" }).code)
+      done(null, compile(source, { filename: options.filename }).code)
     } catch (error) {
       done(error)
     }

@@ -1,5 +1,5 @@
 {
-  "comments": { "lineComment": "//-" },
+  "comments": { "lineComment": "//", "blockComment": ["/*", "*/"] },
   "brackets": [
     ["{", "}"],
     ["[", "]"],
@@ -20,6 +20,5 @@
     ["\"", "\""],
     ["'", "'"],
     ["`", "`"]
-  ],
-  "folding": { "offSide": true }
+  ]
 }

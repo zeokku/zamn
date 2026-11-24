@@ -1,7 +1,6 @@
 # Vite and Vue
 
-`@vitejs/plugin-vue` compiles `<template lang="...">` with a preprocessor it asks you
-for by name. Give it zamn:
+`@vitejs/plugin-vue` compiles `<template lang="...">` with a preprocessor it asks you for by name. Give it zamn:
 
 ```sh
 bun add -d zamn
@@ -22,7 +21,7 @@ const zamn = {
     done: (error: unknown, html?: string) => void,
   ) {
     try {
-      done(null, compile(source, { filename: options.filename, doctype: "html" }).code);
+      done(null, compile(source, { filename: options.filename }).code);
     } catch (error) {
       done(error);
     }
@@ -59,21 +58,10 @@ button.counter(type="button" @click="count++") {
 </template>
 ```
 
-## Why `doctype: "html"`
-
-Without a doctype, zamn writes boolean attributes as `disabled="disabled"` and void
-elements as `<br/>`, which is valid everywhere. A Vue template is a piece of an HTML
-page, so `doctype: "html"` makes zamn write `disabled` and `<br>` instead: the same
-template you would have written by hand in HTML. See
-[Doctypes](../guide/syntax/doctypes#assumed-doctype).
-
 ## Errors
 
-`compile` throws a [`ZamnError`](../reference/api#zamnerror) with `id` and `loc`
-set, which is what Vite prints, so the overlay points at the file and line of the
-first problem. Its message lists how many more there are.
+`compile` throws a [`ZamnError`](../reference/api#zamnerror) with `id` and `loc` set, which is what Vite prints, so the overlay points at the file and line of the first problem. Its message lists how many more there are. Warnings don't stop the build; `compile` returns them in `warnings`, and [ESLint](./eslint) reports them in the editor.
 
 ## Without Vue
 
-For plain HTML pages, call [`compile`](../reference/api#compile) from your build
-script, or use the [CLI](../reference/cli).
+For plain HTML pages, call [`compile`](../reference/api#compile) from your build script, or use the [CLI](../reference/cli).

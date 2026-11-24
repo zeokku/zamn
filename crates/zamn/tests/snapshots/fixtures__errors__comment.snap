@@ -1,0 +1,6 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: "report.join(\"\\n\")"
+---
+comment.zamn:3:3: error[UNCLOSED_COMMENT]: This comment is never closed
+  hint: close it with `*/`

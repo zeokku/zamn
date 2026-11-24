@@ -1,24 +1,29 @@
 - var x = 1
-if x
+if x {
   p yes
-else
+} else {
   p no
-each item in items
+}
+each item in items {
   li= item
-mixin card
+}
+mixin card {
   .card
+}
 +card
 extends layout
-block content
+block content {
   p hi
+}
 p!= html
 div&attributes(attrs)
 :markdown
-  # hi
-#{tag} text
 include partials/item
 include:md readme.md
 <div class="raw">
   <span>html</span>
 </div>
+p #[b old] interpolation
+p.
+img/
 p kept

@@ -1,0 +1,5 @@
+---
+source: crates/zamn/tests/fixtures.rs
+expression: html(&file)
+---
+<div>some text &lt;b&gt;real bold lol&lt;/b&gt;</div><p>a&nbsp;b &amp;copy 2024 &#123; &#x1F; &amp; a &lt; b &gt; c</p><p>{{ a < b }} and {{ c && d }}</p><p>"quotes" and 'apostrophes'</p><a href="/?a=1&amp;b=2" title="&lt;x&gt;">Link</a><pre>&lt;code&gt; &amp; &lt;/code&gt;</pre>

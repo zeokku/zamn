@@ -4,17 +4,25 @@
   "description": "Template tokenizer that lets vue-eslint-parser read zamn templates in single-file components.",
   "license": "MIT",
   "type": "module",
-  "main": "./index.js",
-  "types": "./index.d.ts",
-  "files": ["index.js", "index.d.ts"],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
   "keywords": ["eslint", "vue", "vue-eslint-parser", "zamn"],
   "engines": {
     "node": ">=22.12.0"
   },
   "scripts": {
+    "build": "tsc -p .",
     "test": "bun test"
   },
   "dependencies": {
+    "entities": "^9.0.0",
     "zamn": "workspace:*"
   },
   "peerDependencies": {
@@ -23,6 +31,7 @@
   "devDependencies": {
     "eslint": "^10.0.0",
     "eslint-plugin-vue": "^10.12.0",
+    "typescript": "^7.0.2",
     "vue-eslint-parser": "^10.4.0"
   }
 }

@@ -1,0 +1,750 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: json
+---
+{
+  "nodes": [
+    {
+      "type": "Comment",
+      "buffered": false,
+      "block": false,
+      "value": "- inline",
+      "span": {
+        "start": 0,
+        "end": 10
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 11,
+        "end": 14
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Element",
+          "name": "b",
+          "nameSpan": {
+            "start": 17,
+            "end": 18
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "some text here",
+              "span": {
+                "start": 22,
+                "end": 36
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 17,
+            "end": 38
+          }
+        },
+        {
+          "type": "Element",
+          "name": "u",
+          "nameSpan": {
+            "start": 39,
+            "end": 40
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "another child",
+              "span": {
+                "start": 43,
+                "end": 56
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 39,
+            "end": 57
+          }
+        },
+        {
+          "type": "Element",
+          "name": "b",
+          "nameSpan": {
+            "start": 58,
+            "end": 59
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "without pipe",
+              "span": {
+                "start": 60,
+                "end": 72
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 58,
+            "end": 72
+          }
+        },
+        {
+          "type": "Element",
+          "name": "span",
+          "nameSpan": {
+            "start": 73,
+            "end": 77
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "so next one must go on a new line",
+              "span": {
+                "start": 78,
+                "end": 111
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 73,
+            "end": 111
+          }
+        }
+      ],
+      "braced": true,
+      "raw": false,
+      "span": {
+        "start": 11,
+        "end": 113
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": null,
+      "attrs": [
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 114,
+            "end": 124
+          },
+          "value": "one-liner",
+          "valueSpan": {
+            "start": 115,
+            "end": 124
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 114,
+            "end": 124
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Element",
+          "name": "b",
+          "nameSpan": {
+            "start": 127,
+            "end": 128
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Element",
+              "name": "u",
+              "nameSpan": {
+                "start": 131,
+                "end": 132
+              },
+              "attrs": [],
+              "children": [
+                {
+                  "type": "Text",
+                  "value": "biba",
+                  "span": {
+                    "start": 133,
+                    "end": 137
+                  }
+                }
+              ],
+              "braced": false,
+              "raw": false,
+              "span": {
+                "start": 131,
+                "end": 137
+              }
+            }
+          ],
+          "braced": true,
+          "raw": false,
+          "span": {
+            "start": 127,
+            "end": 139
+          }
+        }
+      ],
+      "braced": true,
+      "raw": false,
+      "span": {
+        "start": 114,
+        "end": 140
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": null,
+      "attrs": [
+        {
+          "name": "class",
+          "nameSpan": {
+            "start": 141,
+            "end": 161
+          },
+          "value": "should-use-new-line",
+          "valueSpan": {
+            "start": 142,
+            "end": 161
+          },
+          "escaped": false,
+          "shorthand": "Class",
+          "span": {
+            "start": 141,
+            "end": 161
+          }
+        }
+      ],
+      "children": [
+        {
+          "type": "Element",
+          "name": "b",
+          "nameSpan": {
+            "start": 164,
+            "end": 165
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "some text",
+              "span": {
+                "start": 166,
+                "end": 175
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 164,
+            "end": 175
+          }
+        },
+        {
+          "type": "Element",
+          "name": "u",
+          "nameSpan": {
+            "start": 176,
+            "end": 177
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "next child after b",
+              "span": {
+                "start": 178,
+                "end": 196
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 176,
+            "end": 196
+          }
+        },
+        {
+          "type": "Element",
+          "name": "s",
+          "nameSpan": {
+            "start": 197,
+            "end": 198
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "and another one",
+              "span": {
+                "start": 199,
+                "end": 214
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 197,
+            "end": 214
+          }
+        }
+      ],
+      "braced": true,
+      "raw": false,
+      "span": {
+        "start": 141,
+        "end": 215
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 216,
+        "end": 219
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "some text",
+          "span": {
+            "start": 220,
+            "end": 229
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 216,
+        "end": 229
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 230,
+        "end": 233
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "some text",
+          "span": {
+            "start": 236,
+            "end": 245
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 230,
+        "end": 245
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 246,
+        "end": 249
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "some text",
+          "span": {
+            "start": 253,
+            "end": 262
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 246,
+        "end": 264
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 265,
+        "end": 268
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "| starts with",
+          "span": {
+            "start": 270,
+            "end": 283
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 265,
+        "end": 283
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 284,
+        "end": 287
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "| starts with",
+          "span": {
+            "start": 290,
+            "end": 303
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 284,
+        "end": 303
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 304,
+        "end": 307
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Element",
+          "name": "div",
+          "nameSpan": null,
+          "attrs": [
+            {
+              "name": "class",
+              "nameSpan": {
+                "start": 312,
+                "end": 318
+              },
+              "value": "first",
+              "valueSpan": {
+                "start": 313,
+                "end": 318
+              },
+              "escaped": false,
+              "shorthand": "Class",
+              "span": {
+                "start": 312,
+                "end": 318
+              }
+            }
+          ],
+          "children": [],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 312,
+            "end": 318
+          }
+        },
+        {
+          "type": "Element",
+          "name": "div",
+          "nameSpan": null,
+          "attrs": [
+            {
+              "name": "class",
+              "nameSpan": {
+                "start": 321,
+                "end": 328
+              },
+              "value": "second",
+              "valueSpan": {
+                "start": 322,
+                "end": 328
+              },
+              "escaped": false,
+              "shorthand": "Class",
+              "span": {
+                "start": 321,
+                "end": 328
+              }
+            }
+          ],
+          "children": [],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 321,
+            "end": 328
+          }
+        },
+        {
+          "type": "Element",
+          "name": "div",
+          "nameSpan": null,
+          "attrs": [
+            {
+              "name": "class",
+              "nameSpan": {
+                "start": 331,
+                "end": 337
+              },
+              "value": "third",
+              "valueSpan": {
+                "start": 332,
+                "end": 337
+              },
+              "escaped": false,
+              "shorthand": "Class",
+              "span": {
+                "start": 331,
+                "end": 337
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "Text",
+              "value": "piped text",
+              "span": {
+                "start": 345,
+                "end": 355
+              }
+            }
+          ],
+          "braced": true,
+          "raw": false,
+          "span": {
+            "start": 331,
+            "end": 359
+          }
+        },
+        {
+          "type": "Element",
+          "name": "div",
+          "nameSpan": null,
+          "attrs": [
+            {
+              "name": "class",
+              "nameSpan": {
+                "start": 363,
+                "end": 369
+              },
+              "value": "forth",
+              "valueSpan": {
+                "start": 364,
+                "end": 369
+              },
+              "escaped": false,
+              "shorthand": "Class",
+              "span": {
+                "start": 363,
+                "end": 369
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "Text",
+              "value": "text inside it",
+              "span": {
+                "start": 370,
+                "end": 384
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 363,
+            "end": 384
+          }
+        },
+        {
+          "type": "Element",
+          "name": "div",
+          "nameSpan": null,
+          "attrs": [
+            {
+              "name": "class",
+              "nameSpan": {
+                "start": 388,
+                "end": 398
+              },
+              "value": "one-liner",
+              "valueSpan": {
+                "start": 389,
+                "end": 398
+              },
+              "escaped": false,
+              "shorthand": "Class",
+              "span": {
+                "start": 388,
+                "end": 398
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "Element",
+              "name": "p",
+              "nameSpan": {
+                "start": 401,
+                "end": 402
+              },
+              "attrs": [],
+              "children": [
+                {
+                  "type": "Text",
+                  "value": "some paragraph ",
+                  "span": {
+                    "start": 407,
+                    "end": 422
+                  }
+                },
+                {
+                  "type": "Element",
+                  "name": "b",
+                  "nameSpan": {
+                    "start": 424,
+                    "end": 425
+                  },
+                  "attrs": [],
+                  "children": [
+                    {
+                      "type": "Text",
+                      "value": "biba",
+                      "span": {
+                        "start": 426,
+                        "end": 430
+                      }
+                    }
+                  ],
+                  "braced": false,
+                  "raw": false,
+                  "span": {
+                    "start": 424,
+                    "end": 430
+                  }
+                },
+                {
+                  "type": "Text",
+                  "value": " boba",
+                  "span": {
+                    "start": 431,
+                    "end": 436
+                  }
+                }
+              ],
+              "braced": true,
+              "raw": false,
+              "span": {
+                "start": 401,
+                "end": 437
+              }
+            }
+          ],
+          "braced": true,
+          "raw": false,
+          "span": {
+            "start": 388,
+            "end": 439
+          }
+        },
+        {
+          "type": "Element",
+          "name": "button",
+          "nameSpan": {
+            "start": 443,
+            "end": 449
+          },
+          "attrs": [
+            {
+              "name": "class",
+              "nameSpan": {
+                "start": 449,
+                "end": 456
+              },
+              "value": "styled",
+              "valueSpan": {
+                "start": 450,
+                "end": 456
+              },
+              "escaped": false,
+              "shorthand": "Class",
+              "span": {
+                "start": 449,
+                "end": 456
+              }
+            },
+            {
+              "name": "style",
+              "nameSpan": {
+                "start": 457,
+                "end": 462
+              },
+              "value": "font-size:1em;text-align:center;padding:1rem 0.5rem;transition-property:color, background;",
+              "valueSpan": {
+                "start": 463,
+                "end": 585
+              },
+              "escaped": true,
+              "shorthand": null,
+              "span": {
+                "start": 457,
+                "end": 585
+              }
+            }
+          ],
+          "children": [],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 443,
+            "end": 586
+          }
+        }
+      ],
+      "braced": true,
+      "raw": false,
+      "span": {
+        "start": 304,
+        "end": 588
+      }
+    }
+  ]
+}

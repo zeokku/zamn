@@ -12,8 +12,8 @@ for (const path of new Glob("token-corpus/*.zamn").scanSync({ cwd: docs })) {
   test(path, async () => {
     const forms = await render(await Bun.file(resolve(docs, path)).text());
     const html = forms.htmlMinified;
-    for (const form of [forms.zamnFlat, forms.zamnOneLine, forms.zamnUnquoted, forms.zamnIndent, forms.zamnFormatted]) {
-      expect(compile(form, { doctype: "html" }).code).toBe(html);
+    for (const form of [forms.zamnFlat, forms.zamnOneLine, forms.zamnUnquoted, forms.zamnFormatted]) {
+      expect(compile(form).code).toBe(html);
     }
   });
 }

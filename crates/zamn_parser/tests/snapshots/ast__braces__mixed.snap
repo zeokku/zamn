@@ -1,0 +1,471 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: json
+---
+{
+  "nodes": [
+    {
+      "type": "Doctype",
+      "value": "html",
+      "span": {
+        "start": 0,
+        "end": 12
+      }
+    },
+    {
+      "type": "Element",
+      "name": "html",
+      "nameSpan": {
+        "start": 13,
+        "end": 17
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Element",
+          "name": "head",
+          "nameSpan": {
+            "start": 22,
+            "end": 26
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Element",
+              "name": "title",
+              "nameSpan": {
+                "start": 33,
+                "end": 38
+              },
+              "attrs": [],
+              "children": [
+                {
+                  "type": "Text",
+                  "value": "Braces",
+                  "span": {
+                    "start": 39,
+                    "end": 45
+                  }
+                }
+              ],
+              "braced": false,
+              "raw": false,
+              "span": {
+                "start": 33,
+                "end": 45
+              }
+            },
+            {
+              "type": "Element",
+              "name": "meta",
+              "nameSpan": {
+                "start": 50,
+                "end": 54
+              },
+              "attrs": [
+                {
+                  "name": "charset",
+                  "nameSpan": {
+                    "start": 55,
+                    "end": 62
+                  },
+                  "value": "utf-8",
+                  "valueSpan": {
+                    "start": 63,
+                    "end": 70
+                  },
+                  "escaped": true,
+                  "shorthand": null,
+                  "span": {
+                    "start": 55,
+                    "end": 70
+                  }
+                }
+              ],
+              "children": [],
+              "braced": false,
+              "raw": false,
+              "span": {
+                "start": 50,
+                "end": 71
+              }
+            }
+          ],
+          "braced": true,
+          "raw": false,
+          "span": {
+            "start": 22,
+            "end": 75
+          }
+        },
+        {
+          "type": "Element",
+          "name": "body",
+          "nameSpan": {
+            "start": 78,
+            "end": 82
+          },
+          "attrs": [
+            {
+              "name": "class",
+              "nameSpan": {
+                "start": 82,
+                "end": 87
+              },
+              "value": "page",
+              "valueSpan": {
+                "start": 83,
+                "end": 87
+              },
+              "escaped": false,
+              "shorthand": "Class",
+              "span": {
+                "start": 82,
+                "end": 87
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "Comment",
+              "buffered": true,
+              "block": false,
+              "value": " base indentation inside braces is free",
+              "span": {
+                "start": 94,
+                "end": 136
+              }
+            },
+            {
+              "type": "Element",
+              "name": "nav",
+              "nameSpan": {
+                "start": 141,
+                "end": 144
+              },
+              "attrs": [
+                {
+                  "name": "id",
+                  "nameSpan": {
+                    "start": 144,
+                    "end": 148
+                  },
+                  "value": "top",
+                  "valueSpan": {
+                    "start": 145,
+                    "end": 148
+                  },
+                  "escaped": false,
+                  "shorthand": "Id",
+                  "span": {
+                    "start": 144,
+                    "end": 148
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "type": "Element",
+                  "name": "ul",
+                  "nameSpan": {
+                    "start": 157,
+                    "end": 159
+                  },
+                  "attrs": [],
+                  "children": [
+                    {
+                      "type": "Element",
+                      "name": "li",
+                      "nameSpan": {
+                        "start": 170,
+                        "end": 172
+                      },
+                      "attrs": [],
+                      "children": [
+                        {
+                          "type": "Element",
+                          "name": "a",
+                          "nameSpan": {
+                            "start": 174,
+                            "end": 175
+                          },
+                          "attrs": [
+                            {
+                              "name": "href",
+                              "nameSpan": {
+                                "start": 176,
+                                "end": 180
+                              },
+                              "value": "/",
+                              "valueSpan": {
+                                "start": 181,
+                                "end": 184
+                              },
+                              "escaped": true,
+                              "shorthand": null,
+                              "span": {
+                                "start": 176,
+                                "end": 184
+                              }
+                            }
+                          ],
+                          "children": [
+                            {
+                              "type": "Text",
+                              "value": "Home",
+                              "span": {
+                                "start": 186,
+                                "end": 190
+                              }
+                            }
+                          ],
+                          "braced": false,
+                          "raw": false,
+                          "span": {
+                            "start": 174,
+                            "end": 190
+                          }
+                        }
+                      ],
+                      "braced": false,
+                      "raw": false,
+                      "span": {
+                        "start": 170,
+                        "end": 190
+                      }
+                    },
+                    {
+                      "type": "Element",
+                      "name": "li",
+                      "nameSpan": {
+                        "start": 199,
+                        "end": 201
+                      },
+                      "attrs": [],
+                      "children": [
+                        {
+                          "type": "Element",
+                          "name": "a",
+                          "nameSpan": {
+                            "start": 214,
+                            "end": 215
+                          },
+                          "attrs": [
+                            {
+                              "name": "href",
+                              "nameSpan": {
+                                "start": 216,
+                                "end": 220
+                              },
+                              "value": "/about",
+                              "valueSpan": {
+                                "start": 221,
+                                "end": 229
+                              },
+                              "escaped": true,
+                              "shorthand": null,
+                              "span": {
+                                "start": 216,
+                                "end": 229
+                              }
+                            }
+                          ],
+                          "children": [
+                            {
+                              "type": "Text",
+                              "value": "About",
+                              "span": {
+                                "start": 231,
+                                "end": 236
+                              }
+                            }
+                          ],
+                          "braced": false,
+                          "raw": false,
+                          "span": {
+                            "start": 214,
+                            "end": 236
+                          }
+                        }
+                      ],
+                      "braced": true,
+                      "raw": false,
+                      "span": {
+                        "start": 199,
+                        "end": 246
+                      }
+                    }
+                  ],
+                  "braced": true,
+                  "raw": false,
+                  "span": {
+                    "start": 157,
+                    "end": 254
+                  }
+                }
+              ],
+              "braced": true,
+              "raw": false,
+              "span": {
+                "start": 141,
+                "end": 260
+              }
+            },
+            {
+              "type": "Element",
+              "name": "main",
+              "nameSpan": {
+                "start": 265,
+                "end": 269
+              },
+              "attrs": [],
+              "children": [
+                {
+                  "type": "Element",
+                  "name": "p",
+                  "nameSpan": {
+                    "start": 278,
+                    "end": 279
+                  },
+                  "attrs": [],
+                  "children": [
+                    {
+                      "type": "Text",
+                      "value": "A text block\nkeeps working }",
+                      "span": {
+                        "start": 291,
+                        "end": 328
+                      }
+                    }
+                  ],
+                  "braced": false,
+                  "raw": false,
+                  "span": {
+                    "start": 278,
+                    "end": 336
+                  }
+                },
+                {
+                  "type": "Element",
+                  "name": "pre",
+                  "nameSpan": {
+                    "start": 343,
+                    "end": 346
+                  },
+                  "attrs": [],
+                  "children": [
+                    {
+                      "type": "Text",
+                      "value": "line one",
+                      "span": {
+                        "start": 359,
+                        "end": 367
+                      }
+                    },
+                    {
+                      "type": "Text",
+                      "value": "\n",
+                      "span": {
+                        "start": 376,
+                        "end": 376
+                      }
+                    },
+                    {
+                      "type": "Text",
+                      "value": "line two",
+                      "span": {
+                        "start": 378,
+                        "end": 386
+                      }
+                    }
+                  ],
+                  "braced": true,
+                  "raw": false,
+                  "span": {
+                    "start": 343,
+                    "end": 394
+                  }
+                },
+                {
+                  "type": "Element",
+                  "name": "section",
+                  "nameSpan": {
+                    "start": 401,
+                    "end": 408
+                  },
+                  "attrs": [],
+                  "children": [],
+                  "braced": true,
+                  "raw": false,
+                  "span": {
+                    "start": 401,
+                    "end": 411
+                  }
+                },
+                {
+                  "type": "Element",
+                  "name": "footer",
+                  "nameSpan": {
+                    "start": 418,
+                    "end": 424
+                  },
+                  "attrs": [],
+                  "children": [],
+                  "braced": true,
+                  "raw": false,
+                  "span": {
+                    "start": 418,
+                    "end": 427
+                  }
+                }
+              ],
+              "braced": true,
+              "raw": false,
+              "span": {
+                "start": 265,
+                "end": 433
+              }
+            },
+            {
+              "type": "Element",
+              "name": "p",
+              "nameSpan": {
+                "start": 438,
+                "end": 439
+              },
+              "attrs": [],
+              "children": [
+                {
+                  "type": "Text",
+                  "value": "after",
+                  "span": {
+                    "start": 440,
+                    "end": 445
+                  }
+                }
+              ],
+              "braced": false,
+              "raw": false,
+              "span": {
+                "start": 438,
+                "end": 445
+              }
+            }
+          ],
+          "braced": true,
+          "raw": false,
+          "span": {
+            "start": 78,
+            "end": 449
+          }
+        }
+      ],
+      "braced": true,
+      "raw": false,
+      "span": {
+        "start": 13,
+        "end": 451
+      }
+    }
+  ]
+}

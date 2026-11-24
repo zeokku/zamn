@@ -4,14 +4,23 @@
   "description": "Vue language tools (Volar) plugin for zamn templates in single-file components.",
   "license": "MIT",
   "type": "module",
-  "main": "./index.js",
-  "types": "./index.d.ts",
-  "files": ["index.js", "html.js", "index.d.ts"],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "keywords": ["vue", "volar", "vue-tsc", "zamn"],
   "engines": {
     "node": ">=22.12.0"
   },
   "scripts": {
+    "build": "tsc -p .",
     "test": "bun test"
   },
   "dependencies": {
@@ -22,7 +31,7 @@
   },
   "devDependencies": {
     "@vue/language-core": "^3.3.0",
-    "typescript": "^5.9.0",
+    "typescript": "~6.0.3",
     "vue": "^3.5.0",
     "vue-tsc": "^3.3.0"
   }

@@ -1,0 +1,30 @@
+//- inline
+div { b |{ some text here } u |{another child} b without pipe
+span so next one must go on a new line }
+.one-liner { b { u biba }}
+.should-use-new-line { b some text
+u next child after b
+s and another one}
+div some text
+div | some text
+div |{ some text }
+div \| starts with
+div | | starts with
+div {
+  .first
+  .second
+  .third{
+    | piped text
+  }
+
+  .forth text inside it
+
+  .one-liner { p { | some paragraph #{b biba} boba} }
+
+  button.styled(style={
+    fontSize: 1em,
+    'text-align': 'center',
+    padding: 1rem 0.5rem,
+    transitionProperty: "color, background"
+  })
+}

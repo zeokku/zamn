@@ -1,0 +1,25 @@
+div {
+  p ok
+}
+}
+p a \{ fine { not fine
+p {{ open
+section {
+  p
+    span misleading
+  script {
+    go()
+  }
+  script(src="a.js")
+  /script
+  /div
+  style |{ a {} }
+  script some text
+  pre.
+  doctype
+  img/
+  {{ text }}
+  #{b x}
+}
+ul {
+  li never closed

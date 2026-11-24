@@ -1,0 +1,196 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: json
+---
+{
+  "nodes": [
+    {
+      "type": "Comment",
+      "buffered": false,
+      "block": false,
+      "value": " a silent comment",
+      "span": {
+        "start": 0,
+        "end": 19
+      }
+    },
+    {
+      "type": "Comment",
+      "buffered": true,
+      "block": false,
+      "value": " a comment for the HTML",
+      "span": {
+        "start": 20,
+        "end": 46
+      }
+    },
+    {
+      "type": "Comment",
+      "buffered": false,
+      "block": false,
+      "value": "- also silent",
+      "span": {
+        "start": 47,
+        "end": 62
+      }
+    },
+    {
+      "type": "Comment",
+      "buffered": false,
+      "block": true,
+      "value": " silent\n   over lines ",
+      "span": {
+        "start": 63,
+        "end": 89
+      }
+    },
+    {
+      "type": "Comment",
+      "buffered": true,
+      "block": true,
+      "value": " kept\n    as written ",
+      "span": {
+        "start": 90,
+        "end": 116
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 117,
+        "end": 120
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Comment",
+          "buffered": false,
+          "block": true,
+          "value": " note ",
+          "span": {
+            "start": 123,
+            "end": 133
+          }
+        },
+        {
+          "type": "Element",
+          "name": "b",
+          "nameSpan": {
+            "start": 134,
+            "end": 135
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "x",
+              "span": {
+                "start": 136,
+                "end": 137
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 134,
+            "end": 137
+          }
+        }
+      ],
+      "braced": true,
+      "raw": false,
+      "span": {
+        "start": 117,
+        "end": 139
+      }
+    },
+    {
+      "type": "Element",
+      "name": "p",
+      "nameSpan": {
+        "start": 140,
+        "end": 141
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Element",
+          "name": "b",
+          "nameSpan": {
+            "start": 146,
+            "end": 147
+          },
+          "attrs": [],
+          "children": [
+            {
+              "type": "Text",
+              "value": "x /* text, not a comment */",
+              "span": {
+                "start": 148,
+                "end": 175
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 146,
+            "end": 175
+          }
+        },
+        {
+          "type": "Element",
+          "name": "a",
+          "nameSpan": {
+            "start": 178,
+            "end": 179
+          },
+          "attrs": [
+            {
+              "name": "href",
+              "nameSpan": {
+                "start": 180,
+                "end": 184
+              },
+              "value": "https://x.y",
+              "valueSpan": {
+                "start": 185,
+                "end": 198
+              },
+              "escaped": true,
+              "shorthand": null,
+              "span": {
+                "start": 180,
+                "end": 198
+              }
+            }
+          ],
+          "children": [
+            {
+              "type": "Text",
+              "value": "https://x.y // text too",
+              "span": {
+                "start": 200,
+                "end": 223
+              }
+            }
+          ],
+          "braced": false,
+          "raw": false,
+          "span": {
+            "start": 178,
+            "end": 223
+          }
+        }
+      ],
+      "braced": true,
+      "raw": false,
+      "span": {
+        "start": 140,
+        "end": 225
+      }
+    }
+  ]
+}

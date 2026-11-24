@@ -1,10 +1,11 @@
 import { expect, test } from "bun:test";
 import { Glob } from "bun";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { ESLint } from "eslint";
 import vue from "eslint-plugin-vue";
 import * as parser from "vue-eslint-parser";
-import ZamnTokenizer from "../index.js";
+import ZamnTokenizer from "vue-eslint-parser-template-tokenizer-zamn";
 import { zamn } from "../../../tests/zamn.ts";
 
 const fixtures = resolve(import.meta.dir, "../../../tests/fixtures");
@@ -32,7 +33,8 @@ function outline(code: string) {
       for (const attr of attrs) lines.push(`${pad}  ${attr}`);
       for (const child of node.children) visit(child, depth + 1);
     } else if (node.type === "VText") {
-      lines.push(`${pad}text ${text(node)}`);
+      const value = JSON.stringify(node.value);
+      lines.push(`${pad}text ${value}${text(node) === value ? "" : ` over ${text(node)}`}`);
     } else {
       const expression = node.expression ? code.slice(...node.expression.range) : "";
       lines.push(`${pad}{{ ${expression} }} ${text(node)}`);
@@ -70,11 +72,12 @@ test("elements, attributes, text and mustaches", () => {
   const code = sfc(zamn`
     main#app.page(:class="{ on }") {
       Card(v-for="item in items" :key="item.id" title="One" disabled) {
-        span {{ item.name }} of #[b= items.length]
+        span {{ item.name }} of #{b= items.length}
       }
-      p(v-else).
+      p(v-else) |{
         Off for
-        {{ items.length }} items
+          {{ items.length }} items
+      }
       input(type="checkbox" checked=true hidden=false)
       li: a(href='/') Home
     }
@@ -90,11 +93,13 @@ test("elements, attributes, text and mustaches", () => {
     `    <span> "span" ... "\\n"`,
     `      {{ item.name }} "{{ item.name }}"`,
     `      text " of "`,
-    `      <b> "b" ... "]"`,
+    `      <b> "b" ... "}"`,
     `        {{ items.length }} "= items.length"`,
-    `  <p> "p(v-else)" ... "\\n"`,
+    // The text of `|{ }` is what it is in the HTML: the common indentation
+    // is not in it.
+    `  <p> "p(v-else)" ... "}"`,
     `    directive "v-else"`,
-    `    text "Off for\\n    "`,
+    `    text "Off for\\n  " over "Off for\\n      "`,
     `    {{ items.length }} "{{ items.length }}"`,
     `    text " items"`,
     `  <input> "input(type=\\"checkbox\\" checked=true hidden=false)"`,
@@ -107,10 +112,13 @@ test("elements, attributes, text and mustaches", () => {
   ]);
 });
 
-test("blocks on one line: an element in one ends at its }", () => {
+test("blocks on one line: an element ends at its }, or at the } of the block it is in", () => {
   const code = sfc(zamn`
-    ul{li{a x} li{b= y}}
-    p next
+    ul{li{a x} li{b= y} li c}
+    div { p one } p two
+    ul { li: a(href="/") Home }
+    .card { .body { h2 Title }}
+    p #{em: b ask} #{span { i x }}
   `);
   expect(outline(code)).toEqual([
     `<ul> "ul" ... "}"`,
@@ -120,8 +128,30 @@ test("blocks on one line: an element in one ends at its }", () => {
     `  <li> "li" ... "}"`,
     `    <b> "b" ... "}"`,
     `      {{ y }} "= y"`,
+    `  <li> "li" ... "}"`,
+    `    text "c"`,
+    `<div> "div" ... "}"`,
+    `  <p> "p" ... "}"`,
+    `    text "one"`,
     `<p> "p" ... "\\n"`,
-    `  text "next"`,
+    `  text "two"`,
+    `<ul> "ul" ... "}"`,
+    `  <li> "li" ... "}"`,
+    `    <a> "a(href=\\"/\\")" ... "}"`,
+    `      attribute "href=\\"/\\""`,
+    `      text "Home"`,
+    `<div> ".card" ... "}"`,
+    `  <div> ".body" ... "}"`,
+    `    <h2> "h2" ... "}"`,
+    `      text "Title"`,
+    `<p> "p" ... "\\n"`,
+    `  <em> "em" ... "}"`,
+    `    <b> "b" ... "}"`,
+    `      text "ask"`,
+    `  text " "`,
+    `  <span> "span" ... "}"`,
+    `    <i> "i" ... "}"`,
+    `      text "x"`,
   ]);
   // In source order; elements closed by the same `}` share it as their end tag.
   const starts = (node: any): number[] =>
@@ -130,6 +160,58 @@ test("blocks on one line: an element in one ends at its }", () => {
     );
   const order = starts(parse(code));
   expect(order).toEqual([...order].sort((a, b) => a - b));
+});
+
+test("text: pieces next to each other are one text, as the browser shows it", () => {
+  const code = sfc(zamn`
+    p {
+      | Tom &amp; Jerry &rarr; a < b &copy \\{x\\} \\| C:\\temp
+      | and \\#{ more
+      |
+      b bold
+    }
+    p \\| x
+    pre |{
+      if (a) \\{
+        go();
+      \\}
+    }
+  `);
+  expect(outline(code)).toEqual([
+    `<p> "p" ... "}"`,
+    // `&copy` without `;` is not a character reference: zamn escapes its `&`.
+    // `\|` is a `|` only at the start of text.
+    `  text "Tom & Jerry → a < b &copy {x} \\\\| C:\\\\temp\\nand #{ more " over "Tom &amp; Jerry &rarr; a < b &copy \\\\{x\\\\} \\\\| C:\\\\temp\\n  | and \\\\#{ more\\n  |"`,
+    `  <b> "b" ... "\\n"`,
+    `    text "bold"`,
+    `<p> "p" ... "\\n"`,
+    `  text "| x"`,
+    `<pre> "pre" ... "}"`,
+    `  text "if (a) {\\n  go();\\n}" over "if (a) \\\\{\\n    go();\\n  \\\\}"`,
+  ]);
+});
+
+test("script and style: raw content, ended by its /script line", () => {
+  const code = sfc(zamn`
+    div {
+      script
+        if (a < b && c) { go("&amp;") }
+      /script
+      script(src="/a.js")
+      style
+        a > b { color: red }
+      /style
+    }
+  `);
+  expect(outline(code)).toEqual([
+    `<div> "div" ... "}"`,
+    `  <script> "script" ... "/script"`,
+    `    text "if (a < b && c) { go(\\"&amp;\\") }"`,
+    `  <script> "script(src=\\"/a.js\\")" ... "\\n"`,
+    `    attribute "src=\\"/a.js\\""`,
+    `  <style> "style" ... "/style"`,
+    `    text "a > b { color: red }"`,
+  ]);
 });
 
 test("attribute values", () => {
@@ -144,30 +226,31 @@ test("attribute values", () => {
   expect(on.value).toBeNull();
 });
 
-test("unquoted values, as HTML has them, and bindings in brackets", () => {
+test("unquoted values, as HTML has them, bindings in brackets and style objects", () => {
   const code = sfc(zamn`
-    a(href=/docs/ :class={ on: x, 'is-new': y } @click=go() style={color: 'red'})
+    a(href=/docs/ :class={ on: x, 'is-new': y } @click=go() style={color: red, fontSize: 12px})
   `);
   const [href, cls, click, style] = parse(code).children[0].startTag.attributes;
   expect(href.value.value).toBe("/docs/");
   expect(cls.value.expression.type).toBe("ObjectExpression");
   expect(code.slice(...cls.value.expression.range)).toBe("{ on: x, 'is-new': y }");
   expect(code.slice(...click.value.expression.range)).toBe("go()");
-  expect(style.value.value).toBe("color:red;");
+  expect(style.value.value).toBe("color:red;font-size:12px;");
 });
 
 test("v-pre turns expressions off", () => {
   const code = sfc(zamn`
-    div(v-pre)
-      p {{ raw }}
+    div(v-pre) {
+      p a {{ raw }} b
       p= raw
+    }
     p= cooked
   `);
   expect(outline(code)).toEqual([
-    `<div> "div(v-pre)" ... "\\n"`,
+    `<div> "div(v-pre)" ... "}"`,
     `  directive "v-pre"`,
     `  <p> "p" ... "\\n"`,
-    `    text "{{ raw }}"`,
+    `    text "a {{ raw }} b"`,
     `  <p> "p" ... "\\n"`,
     `    text "raw"`,
     `<p> "p" ... "\\n"`,
@@ -176,7 +259,7 @@ test("v-pre turns expressions off", () => {
 });
 
 test("positions are in the whole file, with any line ending", () => {
-  const code = sfc("div\n  p(:title=\"t\") {{ a }}\n", "<script>\nexport default {}\n</script>\n").replace(/\n/g, "\r\n");
+  const code = sfc("div {\n  p(:title=\"t\") {{ a }}\n}\n", "<script>\nexport default {}\n</script>\n").replace(/\n/g, "\r\n");
   const body = parse(code);
   const p = body.children[0].children[0];
   expect(code.slice(...p.startTag.range)).toBe('p(:title="t")');
@@ -184,24 +267,34 @@ test("positions are in the whole file, with any line ending", () => {
   expect(code.slice(...p.children[0].expression.range)).toBe("a");
   expect(p.children[0].expression.loc.start).toEqual({ line: 6, column: 19 });
   expect(code.slice(...p.startTag.attributes[0].value.expression.range)).toBe("t");
+  expect(code.slice(...body.children[0].endTag.range)).toBe("}");
 });
 
-test("can be named instead of passed", () => {
-  const code = sfc("p= a\n");
-  const body = parse(code, { zamn: resolve(import.meta.dir, "../index.js") });
+test("can be named instead of passed, and require() gives the class", () => {
+  const path = fileURLToPath(import.meta.resolve("vue-eslint-parser-template-tokenizer-zamn"));
+  expect(path).toEndWith("/dist/index.js");
+  const body = parse(sfc("p= a\n"), { zamn: path });
   expect(body.children[0].children[0].type).toBe("VExpressionContainer");
+  expect(require(path)).toBe(ZamnTokenizer);
 });
 
-test("rules see the template", async () => {
+test("comments: all four kinds, and eslint directives in any of them", async () => {
   const code = sfc(
     zamn`
-      ul
+      ul {
         li(v-for="(item, index) in items") {{ item }}
         li(v-for="other in items" :key="other")
-        //- eslint-disable-next-line vue/no-unused-vars
+        // eslint-disable-next-line vue/no-unused-vars
         li(v-for="hidden in items" :key="used")
+        //! eslint-disable-next-line vue/no-unused-vars
+        li(v-for="shown in items" :key="used")
+        /* eslint-disable vue/require-v-for-key */
+        li(v-for="a in items") {{ a }}
+        /*! eslint-enable vue/require-v-for-key */
+        li(v-for="b in items") {{ b }}
         template(v-if="a")
         p(v-else-if="a" v-else)
+      }
     `,
     zamn`
       <script setup>
@@ -211,6 +304,12 @@ test("rules see the template", async () => {
       </script>
     `,
   );
+  expect(parse(code).comments.map((c: any) => [c.type, c.value, code.slice(...c.range)])).toEqual([
+    ["HTMLComment", " eslint-disable-next-line vue/no-unused-vars", "// eslint-disable-next-line vue/no-unused-vars"],
+    ["HTMLComment", " eslint-disable-next-line vue/no-unused-vars", "//! eslint-disable-next-line vue/no-unused-vars"],
+    ["HTMLComment", " eslint-disable vue/require-v-for-key ", "/* eslint-disable vue/require-v-for-key */"],
+    ["HTMLComment", " eslint-enable vue/require-v-for-key ", "/*! eslint-enable vue/require-v-for-key */"],
+  ]);
   expect(
     await lint(code, {
       "no-unused-vars": "error",
@@ -222,30 +321,49 @@ test("rules see the template", async () => {
     "4:7 no-unused-vars: 'unused' is assigned a value but never used.",
     "8:3 vue/require-v-for-key: Elements in iteration expect to have 'v-bind:key' directives.",
     "8:20 vue/no-unused-vars: 'index' is defined but never used.",
-    "13:19 vue/valid-v-else: 'v-else' and 'v-else-if' directives can't exist on the same element.",
+    "17:3 vue/require-v-for-key: Elements in iteration expect to have 'v-bind:key' directives.",
+    "19:19 vue/valid-v-else: 'v-else' and 'v-else-if' directives can't exist on the same element.",
   ]);
 });
 
-test("zamn's diagnostics are errors of the template, with a code of their own", async () => {
+test("zamn's diagnostics are errors of the template, with a code and severity of their own", async () => {
   const code = sfc(zamn`
-    div
+    div {
       if x
       p(:a="1 +")
       p {{ b c }}
+      p Some text
+        b bold
+    }
   `);
-  const errors = parse(code).errors.map((e: any) => [e.code, e.message, e.hint, e.range ? code.slice(...e.range) : ""]);
+  // In source order: vue-eslint-parser puts the errors in expressions among them.
+  const errors = parse(code).errors.map((e: any) => [
+    e.code,
+    e.severity,
+    e.message,
+    e.hint,
+    e.range ? code.slice(...e.range) : "",
+  ]);
   expect(errors).toEqual([
     [
       "zamn/UNSUPPORTED_SYNTAX",
+      "error",
       "\`if\` (control flow) is not supported",
       "zamn has no control flow; use your framework's directives, e.g. \`div(v-if=\"cond\")\`",
       "if x",
     ],
-    [undefined, "Unexpected end of expression.", undefined, ""],
-    [undefined, "Unexpected token c", undefined, ""],
+    [undefined, undefined, "Unexpected end of expression.", undefined, ""],
+    [undefined, undefined, "Unexpected token c", undefined, ""],
+    [
+      "zamn/MISLEADING_INDENTATION",
+      "warning",
+      "This line is indented as if it were nested, but indentation means nothing in zamn",
+      "wrap the children in \`{ }\` on the line above, or remove the indentation",
+      "b bold",
+    ],
   ]);
   // vue/no-parsing-error skips a code it does not know: zamn's diagnostics
-  // are reported by vue-zamn/no-parsing-error.
+  // are reported by the rules of eslint-plugin-vue-zamn.
   expect(await lint(code, { "vue/no-parsing-error": "error" })).toEqual([
     "4:12 vue/no-parsing-error: Parsing error: Unexpected end of expression.",
     "5:10 vue/no-parsing-error: Parsing error: Unexpected token c.",
@@ -267,7 +385,18 @@ for (const file of new Glob("{braces,zamn,errors}/**/*.zamn").scanSync(fixtures)
       expect(token.range[1]).toBeGreaterThanOrEqual(token.range[0]);
       previous = token.range[1];
     }
-    for (const comment of body.comments) expect(code.slice(...comment.range)).toContain("//");
+    for (const comment of body.comments) expect(code.slice(...comment.range)).toMatch(/^\/[/*]/);
+    // Every element has its end tag, unless it is void.
+    const visit = (node: any) => {
+      for (const child of node.children ?? []) {
+        if (child.type !== "VElement") continue;
+        if (!["img", "input", "br", "hr", "meta", "link"].includes(child.name)) {
+          expect(child.endTag).not.toBeNull();
+        }
+        visit(child);
+      }
+    };
+    visit(body);
     // Throws if a rule does.
     await lint(code, every, { parser: false });
   });

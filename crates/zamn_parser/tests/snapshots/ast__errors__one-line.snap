@@ -1,0 +1,24 @@
+---
+source: crates/zamn_parser/tests/ast.rs
+expression: report
+---
+1:5 error[UNSUPPORTED_SYNTAX] `if` (control flow) is not supported "if x"
+  hint: zamn has no control flow; use your framework's directives, e.g. `div(v-if="cond")`
+2:3 error[UNEXPECTED_TEXT] unexpected text "#" "#"
+3:3 error[INVALID_CLASS_NAME] Class names must contain at least one letter or underscore. ".5"
+4:5 error[UNSUPPORTED_SYNTAX] `#[...]` is not supported "#["
+  hint: write an inline element as `#{...}`
+5:7 error[UNESCAPED_BRACE] A `{` in text must be escaped "{"
+  hint: write `\{` for a literal brace
+6:7 error[UNMATCHED_BRACE] This `}` does not close any `{` "}"
+  hint: remove it, or write `\}` for a literal brace
+7:3 error[MISSING_EXPRESSION] `=` must be followed by an expression "= "
+8:4 error[MISSING_EXPANSION] `:` must be followed by a tag or text ":"
+9:6 error[UNSUPPORTED_SYNTAX] A self-closing `/` is not supported "/"
+  hint: drop the `/`: HTML elements such as `img` need no closing
+10:3 error[UNSUPPORTED_SYNTAX] `script` must end its line "script"
+  hint: write the content on the lines below, and end it with `/script` on its own line
+11:3 error[UNEXPECTED_TEXT] unexpected text "#{b x" "#{b x}"
+  hint: start text with `|`
+12:2 error[UNCLOSED_BRACE] This `{` is never closed "{"
+  hint: close it with `}`
