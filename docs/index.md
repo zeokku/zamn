@@ -20,7 +20,7 @@ hero:
 features:
   - title: Readable
     icon: ▲
-    details: "No redundant code: no closing tags, classes and ids as <code>.class</code> and <code>#id</code> shorthands, and children in <code>{ }</code> blocks."
+    details: "No redundant code: classes and ids as <code>.class</code> and <code>#id</code> shorthands, no closing tags, and children in <code>{ }</code> blocks."
     link: /guide/syntax/elements
   - title: Fast
     icon: ●
@@ -46,7 +46,7 @@ features:
 | `a.link#home(href=/) Home` | classes, ids and attributes follow the tag, text after a space |
 | `ul { li One }` | children go in `{ }`, the only way to nest |
 | `li: a(href=/) Home` | one child on the same line |
-| `ul { li { b x } li { b y } }`, `}}` | blocks on one line; `}}` closes two |
+| `ul { li { b x } li { b y } }` | blocks on one line |
 | `\| text`, `\|` | a statement of text; a bare `\|` is one space between lines |
 | `pre: \|{ … }` | text over several lines, line breaks kept |
 | `p Read #{a(href=/docs) the docs}.` | an element inside text |

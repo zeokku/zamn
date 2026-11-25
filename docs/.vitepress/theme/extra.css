@@ -134,4 +134,6 @@
 /* The cheatsheet reads as a reference card: narrower than the page. */
 .home-cheatsheet {
   max-width: 880px;
+  /* Room between the feature cards and the cheatsheet. */
+  padding-top: 48px;
 }
