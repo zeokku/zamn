@@ -44,6 +44,11 @@ packages/zamn/pkg
 # packaged VS Code extension
 *.vsix
 
+# logo sizes, written by assets/logo.ts
+assets/logo/
+packages/vscode-zamn/images/
+docs/public/favicon.ico
+
 # docs build
 docs/.vitepress/dist
 docs/.vitepress/cache

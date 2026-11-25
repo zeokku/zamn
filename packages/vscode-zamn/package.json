@@ -6,6 +6,11 @@
   "license": "MIT",
   "private": true,
   "publisher": "zamn",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#0b1216",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -17,6 +22,10 @@
         "id": "zamn",
         "aliases": ["zamn"],
         "extensions": [".zamn"],
+        "icon": {
+          "light": "./images/file-icon.png",
+          "dark": "./images/file-icon.png"
+        },
         "configuration": "./language-configuration.json"
       }
     ],
@@ -54,7 +63,7 @@
   },
   "scripts": {
     "test": "bun test",
-    "package": "vsce package --no-dependencies"
+    "package": "bun ../../assets/logo.ts && vsce package --no-dependencies"
   },
   "devDependencies": {
     "@vscode/vsce": "^3.0.0",

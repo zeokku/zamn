@@ -26,3 +26,16 @@ does -pug uses the same workflow?
 ## ask prettier website to add zamn plugin to there
 
 ## better comments docs are wrong about `//! note` being alert as it needs extra space before
+
+https://www.reddit.com/r/vuejs/comments/1c5wb86/cleaner_templates_using_pug_within_vue/
+
+# Skill add a working example after all to save on thinking cost. ?
+
+# Markdown codeblocks don't have ```zamn highlighting.
+
+# ? Make style={} syntax toggleable, so we can disable it? for react e.g.
+
+# Landing
+
+Show playground instead of logo
+We'll add those converters as a separate converter page later to the docs webpage

@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "sharp": "^0.35.5"
   },
   "peerDependencies": {
     "typescript": "^7"
@@ -17,6 +18,7 @@
   "scripts": {
     "build": "cargo build --workspace && bun run --cwd packages/zamn build && bun run --cwd packages/prettier-plugin-zamn build && bun run --cwd packages/vue-language-plugin-zamn build && bun run --cwd packages/vue-eslint-parser-template-tokenizer-zamn build && bun run --cwd packages/eslint-plugin-vue-zamn build",
     "test": "cargo test --workspace && bun run --cwd packages/zamn test && bun run --cwd packages/prettier-plugin-zamn test && bun run --cwd packages/vue-language-plugin-zamn test && bun run --cwd packages/vue-eslint-parser-template-tokenizer-zamn test && bun run --cwd packages/eslint-plugin-vue-zamn test && bun run --cwd packages/vscode-zamn test && bun run --cwd docs test",
+    "logo": "bun assets/logo.ts",
     "docs:dev": "bun run --cwd docs dev",
     "docs:build": "bun run --cwd docs build",
     "docs:preview": "bun run --cwd docs preview",

@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vitepress dev",
-    "build": "vitepress build",
+    "dev": "bun ../assets/logo.ts && vitepress dev",
+    "build": "bun ../assets/logo.ts && vitepress build",
     "preview": "vitepress preview",
     "test": "bun test",
     "tokens": "bun scripts/token-stats.ts",

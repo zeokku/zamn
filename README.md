@@ -119,6 +119,7 @@ Class shorthands take Tailwind-style names: `md:flex`, `w-1/2`, `px-2.5`, `[&>*]
 | `docs` | the documentation site (VitePress), with the playground, the blog and the token measurements |
 | `agents` | rules to paste into an agent's context so it writes valid zamn |
 | `skills` | a Claude Code skill for writing zamn |
+| `assets` | the logo, and `logo.ts`, which writes its sizes (gitignored) for the docs and the VS Code extension |
 | `tests/fixtures` | shared fixtures; `pug/` holds pug's own test cases, kept for the coming pug converter |
 
 The lexer and parser never fail: they report every problem as a diagnostic (code, severity, message, hint, span) and carry on. Errors stop compilation; warnings don't.

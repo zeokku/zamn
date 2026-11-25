@@ -137,6 +137,8 @@ export default defineConfig({
   srcExclude: ["README.md", "data/**"],
   lastUpdated: true,
   sitemap: { hostname: `${site}/` },
+  // `head` hrefs don't get `base`.
+  head: [["link", { rel: "icon", href: "/zamn/favicon.ico", sizes: "16x16 32x32 48x48" }]],
 
   themeConfig: {
     nav: [
