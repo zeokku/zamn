@@ -19,7 +19,7 @@ export default [
   {
     files: ["**/*.vue"],
     rules: {
-      "vue-zamn/component-name-in-template-casing": ["error", "PascalCase"],
+      "vue-zamn/component-name-in-template-casing": ["error", "kebab-case"],
     },
   },
 ];
@@ -56,7 +56,7 @@ For `*.vue` files, it:
 | Rule | Why |
 |---|---|
 | `vue/component-name-in-template-casing` | its fix writes `<Name` and `</Name`; use `vue-zamn/component-name-in-template-casing` |
-| `vue/html-self-closing` | asks for `/>`, and zamn has no self-closing form (`tag/` is an error) |
+| `vue/html-self-closing` | asks for `/>`, and zamn has no self-closing form |
 | `vue/html-indent` | indents as in HTML; the layout is [Prettier](./prettier)'s, and `vue-zamn/no-misleading-indentation` catches the indentation that matters |
 | `vue/multiline-html-element-content-newline`, `vue/singleline-html-element-content-newline`, `vue/padding-line-between-tags` | their fixes break lines, and a line break ends a statement in zamn |
 | `vue/html-quotes` | a bare value (`n=1`) is not a string to put in quotes; quotes are Prettier's job (`singleQuote`) |
@@ -79,9 +79,10 @@ Reports zamn's syntax errors, each over the source it is about, with its hint:
 
 ```text
 div {
-  if user
-  ^^^^^^^ `if` (control flow) is not supported: zamn has no control flow;
-          use your framework's directives, e.g. `div(v-if="cond")`.
+  a(href=base + "/docs") Docs
+         ^^^^^^^^^^^^^^ JavaScript expressions are not supported in attribute
+                        values: zamn has no JavaScript; quote the value, or
+                        write a binding such as `:href` for your framework.
 }
 ```
 
@@ -111,7 +112,7 @@ The template still compiles, which is why the config turns it on as a warning. I
 [`vue/component-name-in-template-casing`](https://eslint.vuejs.org/rules/component-name-in-template-casing.html) with a fix that works in zamn. It takes the same options and is Vue's rule itself: which names are components, which are checked and what the right name is are all decided there. In a zamn template only the fix differs, renaming the tag and nothing else:
 
 ```text
-my-card.big(title="a")   →   MyCard.big(title="a")
+MyCard.big(title="a")   →   my-card.big(title="a")
 ```
 
 In an HTML template it behaves exactly as Vue's rule, so it can replace it in a project that has both kinds.
@@ -193,4 +194,4 @@ export default [
 
 The tokenizer can also be given as the class itself (its default export), but a class can't be serialized, which `eslint --cache` needs. The bare package name works only where vue-eslint-parser can resolve it from its own location, which is not the case with pnpm or Bun's isolated installs.
 
-zamn's diagnostics are in the template's `errors`, each with a `code` that starts with `zamn/` (`zamn/UNSUPPORTED_SYNTAX`), its `severity` (`"error"` or `"warning"`), its `hint`, and its `range` and `loc`. `vue/no-parsing-error` skips them, as it skips every code it doesn't know.
+zamn's diagnostics are in the template's `errors`, each with a `code` that starts with `zamn/` (`zamn/JS_EXPRESSION`), its `severity` (`"error"` or `"warning"`), its `hint`, and its `range` and `loc`. `vue/no-parsing-error` skips them, as it skips every code it doesn't know.

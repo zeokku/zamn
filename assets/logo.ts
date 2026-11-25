@@ -28,12 +28,53 @@ for (let y = 0; y < height; y++) {
 }
 const mark = { left, top, width: right - left + 1, height: bottom - top + 1 };
 
+// The source is teal to cyan (hue 174° to 192°). Turn it toward the docs'
+// palette: the accent rgb(84 104 197) is ~229° and the main lavender
+// rgb(184 175 230) ~250°. Rotating every pixel's hue by the same amount in HSL
+// keeps the facets' shading; sharp's `modulate` rotates in LCh, which pulled
+// the blue facets to pink.
+const HUE_ROTATION = 55;
+const SATURATION = 0.5;
+// Blue reads darker than cyan at the same HSL lightness: lift it toward white.
+const LIGHTEN = 0.28;
+const tinted = Buffer.from(data);
+for (let i = 0; i < tinted.length; i += 4) {
+  if (tinted[i + 3] === 0) continue;
+  const [h, s, l] = rgbToHsl(tinted[i]!, tinted[i + 1]!, tinted[i + 2]!);
+  const [r, g, b] = hslToRgb((h + HUE_ROTATION / 360) % 1, s * SATURATION, l + (1 - l) * LIGHTEN);
+  tinted[i] = r;
+  tinted[i + 1] = g;
+  tinted[i + 2] = b;
+}
+
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  r /= 255, g /= 255, b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  const h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h / 6, s, l];
+}
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const channel = (t: number) => {
+    t = (t + 1) % 1;
+    const v = t < 1 / 6 ? p + (q - p) * 6 * t : t < 1 / 2 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p;
+    return Math.round(v * 255);
+  };
+  return [channel(h + 1 / 3), channel(h), channel(h - 1 / 3)];
+}
+
 /** The mark scaled to `w` x `h` (it keeps its own shape), centred on a transparent canvas. */
 async function render(w: number, h: number, fill: number): Promise<Buffer> {
   const scale = Math.min((w * fill) / mark.width, (h * fill) / mark.height);
   const mw = Math.round(mark.width * scale);
   const mh = Math.round(mark.height * scale);
-  return sharp(data, { raw: { width, height, channels: 4 } })
+  return sharp(tinted, { raw: { width, height, channels: 4 } })
     .extract(mark)
     .resize(mw, mh, { fit: "fill", kernel: "lanczos3" })
     .extend({

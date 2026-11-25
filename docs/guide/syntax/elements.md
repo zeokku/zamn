@@ -24,14 +24,14 @@ A tag name may contain letters, digits, `_`, `-` and `:`, so custom elements, co
 
 ```zamn
 my-card {
-  MyButton Go
+  my-button Go
   svg:circle(r="4")
 }
 ```
 
 ```html format
 <my-card>
-  <MyButton>Go</MyButton>
+  <my-button>Go</my-button>
   <svg:circle r="4"></svg:circle>
 </my-card>
 ```
@@ -90,4 +90,4 @@ icon-star
 <icon-star></icon-star>
 ```
 
-Giving a void element content is an error (`SELF_CLOSING_CONTENT`), and so is a `/` after a tag (`img/`): there is nothing to self-close.
+Giving a void element content is an error (`SELF_CLOSING_CONTENT`).

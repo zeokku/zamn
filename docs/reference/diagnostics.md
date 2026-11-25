@@ -7,24 +7,13 @@ Every diagnostic has a `code`, a `severity`, a `message`, a `range` and often a 
 - an **error** means the template can't be compiled: `compile` throws, and `zamn --validate` fails;
 - a **warning** points at something that compiles but probably isn't what you meant: `compile` returns it in `warnings`, and the CLI prints it as `warning[CODE]` without failing.
 
-In ESLint the codes are prefixed with `zamn/` (`zamn/UNSUPPORTED_SYNTAX`): errors are reported by [`vue-zamn/no-parsing-error`](../ecosystem/eslint#vue-zamn-no-parsing-error), and the `MISLEADING_INDENTATION` warning by [`vue-zamn/no-misleading-indentation`](../ecosystem/eslint#vue-zamn-no-misleading-indentation).
+In ESLint the codes are prefixed with `zamn/` (`zamn/JS_EXPRESSION`): errors are reported by [`vue-zamn/no-parsing-error`](../ecosystem/eslint#vue-zamn-no-parsing-error), and the `MISLEADING_INDENTATION` warning by [`vue-zamn/no-misleading-indentation`](../ecosystem/eslint#vue-zamn-no-misleading-indentation).
 
-## Constructs zamn doesn't have
+## Statements and values
 
 ### `UNSUPPORTED_SYNTAX`
 
-Control flow, code, mixins, includes, inheritance, filters, `&attributes`, `!=` output and lines of HTML, as well as forms zamn writes another way: `#[...]` inline tags (use `#{...}`), `tag.` text blocks (use `|{ ... }`, or `/script` content for scripts and styles) and `tag/` (drop the `/`). The hint says what to use instead. See [Not supported](../guide/syntax/not-supported).
-
-```zamn error=UNSUPPORTED_SYNTAX
-each item in items {
-  li= item
-}
-```
-
-```text
-error[UNSUPPORTED_SYNTAX]: `each` (control flow) is not supported
-  hint: zamn has no control flow; use your framework's directives, e.g. `div(v-if="cond")`
-```
+A statement zamn doesn't have. The hint says what to write instead.
 
 ### `JS_EXPRESSION`
 

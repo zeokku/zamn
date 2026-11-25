@@ -12,31 +12,104 @@ separate package, so add only what you use.
 | `prettier-plugin-zamn` | formats `.zamn` files and `<template lang="zamn">` | [Prettier](./prettier) |
 | zamn for VS Code | syntax highlighting in `.zamn` files and Vue components | [VS Code](./vscode) |
 
-## A Vue project, step by step
+## Set up a Vue project
 
-Starting from a Vue + Vite project (`bun create vue`, say):
+Starting from a Vue + Vite project (`bun create vue`, say), these six steps are the whole setup. Each links to its own page, with the details and options.
 
-1. **Build.** `bun add -d zamn`, then teach `@vitejs/plugin-vue` to compile zamn
-   templates: [Vite and Vue](./vite).
-2. **Write a template.**
+### 1. Build
 
-   ```vue
-   <template lang="zamn">
-   .greetings {
-     h1.green= msg
-     h3 You did it!
-   }
-   </template>
-   ```
+```sh
+bun add -d zamn
+```
 
-3. **Type check.** `bun add -d vue-language-plugin-zamn` and add it to
-   `vueCompilerOptions.plugins` in `tsconfig.json`: [TypeScript](./typescript).
-   The Vue - Official extension picks it up too.
-4. **Lint.** `bun add -d eslint-plugin-vue-zamn` and spread its
-   `configs.recommended` after eslint-plugin-vue's: [ESLint](./eslint).
-5. **Format.** `bun add -d prettier-plugin-zamn` and list it in `plugins`:
-   [Prettier](./prettier).
-6. **Highlight.** Install zamn for VS Code: [VS Code](./vscode).
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import { compile } from "zamn";
+
+const zamn = {
+  render(source: string, { filename }: { filename: string }, done: (error: unknown, html?: string) => void) {
+    try {
+      done(null, compile(source, { filename }).code);
+    } catch (error) {
+      done(error);
+    }
+  },
+};
+
+export default defineConfig({
+  plugins: [vue({ template: { preprocessCustomRequire: (lang) => (lang === "zamn" ? zamn : undefined) } })],
+});
+```
+
+Full setup and options: [Vite and Vue](./vite).
+
+### 2. Write a template
+
+```vue
+<template lang="zamn">
+.greetings {
+  h1.green= msg
+  h3 You did it!
+}
+</template>
+```
+
+### 3. Type check
+
+```sh
+bun add -d vue-language-plugin-zamn
+```
+
+```jsonc
+// tsconfig.app.json
+{
+  "vueCompilerOptions": { "plugins": ["vue-language-plugin-zamn"] }
+}
+```
+
+The Vue - Official extension picks it up too. Full setup and options: [TypeScript](./typescript).
+
+### 4. Lint
+
+```sh
+bun add -d eslint-plugin-vue-zamn
+```
+
+```js
+// eslint.config.js
+import vue from "eslint-plugin-vue";
+import vueZamn from "eslint-plugin-vue-zamn";
+
+export default [
+  ...vue.configs["flat/recommended"],
+  ...vueZamn.configs.recommended,
+];
+```
+
+Full setup and options: [ESLint](./eslint).
+
+### 5. Format
+
+```sh
+bun add -d prettier prettier-plugin-zamn
+```
+
+```json
+// .prettierrc
+{ "plugins": ["prettier-plugin-zamn"] }
+```
+
+Full setup and options: [Prettier](./prettier).
+
+### 6. Highlight
+
+```sh
+code --install-extension zamn.vscode-zamn
+```
+
+Full setup and options: [VS Code](./vscode).
 
 When you're done, the scripts of a fresh Vue project all understand zamn:
 

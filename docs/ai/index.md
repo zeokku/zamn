@@ -42,11 +42,8 @@ What agents trained on HTML and other template languages get wrong, and what the
 
 | Mistake | Error | Fix |
 |---|---|---|
-| `if`, `each`, `for` lines | `UNSUPPORTED_SYNTAX` | `v-if`, `v-for` on the element |
 | `a(href=base + "/x")` | `JS_EXPRESSION` | `a(:href="base + '/x'")` |
-| `<div>` lines of HTML | `UNSUPPORTED_SYNTAX` | `div` |
 | `<b>` and other tags in text | none: text is escaped, so the tags show as text | `#{b bold}` |
-| `#[b bold]`, `script.`, `img/` | `UNSUPPORTED_SYNTAX` | `#{b bold}`, `script` … `/script`, `img` |
 | children nested by indentation, without braces | `MISLEADING_INDENTATION`, a warning: they are siblings | put children inside `{ }` |
 | `p Some text {` | `UNESCAPED_BRACE` | open the block straight after the tag: `p {` |
 | `{` or `}` in text | `UNESCAPED_BRACE`, or a `}` that closes the block | `\{` and `\}` |

@@ -102,16 +102,15 @@ defineProps<{ msg: string }>();
 
 A template with errors is not compiled. Each problem names its code, the place and usually a hint:
 
-```zamn error=UNSUPPORTED_SYNTAX
-ul {
-  each item in items
-  li= item
+```zamn error=JS_EXPRESSION
+nav {
+  a(href=base + "/docs") Docs
 }
 ```
 
 ```text
-page.zamn:2:3: error[UNSUPPORTED_SYNTAX]: `each` (control flow) is not supported
-  hint: zamn has no control flow; use your framework's directives, e.g. `div(v-if="cond")`
+page.zamn:2:10: error[JS_EXPRESSION]: JavaScript expressions are not supported in attribute values
+  hint: zamn has no JavaScript; quote the value, or write a binding such as `:href` for your framework
 ```
 
 Warnings, such as a line indented as if it were a child when it isn't, are printed the same way, as `warning[CODE]`, and the template still compiles. All codes are listed under [Diagnostics](../reference/diagnostics).

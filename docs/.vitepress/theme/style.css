@@ -4,7 +4,7 @@
  */
 
 :root {
-  --vp-c-brand-1: var(--zamn-c-accent-3);
+  --vp-c-brand-1: var(--zamn-c-link);
   --vp-c-brand-2: var(--zamn-c-accent);
   --vp-c-brand-3: var(--zamn-c-accent);
   --vp-c-brand-soft: var(--zamn-c-soft);
@@ -14,7 +14,10 @@
   --vp-c-tip-3: var(--vp-c-brand-3);
   --vp-c-tip-soft: var(--vp-c-brand-soft);
 
-  --vp-c-bg: #f5f8f9;
+  --vp-c-bg: rgb(var(--zamn-rgb-bg-light));
+  --vp-c-text-1: rgb(var(--zamn-rgb-bg));
+  --vp-c-text-2: rgb(var(--zamn-rgb-bg) / 0.72);
+  --vp-c-text-3: rgb(var(--zamn-rgb-bg) / 0.5);
   --vp-c-bg-alt: transparent;
   --vp-c-bg-elv: var(--zamn-glass-strong);
 
@@ -27,10 +30,10 @@
   --vp-code-block-bg: var(--zamn-glass-strong);
 
   --vp-button-brand-border: transparent;
-  --vp-button-brand-text: #fff;
+  --vp-button-brand-text: var(--zamn-button-text);
   --vp-button-brand-bg: var(--zamn-c-accent);
   --vp-button-brand-hover-border: transparent;
-  --vp-button-brand-hover-text: #fff;
+  --vp-button-brand-hover-text: var(--zamn-button-text);
   --vp-button-brand-hover-bg: var(--zamn-c-accent-2);
   --vp-button-brand-active-bg: var(--zamn-c-accent-3);
   --vp-button-alt-bg: var(--zamn-glass);
@@ -48,9 +51,13 @@
 }
 
 .dark {
-  --vp-c-bg: #0b1216;
-  --vp-c-bg-soft: rgba(255, 255, 255, 0.04);
-  --vp-c-brand-1: var(--zamn-c-accent-2);
+  --vp-c-bg: rgb(var(--zamn-rgb-bg));
+  --vp-c-bg-soft: rgb(var(--zamn-rgb-fg) / 0.05);
+  --vp-c-text-1: rgb(var(--zamn-rgb-fg));
+  --vp-c-text-2: rgb(var(--zamn-rgb-fg) / 0.74);
+  --vp-c-text-3: rgb(var(--zamn-rgb-fg) / 0.5);
+  --vp-c-divider: rgb(var(--zamn-rgb-fg) / 0.12);
+  --vp-c-gutter: rgb(0 0 0 / 0.4);
 }
 
 /* The colour behind the glass. */
@@ -85,7 +92,7 @@ body {
 }
 .VPFeature.link:hover {
   transform: translateY(-6px);
-  box-shadow: 0 18px 44px rgba(13, 158, 154, 0.2);
+  box-shadow: 0 18px 44px var(--zamn-button-shadow);
   border-color: var(--zamn-c-soft) !important;
 }
 .VPFeature.link:hover .icon {
@@ -134,7 +141,7 @@ body {
   border: 0;
 }
 .vp-doc tr:nth-child(2n) {
-  background: rgba(120, 160, 170, 0.06);
+  background: var(--zamn-stripe);
 }
 .vp-doc th,
 .vp-doc td {
@@ -160,10 +167,10 @@ body {
 .VPButton.brand:focus-visible {
   border-color: transparent !important;
   color: var(--zamn-button-text) !important;
-  background: var(--zamn-gradient) !important;
+  background: var(--zamn-button-bg) !important;
 }
 .VPButton.brand {
-  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.3);
+  box-shadow: 0 6px 20px var(--zamn-button-shadow);
   transition:
     filter 0.2s,
     box-shadow 0.2s,
@@ -171,12 +178,12 @@ body {
 }
 .VPButton.brand:hover {
   filter: brightness(1.06) saturate(1.1);
-  box-shadow: 0 10px 28px rgba(6, 182, 212, 0.4);
+  box-shadow: 0 10px 28px var(--zamn-button-shadow);
 }
 .VPButton.brand:active {
   filter: brightness(0.94);
   transform: translateY(1px) scale(0.98);
-  box-shadow: 0 3px 10px rgba(6, 182, 212, 0.3);
+  box-shadow: 0 3px 10px var(--zamn-button-shadow);
 }
 .VPButton.alt:active {
   transform: translateY(1px) scale(0.98);
@@ -213,6 +220,14 @@ body {
   color: transparent;
   width: fit-content;
 }
+/* Headings in the lighter foreground: white over the lavender text in dark. */
+.vp-doc h2,
+.vp-doc h3,
+.vp-doc h4,
+.VPHero .text,
+.VPFeature .title {
+  color: var(--zamn-c-heading);
+}
 .vp-doc h2 {
   border-top: 0;
   font-weight: 700;
@@ -228,10 +243,10 @@ body {
   letter-spacing: -0.035em;
   font-weight: 800;
 }
-/* `<angle brackets>`: the words greyed out, the punctuation in mono, and the
+/* `<angle brackets>`: the words in the secondary text colour, the punctuation in mono, and the
    `<` and `>` in the brand colour. */
 .VPHero .text .angle {
-  color: var(--vp-c-text-3);
+  color: var(--vp-c-text-2);
   font-family: var(--zamn-font-worn);
   font-weight: 400;
   letter-spacing: -0.01em;
@@ -345,21 +360,7 @@ body {
 }
 
 ::selection {
-  background: rgba(6, 182, 212, 0.22);
-}
-
-/* Home: the example ("Write this / Get this") comes before the feature cards.
-   VitePress renders the page's Markdown after the features, so reorder. */
-.VPHome {
-  display: flex;
-  flex-direction: column;
-}
-.VPHome .VPHomeContent {
-  order: 1;
-}
-.VPHome .VPHomeFeatures {
-  order: 2;
-  margin-top: 8px;
+  background: var(--zamn-selection);
 }
 
 /* The example's headings: no doc-page gap above them. */
@@ -399,10 +400,19 @@ body {
   }
 }
 /* "Read the introduction or try it in the playground". */
-.home-extra > p:last-child {
+.home-example > div > p:last-child {
   text-align: center;
 }
 .VPFeature .details code {
   font-family: var(--vp-font-family-mono);
   white-space: nowrap;
+}
+
+/* The playground's Monaco widgets (hovers), mounted on `body`: they need a
+   stacking context above the page, and no layout of their own. */
+.zamn-monaco-widgets {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
 }

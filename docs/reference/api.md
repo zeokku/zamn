@@ -94,11 +94,11 @@ class ZamnError extends Error {
 
 ```ts
 try {
-  compile("- const x = 1\np(title=a + b)", { filename: "x.zamn" });
+  compile("p Some text {\np(title=a + b)", { filename: "x.zamn" });
 } catch (error) {
   if (error instanceof ZamnError) {
-    error.message; // "Unbuffered code (`- ...`) is not supported (and 1 more)"
-    error.diagnostics.map((d) => d.code); // ["UNSUPPORTED_SYNTAX", "JS_EXPRESSION"]
+    error.message; // "A `{` in text must be escaped (and 1 more)"
+    error.diagnostics.map((d) => d.code); // ["UNESCAPED_BRACE", "JS_EXPRESSION"]
   }
 }
 ```
@@ -107,7 +107,7 @@ try {
 
 ```ts
 interface Diagnostic {
-  /** "UNSUPPORTED_SYNTAX", "MISLEADING_INDENTATION", … */
+  /** "JS_EXPRESSION", "MISLEADING_INDENTATION", … */
   code: string;
   /** Errors stop `compile`; warnings don't. */
   severity: "error" | "warning";

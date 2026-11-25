@@ -86,7 +86,6 @@ const guide: DefaultTheme.SidebarItem[] = [
       { text: "Interpolation", link: "/guide/syntax/interpolation" },
       { text: "Comments", link: "/guide/syntax/comments" },
       { text: "Doctype", link: "/guide/syntax/doctypes" },
-      { text: "Not supported", link: "/guide/syntax/not-supported" },
     ],
   },
 ];
@@ -131,11 +130,14 @@ const ai: DefaultTheme.SidebarItem[] = [
 
 export default defineConfig({
   title: "zamn",
-  description: "A static way to write HTML with { } blocks instead of closing tags. Readable for people, cheap for agents.",
+  description:
+    "A new, modern and fast way to write HTML with { } blocks instead of closing tags. Easy to read, quick to write, and with coding agent support for code generation.",
   base: "/zamn/",
   cleanUrls: true,
-  srcExclude: ["README.md", "data/**"],
+  srcExclude: ["README.md", "data/**", "parts/**"],
   lastUpdated: true,
+  // Dark by default; the switch in the nav still turns it light.
+  appearance: "dark",
   sitemap: { hostname: `${site}/` },
   // `head` hrefs don't get `base`.
   head: [["link", { rel: "icon", href: "/zamn/favicon.ico", sizes: "16x16 32x32 48x48" }]],
@@ -186,7 +188,7 @@ export default defineConfig({
   },
 
   vite: {
-    plugins: [llmstxt({ domain: "https://zeokku.github.io", ignoreFiles: ["blog/index.md"] }), downloadsPlugin()],
+    plugins: [llmstxt({ domain: "https://zeokku.github.io", ignoreFiles: ["blog/index.md", "parts/**"] }), downloadsPlugin()],
     server: { fs: { allow: [fromRoot("")] } },
     build: { cssTarget },
   },

@@ -14,7 +14,7 @@ brackets. zamn is a small, static syntax for the same markup:
 .card(:class="{ active: isActive }") {
   h2.title= item.title
   p(v-if="item.body")= item.body
-  MyButton(@click="select(item)") Select
+  my-button(@click="select(item)") Select
 }
 ```
 
@@ -22,7 +22,7 @@ brackets. zamn is a small, static syntax for the same markup:
 <div class="card" :class="{ active: isActive }">
   <h2 class="title">{{ item.title }}</h2>
   <p v-if="item.body">{{ item.body }}</p>
-  <MyButton @click="select(item)">Select</MyButton>
+  <my-button @click="select(item)">Select</my-button>
 </div>
 ```
 

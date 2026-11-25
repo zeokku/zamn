@@ -13,12 +13,12 @@ header {
   )
 
   .wrapper {
-    HelloWorld(msg="You did it!")
+    hello-world(msg="You did it!")
   }
 }
 
 main {
-  TheWelcome
+  the-welcome
 }
 </template>
 

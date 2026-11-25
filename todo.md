@@ -1,9 +1,5 @@
 # docs
 
-## attributes > over several lines
-
-what's the point of paragraph about '(' and ')'
-
 ## cheatsheet on main page accessible with /#cheatsheet
 
 ## "not supported" page is redundant and may confuse agents, only list existing features

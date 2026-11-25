@@ -2,7 +2,7 @@
 
 A static way to write HTML, with `{ }` blocks instead of closing tags, written in Rust.
 
-Tags, `.class`, `#id` and `(attributes)` on one line, children in braces, and no JavaScript, no control flow and no includes: a template is a single file that compiles to one HTML string, with a source map. The syntax for tags, classes and attributes was inspired by [pug](https://pugjs.org)'s.
+Tags, `.class`, `#id` and `(attributes)` on one line, and children in braces. A template is static markup, with logic, loops and composition left to your framework, and a single file that compiles to one HTML string, with a source map. The syntax for tags, classes and attributes was inspired by [pug](https://pugjs.org)'s.
 
 ```
 div {
@@ -97,8 +97,6 @@ script
 Class shorthands take Tailwind-style names: `md:flex`, `w-1/2`, `px-2.5`, `[&>*]:p-2`, `!mt-0`, `bg-(--brand)`.
 
 **Output** is always HTML5: `<img>` and `<br>` without a `/`, a closing tag for everything else. `doctype html` writes `<!DOCTYPE html>`.
-
-**Not supported**, each with its own error and a hint: `- code`, `p!= html`, `if`/`else`/`unless`, `case`/`when`, `each`/`for`/`while`, mixins, `include`, `extends`/`block`, filters, `&attributes`, lines of HTML, and the forms zamn writes another way: `#[...]` (write `#{...}`), `tag.` text blocks (`|{ }`, or `/script` content), and `tag/`.
 
 ## Layout
 

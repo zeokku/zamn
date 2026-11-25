@@ -111,13 +111,13 @@ a(:href="base + '/docs'") Docs
 A binding (`:x`, `@x`, `#x`, `.x`, `v-*`) may also go without quotes, as HTML allows. A value in `{ }`, `[ ]` or `( )` is copied as written, spaces and all:
 
 ```zamn
-RouterLink(:to=/about :class={ active: onAbout } @click=go()) About
+router-link(:to=/about :class={ active: onAbout } @click=go()) About
 ```
 
 ```html format
-<RouterLink :to="/about" :class="{ active: onAbout }" @click="go()">
+<router-link :to="/about" :class="{ active: onAbout }" @click="go()">
   About
-</RouterLink>
+</router-link>
 ```
 
 The value ends at its closing bracket, and whatever follows is the next attribute. Quote a value that goes on after it:
@@ -137,7 +137,7 @@ li(v-for=(item, i) in items)
 Names can hold almost anything but spaces, `=`, `,` and `)`, so framework syntax works as written:
 
 ```zamn
-MyInput(
+my-input(
   v-model.trim="name"
   :label="t('name')"
   @update:model-value="save"
@@ -146,12 +146,12 @@ MyInput(
 ```
 
 ```html format
-<MyInput
+<my-input
   v-model.trim="name"
   :label="t('name')"
   @update:model-value="save"
   #prefix="{ icon }"
-></MyInput>
+></my-input>
 ```
 
 Quote a name to use other characters: `("odd name"="1")`. Each name may appear only once per element, except `class` (`DUPLICATE_ATTRIBUTE`).

@@ -22,7 +22,7 @@ export default [
   {
     files: ["**/*.vue"],
     rules: {
-      "vue-zamn/component-name-in-template-casing": ["error", "PascalCase"],
+      "vue-zamn/component-name-in-template-casing": ["error", "kebab-case"],
     },
   },
 ];
@@ -41,7 +41,7 @@ For `*.vue` files:
 | Rule | Why |
 |---|---|
 | `vue/component-name-in-template-casing` | its fix writes `<Name` and `</Name`; use `vue-zamn/component-name-in-template-casing` |
-| `vue/html-self-closing` | asks for `/>`, and zamn has no self-closing form (`tag/` is an error) |
+| `vue/html-self-closing` | asks for `/>`, and zamn has no self-closing form |
 | `vue/html-indent` | indents as in HTML; the layout is prettier-plugin-zamn's, and `vue-zamn/no-misleading-indentation` catches the indentation that matters |
 | `vue/multiline-html-element-content-newline`, `vue/singleline-html-element-content-newline`, `vue/padding-line-between-tags` | their fixes break lines, and a line break ends a statement in zamn |
 | `vue/html-quotes` | a bare value (`n=1`) is not a string to put in quotes; its fix writes `&quot;`, which zamn escapes again; quotes are for prettier-plugin-zamn (`singleQuote`) |
@@ -64,9 +64,10 @@ Reports zamn's syntax errors, each over the source it is about and with its hint
 
 ```
 div {
-  if user
-  ^^^^^^^ `if` (control flow) is not supported: zamn has no control flow;
-          use your framework's directives, e.g. `div(v-if="cond")`.
+  a(href=base + "/docs") Docs
+         ^^^^^^^^^^^^^^ JavaScript expressions are not supported in attribute
+                        values: zamn has no JavaScript; quote the value, or
+                        write a binding such as `:href` for your framework.
 }
 ```
 
@@ -91,7 +92,7 @@ The template still compiles, so the config turns it on as a warning. It has no o
 [`vue/component-name-in-template-casing`](https://eslint.vuejs.org/rules/component-name-in-template-casing.html) with a fix that works in zamn. It takes the same options and is Vue's rule itself: which names are components, which are checked and what the right name is are all decided there. In a zamn template only the fix differs, renaming the tag and nothing else:
 
 ```
-my-card.big(title="a")   →   MyCard.big(title="a")
+MyCard.big(title="a")   →   my-card.big(title="a")
 ```
 
 In an HTML template it behaves exactly as Vue's rule, so it can replace it in a project that has both kinds.

@@ -1,20 +1,49 @@
-/* The zamn palette: teal to cyan over soft, translucent glass. */
+/* The zamn palette, as RGB components so any of them takes an alpha:
+   `rgb(var(--zamn-rgb-accent) / 0.2)`. The first four are the brand; the rest
+   are derived from them. */
 :root {
-  --zamn-c-accent: #0d9e9a;
-  --zamn-c-accent-2: #14b8b0;
-  --zamn-c-accent-3: #0a8582;
-  --zamn-c-cyan: #06b6d4;
-  --zamn-c-sky: #38bdf8;
-  --zamn-c-soft: rgba(13, 158, 154, 0.12);
-  --zamn-gradient: linear-gradient(120deg, #0fa89f 0%, #06b6d4 60%, #38bdf8 100%);
+  --zamn-rgb-fg: 184 175 230; /* the main colour: text in dark mode */
+  --zamn-rgb-fg-lighter: 255 255 255; /* headings in dark mode */
+  --zamn-rgb-bg: 33 33 33; /* the dark background, and the text in light mode */
+  --zamn-rgb-accent: 84 104 197; /* buttons, links, highlights */
+
+  /* Derived. The accent is 3.2:1 on the dark background, too little for text,
+     so dark mode links use a lighter step (5.5:1); light mode links use a
+     darker one (about 6:1 on the light background). */
+  --zamn-rgb-accent-light: 128 146 232;
+  --zamn-rgb-accent-lighter: 160 174 242;
+  --zamn-rgb-accent-dark: 70 86 176;
+  --zamn-rgb-purple: 112 100 200; /* between the accent and fg, for gradients */
+  --zamn-rgb-fg-dark: 104 92 180; /* fg dark enough to read on white */
+  --zamn-rgb-bg-light: 246 245 251; /* the light background: white, tinted with fg */
+  --zamn-rgb-bg-raised: 42 41 52; /* dark glass: bg lifted toward fg */
+
+  --zamn-c-accent: rgb(var(--zamn-rgb-accent));
+  --zamn-c-accent-2: rgb(var(--zamn-rgb-accent-light));
+  --zamn-c-accent-3: rgb(var(--zamn-rgb-accent-dark));
+  --zamn-c-link: rgb(var(--zamn-rgb-accent-dark));
+  --zamn-c-heading: rgb(var(--zamn-rgb-bg));
+  --zamn-c-soft: rgb(var(--zamn-rgb-accent) / 0.12);
+  --zamn-gradient: linear-gradient(
+    120deg,
+    rgb(var(--zamn-rgb-accent-dark)) 0%,
+    rgb(var(--zamn-rgb-purple)) 60%,
+    rgb(var(--zamn-rgb-fg-dark)) 100%
+  );
+  /* White text on the brand button: at least 4.8:1 over the whole gradient. */
+  --zamn-button-bg: linear-gradient(120deg, rgb(var(--zamn-rgb-accent)) 0%, rgb(var(--zamn-rgb-purple)) 100%);
+  --zamn-button-text: rgb(var(--zamn-rgb-fg-lighter));
+  --zamn-button-shadow: rgb(var(--zamn-rgb-accent) / 0.3);
 
   /* Glass surfaces. */
-  --zamn-glass: rgba(255, 255, 255, 0.55);
-  --zamn-glass-strong: rgba(255, 255, 255, 0.74);
-  --zamn-glass-border: rgba(255, 255, 255, 0.7);
-  --zamn-glass-edge: rgba(15, 40, 50, 0.08);
-  --zamn-glass-shadow: 0 8px 32px rgba(10, 60, 70, 0.08), 0 1px 2px rgba(10, 60, 70, 0.04);
+  --zamn-glass: rgb(255 255 255 / 0.55);
+  --zamn-glass-strong: rgb(255 255 255 / 0.74);
+  --zamn-glass-border: rgb(255 255 255 / 0.7);
+  --zamn-glass-edge: rgb(var(--zamn-rgb-bg) / 0.08);
+  --zamn-glass-shadow: 0 8px 32px rgb(var(--zamn-rgb-accent) / 0.08), 0 1px 2px rgb(var(--zamn-rgb-bg) / 0.04);
   --zamn-blur: saturate(160%) blur(18px);
+  --zamn-stripe: rgb(var(--zamn-rgb-fg) / 0.1);
+  --zamn-selection: rgb(var(--zamn-rgb-accent) / 0.22);
 
   /* Type: Aileron for everything but code, Geist Mono for code, and
      Redaction 50, a worn serif, for what zamn leaves behind. */
@@ -22,43 +51,51 @@
   --vp-font-family-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --zamn-font-display: "Aileron", var(--vp-font-family-base);
   --zamn-font-worn: "Redaction 50", Georgia, serif;
-  --zamn-button-text: #ffffff;
 
   /* Scrollbars. */
-  --zamn-scroll-thumb: rgba(13, 158, 154, 0.3);
-  --zamn-scroll-thumb-hover: rgba(13, 158, 154, 0.55);
+  --zamn-scroll-thumb: rgb(var(--zamn-rgb-accent) / 0.3);
+  --zamn-scroll-thumb-hover: rgb(var(--zamn-rgb-accent) / 0.55);
 
   --zamn-radius: 16px;
   --zamn-radius-sm: 10px;
 
   /* Soft colour behind everything, for the glass to show. */
   --zamn-backdrop:
-    radial-gradient(42rem 32rem at 8% -6%, rgba(20, 184, 176, 0.18), transparent 70%),
-    radial-gradient(38rem 30rem at 96% 4%, rgba(6, 182, 212, 0.16), transparent 70%),
-    radial-gradient(46rem 36rem at 60% 110%, rgba(56, 189, 248, 0.14), transparent 70%);
+    radial-gradient(42rem 32rem at 8% -6%, rgb(var(--zamn-rgb-accent) / 0.16), transparent 70%),
+    radial-gradient(38rem 30rem at 96% 4%, rgb(var(--zamn-rgb-fg) / 0.3), transparent 70%),
+    radial-gradient(46rem 36rem at 60% 110%, rgb(var(--zamn-rgb-accent-light) / 0.14), transparent 70%);
 }
 
 .dark {
-  --zamn-c-accent: #2dd4bf;
-  --zamn-c-accent-2: #5eead4;
-  --zamn-c-accent-3: #14b8a6;
-  --zamn-c-soft: rgba(45, 212, 191, 0.14);
-  --zamn-gradient: linear-gradient(120deg, #2dd4bf 0%, #22d3ee 60%, #7dd3fc 100%);
+  --zamn-c-accent: rgb(var(--zamn-rgb-accent-light));
+  --zamn-c-accent-2: rgb(var(--zamn-rgb-accent-lighter));
+  --zamn-c-accent-3: rgb(var(--zamn-rgb-accent));
+  --zamn-c-link: rgb(var(--zamn-rgb-accent-light));
+  --zamn-c-heading: rgb(var(--zamn-rgb-fg-lighter));
+  --zamn-c-soft: rgb(var(--zamn-rgb-accent) / 0.2);
+  --zamn-gradient: linear-gradient(
+    120deg,
+    rgb(var(--zamn-rgb-accent-light)) 0%,
+    rgb(var(--zamn-rgb-fg)) 60%,
+    rgb(var(--zamn-rgb-fg-lighter)) 100%
+  );
+  --zamn-button-shadow: rgb(var(--zamn-rgb-accent) / 0.4);
 
-  --zamn-button-text: #04211f;
-  --zamn-scroll-thumb: rgba(45, 212, 191, 0.25);
-  --zamn-scroll-thumb-hover: rgba(45, 212, 191, 0.5);
+  --zamn-scroll-thumb: rgb(var(--zamn-rgb-fg) / 0.22);
+  --zamn-scroll-thumb-hover: rgb(var(--zamn-rgb-fg) / 0.42);
 
-  --zamn-glass: rgba(16, 26, 32, 0.5);
-  --zamn-glass-strong: rgba(16, 26, 32, 0.74);
-  --zamn-glass-border: rgba(255, 255, 255, 0.08);
-  --zamn-glass-edge: rgba(255, 255, 255, 0.06);
-  --zamn-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --zamn-glass: rgb(var(--zamn-rgb-bg-raised) / 0.55);
+  --zamn-glass-strong: rgb(var(--zamn-rgb-bg-raised) / 0.82);
+  --zamn-glass-border: rgb(var(--zamn-rgb-fg) / 0.1);
+  --zamn-glass-edge: rgb(var(--zamn-rgb-fg) / 0.08);
+  --zamn-glass-shadow: 0 8px 32px rgb(0 0 0 / 0.35), 0 1px 2px rgb(0 0 0 / 0.2);
+  --zamn-stripe: rgb(var(--zamn-rgb-fg) / 0.04);
+  --zamn-selection: rgb(var(--zamn-rgb-accent) / 0.4);
 
   --zamn-backdrop:
-    radial-gradient(42rem 32rem at 8% -6%, rgba(20, 184, 166, 0.18), transparent 70%),
-    radial-gradient(38rem 30rem at 96% 4%, rgba(6, 182, 212, 0.14), transparent 70%),
-    radial-gradient(46rem 36rem at 60% 110%, rgba(56, 189, 248, 0.12), transparent 70%);
+    radial-gradient(42rem 32rem at 8% -6%, rgb(var(--zamn-rgb-accent) / 0.22), transparent 70%),
+    radial-gradient(38rem 30rem at 96% 4%, rgb(var(--zamn-rgb-fg) / 0.1), transparent 70%),
+    radial-gradient(46rem 36rem at 60% 110%, rgb(var(--zamn-rgb-accent) / 0.14), transparent 70%);
 }
 
 .home-extra {

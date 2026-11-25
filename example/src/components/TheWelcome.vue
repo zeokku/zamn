@@ -10,8 +10,8 @@ const openReadmeInEditor = () => fetch("/__open-in-editor?file=README.md")
 </script>
 
 <template lang="zamn">
-WelcomeItem {
-  template(#icon): DocumentationIcon
+welcome-item {
+  template(#icon): documentation-icon
   template(#heading) Documentation
 
   | Vue’s
@@ -19,8 +19,8 @@ WelcomeItem {
   | provides you with all information you need to get started.
 }
 
-WelcomeItem {
-  template(#icon): ToolingIcon
+welcome-item {
+  template(#icon): tooling-icon
   template(#heading) Tooling
 
   | This project is served and bundled with
@@ -41,8 +41,8 @@ WelcomeItem {
   | #{a(href="javascript:void(0)" @click="openReadmeInEditor"): code README.md}.
 }
 
-WelcomeItem {
-  template(#icon): EcosystemIcon
+welcome-item {
+  template(#icon): ecosystem-icon
   template(#heading) Ecosystem
 
   | Get official tools and libraries for your project:
@@ -55,8 +55,8 @@ WelcomeItem {
   | a visit.
 }
 
-WelcomeItem {
-  template(#icon): CommunityIcon
+welcome-item {
+  template(#icon): community-icon
   template(#heading) Community
 
   | Got stuck? Ask your question on
@@ -70,8 +70,8 @@ WelcomeItem {
   | X account for latest news in the Vue world.
 }
 
-WelcomeItem {
-  template(#icon): SupportIcon
+welcome-item {
+  template(#icon): support-icon
   template(#heading) Support Vue
 
   | As an independent project, Vue relies on community backing for its sustainability. You can

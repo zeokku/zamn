@@ -9,7 +9,7 @@ The [zamn extension](https://marketplace.visualstudio.com/items?itemName=zamn.vs
 code --install-extension zamn.vscode-zamn
 ```
 
-Expressions in `{{ }}`, after `tag=` and in the values of directives (`:to`, `@click`, `#default`, `v-if`), quoted or in brackets, are highlighted as TypeScript, and the content of `script` … `/script` and `style` … `/style` as JavaScript and CSS. Syntax zamn doesn't have (`if`, `each`, `mixin`, `include`, `- code`, lines of HTML) is marked as an error.
+Expressions in `{{ }}`, after `tag=` and in the values of directives (`:to`, `@click`, `#default`, `v-if`), quoted or in brackets, are highlighted as TypeScript, and the content of `script` … `/script` and `style` … `/style` as JavaScript and CSS.
 
 The extension also registers the `zamn` language: `//` and `/* */` for toggling comments, and bracket pairs. It has no code of its own: type checking comes from [vue-language-plugin-zamn](./typescript), linting from [eslint-plugin-vue-zamn](./eslint) and formatting from [prettier-plugin-zamn](./prettier), each through its usual extension.
 

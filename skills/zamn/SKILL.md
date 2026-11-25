@@ -6,7 +6,7 @@ license: MIT
 
 # zamn
 
-zamn compiles to HTML. A template is static: no JavaScript, no control flow, no includes. Output has no whitespace between tags unless written.
+zamn compiles to HTML. A template is static markup: logic, loops and composition belong to your framework. Output has no whitespace between tags unless written.
 
 ## Syntax
 
@@ -15,36 +15,19 @@ zamn compiles to HTML. A template is static: no JavaScript, no control flow, no 
 - Indentation means nothing: indent for people, but a line indented under another without braces is its sibling (warning `MISLEADING_INDENTATION`).
 - Text and `= expr` run to the end of the line or to the `}` that closes their block, so after text the next child goes on a new line: `p { b bold i italic }` is one `b` with the text `bold i italic`.
 - Text: `p Hello` (after the tag), `| text` (a statement of text), `|` alone (one space, to join two lines). `|` and `|{ }` are statements: after a tag they need a `:` (`p: | text`), and without it a `|` is plain text. Text is trimmed at both ends, and consecutive `|` lines join with nothing between them, so put a bare `|` between lines that need a space. A statement of text must start with `|`, also when it starts with `{{` or `#{`. `pre: |{ ... }` holds text over several lines, line breaks kept: blank first and last lines are dropped and the common indentation is stripped.
-- Text is HTML-escaped: `p a < b` shows `a < b`, and tags written in text show as text. Character references pass through: `&nbsp;`, `&rarr;`.
+- Text is HTML-escaped: `p a < b` shows `a < b`, and tags written in text show as text. Character references pass through: `&nbsp;`, `&rarr;`. For HTML from data, use `div(v-html="html")`.
 - Braces in text: `{{ expr }}` passes through as written. Every other brace is `\{` or `\}`: a bare `{` is an error, and a bare `}` closes the block. `p {b}` is a `p` holding a `b`; `p \{b\}` is the text `{b}`.
 - Inline element inside text: `p Read #{a(href="/docs") the docs} first.` One element per `#{ }`; they nest.
 - `script` and `style` take raw content on the lines below, ended by a line `/script` or `/style`; it is not parsed or escaped. `script(src="/a.js")` has no content and no `/script`.
 - `tag: child` nests one child on the same line: `li: a(href="/") Home`.
 - `tag= expr` and `= expr` write `{{ expr }}`.
-- Attributes: `a(href="/" target="_blank")`. `style={color: red, fontSize: 12px}` becomes CSS (`font-size`). `disabled` or `x=true` is a boolean attribute; `x=false` drops it. `!=` writes the value unescaped. Vue names work as written: `:to`, `@click.prevent`, `#default="{ row }"`, `v-model.trim`.
+- Logic goes in your framework's directives: `p(v-if="cond")`, `li(v-for="x in xs" :key="x.id")`. Compute values in the component and write them out: `p= total`. Share markup as components: `app-header`.
+- Attributes: `a(href="/" target="_blank")`. A value is a string, as in HTML; for an expression, use a binding: `:href="base + '/x'"`. `style={color: red, fontSize: 12px}` becomes CSS (`font-size`). `disabled` or `x=true` is a boolean attribute; `x=false` drops it. `!=` writes the value unescaped. Vue names work as written: `:to`, `@click.prevent`, `#default="{ row }"`, `v-model.trim`.
 - Classes may be utility names: `.w-1/2.md:flex.hover:bg-sky-700.px-2.5.[&>*]:p-2`.
 - Quoting: always quote a value that contains whitespace, a `,`, any of `` " ' ` = < > ``, or a bracket: `class="btn primary"`, `@click="save()"`, `v-for="(item, i) in items"`. Without quotes such a value ends early or is an error, sometimes silently (`class=btn primary` gives a `primary` attribute). Simple values may go without quotes: `href=/docs`, `type=checkbox`, `:key=item.id`. One exception: a binding (`:x`, `@x`, `#x`, `.x`, `v-*`) whose whole value is one `{ }` or `[ ]` group may stay unquoted, spaces and commas included: `:class={ active: on, big: large }`, `v-bind=[a, b]`.
 - Void tags (`img`, `br`, `input`, `meta`, `link`, `hr`) need nothing, and no `/`.
 - `// note` is a comment left out of the output; `//! note` is an HTML comment. `/* ... */` and `/*! ... */` are the same, and may span lines.
 - `doctype html` at the top of a full page.
-
-## Not available, and what to write instead
-
-| Don't | Do |
-|---|---|
-| `if cond` / `each x in xs` / `case` | `p(v-if="cond")`, `li(v-for="x in xs" :key="x.id")` |
-| `- const x = ...` | compute it in the component, then `p= x` |
-| `href=base + "/x"` (JS in a value) | `:href="base + '/x'"` |
-| `include`, `extends`, `block`, `mixin`, `+mixin` | a component: `AppHeader` |
-| `p!= html`, HTML from data | `div(v-html="html")` |
-| `<div>...</div>` on a line, `<b>` in text | elements: `div ...`, `p Some #{b bold} text` |
-| `#[b bold]` | `#{b bold}` |
-| `p.`, `script.`, `style.` with indented text | text: the multi-line text form above; `script` and `style`: their lines, then `/script` or `/style` |
-| `img/` | `img` |
-| children nested by indentation alone | put them inside `{ }` |
-| `:markdown` filters | render the content before it reaches the template |
-| `p text {` to open a block after text | put the text inside: `p {` then `\| text` |
-| `p \| text`, `pre \|{ ... }` | `p text` or `p: \| text`, `pre: \|{ ... }` |
 
 ## Workflow
 

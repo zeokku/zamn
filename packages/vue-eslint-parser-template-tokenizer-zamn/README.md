@@ -62,7 +62,7 @@ The same template AST an HTML template gives, positioned on the zamn source:
 
 Variables of `<script setup>` used in the template count as used.
 
-zamn's diagnostics are in the `errors` of the template, each with a `code` that starts with `zamn/` (`zamn/UNSUPPORTED_SYNTAX`), its `severity` (`"error"` or `"warning"`), its `hint`, and the `range` and `loc` it covers. `vue/no-parsing-error` skips codes it does not know, so it reports errors in expressions only; `vue-zamn/no-parsing-error` and `vue-zamn/no-misleading-indentation` of eslint-plugin-vue-zamn report zamn's.
+zamn's diagnostics are in the `errors` of the template, each with a `code` that starts with `zamn/` (`zamn/JS_EXPRESSION`), its `severity` (`"error"` or `"warning"`), its `hint`, and the `range` and `loc` it covers. `vue/no-parsing-error` skips codes it does not know, so it reports errors in expressions only; `vue-zamn/no-parsing-error` and `vue-zamn/no-misleading-indentation` of eslint-plugin-vue-zamn report zamn's.
 
 ## Limits
 

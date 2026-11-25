@@ -1,8 +1,11 @@
 <script setup lang="ts">
 // Compiles zamn in the browser with the WebAssembly build of the `zamn`
-// package. The module is imported on mount, so it never runs during SSR.
-import { computed, onMounted, ref, shallowRef, watch } from "vue";
+// package, in Monaco editors highlighted like the docs' code blocks. Both are
+// imported on mount, so they never run during SSR.
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
+import { useData } from "vitepress";
 import { formatHtml } from "./format";
+import { loadMonaco, themes, type Monaco } from "./monaco";
 
 type Api = typeof import("zamn");
 interface Problem {
@@ -10,7 +13,7 @@ interface Problem {
   severity: "error" | "warning";
   message: string;
   hint?: string;
-  loc: { start: { line: number; column: number } };
+  loc: { start: { line: number; column: number }; end: { line: number; column: number } };
 }
 
 const presets: Record<string, string> = {
@@ -20,7 +23,7 @@ const presets: Record<string, string> = {
   ul.tags {
     li(v-for="tag in item.tags" :key="tag")= tag
   }
-  MyButton(@click="select(item)" :disabled="busy") Select
+  my-button(@click="select(item)" :disabled="busy") Select
 }`,
   Page: `doctype html
 html(lang="en") {
@@ -57,7 +60,6 @@ pre: |{
     relative indentation
 }`,
   Errors: `ul {
-  each item in items
   li An open { brace
   p Hello {{ name
 }
@@ -72,6 +74,16 @@ const source = ref(presets["Vue component"]!);
 const formatted = ref(true);
 const api = shallowRef<Api | null>(null);
 const loadError = ref("");
+
+const { isDark } = useData();
+const sourceEl = ref<HTMLElement>();
+const outputEl = ref<HTMLElement>();
+const monaco = shallowRef<Monaco | null>(null);
+let sourceEditor: ReturnType<Monaco["editor"]["create"]> | undefined;
+let outputEditor: ReturnType<Monaco["editor"]["create"]> | undefined;
+// Hovers and other widgets go here: the panes' `backdrop-filter` and
+// `overflow: hidden` would clip them, even as `position: fixed`.
+let widgets: HTMLElement | undefined;
 
 onMounted(async () => {
   const hash = location.hash.slice(1);
@@ -88,7 +100,70 @@ onMounted(async () => {
   } catch (error) {
     loadError.value = String(error);
   }
+  try {
+    await mountEditors();
+  } catch (error) {
+    loadError.value ||= `Could not load the editor: ${error}`;
+  }
 });
+
+onBeforeUnmount(() => {
+  sourceEditor?.getModel()?.dispose();
+  sourceEditor?.dispose();
+  outputEditor?.dispose();
+  widgets?.remove();
+});
+
+async function mountEditors() {
+  const m = await loadMonaco();
+  widgets = document.createElement("div");
+  // Monaco styles its widgets under `.monaco-editor`.
+  widgets.className = "monaco-editor zamn-monaco-widgets";
+  document.body.append(widgets);
+  const options = {
+    theme: isDark.value ? themes.dark : themes.light,
+    automaticLayout: true,
+    fontFamily: getComputedStyle(document.documentElement).getPropertyValue("--vp-font-family-mono"),
+    fontSize: 13,
+    lineHeight: 21,
+    tabSize: 2,
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+    overviewRulerLanes: 0,
+    padding: { top: 16, bottom: 16 },
+    renderLineHighlight: "none" as const,
+    // No language service: suggestions would only repeat words.
+    quickSuggestions: false,
+    wordBasedSuggestions: "off" as const,
+    fixedOverflowWidgets: true,
+    overflowWidgetsDomNode: widgets,
+  };
+  sourceEditor = m.editor.create(sourceEl.value!, {
+    ...options,
+    model: m.editor.createModel(source.value, "zamn"),
+    ariaLabel: "zamn source",
+  });
+  sourceEditor.onDidChangeModelContent(() => {
+    source.value = sourceEditor!.getValue();
+  });
+  outputEditor = m.editor.create(outputEl.value!, {
+    ...options,
+    language: "html",
+    value: shown.value,
+    readOnly: true,
+    domReadOnly: true,
+    ariaLabel: "HTML output",
+  });
+  // Monaco measures the font when it starts; measure again once it has loaded.
+  document.fonts.ready.then(() => m.editor.remeasureFonts());
+  monaco.value = m;
+}
+
+// A preset or a shared link replaces the source: show it in the editor.
+watch(source, (value) => {
+  if (sourceEditor && sourceEditor.getValue() !== value) sourceEditor.setValue(value);
+});
+watch(isDark, (dark) => monaco.value?.editor.setTheme(dark ? themes.dark : themes.light));
 
 // Errors leave no HTML to show; warnings are listed above it.
 const result = computed(() => {
@@ -122,6 +197,33 @@ watch(
   { immediate: true },
 );
 
+watch([shown, monaco], ([html]) => {
+  if (outputEditor && outputEditor.getValue() !== html) outputEditor.setValue(html);
+});
+
+// Errors and warnings as squiggles in the source, with the hint on hover.
+watch([() => result.value.problems, monaco], ([problems, m]) => {
+  const model = sourceEditor?.getModel();
+  if (!m || !model) return;
+  m.editor.setModelMarkers(
+    model,
+    "zamn",
+    problems.map((p) => {
+      const { start, end } = p.loc;
+      const empty = start.line === end.line && start.column === end.column;
+      return {
+        severity: p.severity === "error" ? m.MarkerSeverity.Error : m.MarkerSeverity.Warning,
+        code: p.code,
+        message: p.hint ? `${p.message}\n${p.hint}` : p.message,
+        startLineNumber: start.line,
+        startColumn: start.column + 1,
+        endLineNumber: end.line,
+        endColumn: end.column + (empty ? 2 : 1),
+      };
+    }),
+  );
+});
+
 // Keep the source in the URL, so a playground can be shared by its link.
 watch([source, formatted], () => {
   const encoded = btoa(unescape(encodeURIComponent(source.value)));
@@ -134,16 +236,6 @@ async function share() {
   await navigator.clipboard.writeText(location.href);
   copied.value = true;
   setTimeout(() => (copied.value = false), 1500);
-}
-
-function onKeydown(event: KeyboardEvent) {
-  // Tab indents instead of leaving the editor.
-  if (event.key !== "Tab") return;
-  event.preventDefault();
-  const el = event.target as HTMLTextAreaElement;
-  const { selectionStart: start, selectionEnd: end } = el;
-  source.value = source.value.slice(0, start) + "  " + source.value.slice(end);
-  requestAnimationFrame(() => el.setSelectionRange(start + 2, start + 2));
 }
 
 const sizes = computed(() => ({ zamn: source.value.length, html: result.value.html.length }));
@@ -167,13 +259,7 @@ const sizes = computed(() => ({ zamn: source.value.length, html: result.value.ht
     <div class="panes">
       <section>
         <header>zamn <span>{{ sizes.zamn }} characters</span></header>
-        <textarea
-          v-model="source"
-          spellcheck="false"
-          autocapitalize="off"
-          aria-label="zamn source"
-          @keydown="onKeydown"
-        />
+        <div ref="sourceEl" class="editor" />
       </section>
       <section>
         <header>HTML <span v-if="result.html">{{ sizes.html }} characters</span></header>
@@ -188,8 +274,9 @@ const sizes = computed(() => ({ zamn: source.value.length, html: result.value.ht
               <div v-if="p.hint" class="hint">{{ p.hint }}</div>
             </li>
           </ul>
-          <pre v-if="result.html"><code>{{ shown }}</code></pre>
         </template>
+        <!-- Always in the page, so Monaco has somewhere to mount; hidden when there is no HTML. -->
+        <div v-show="api && result.html" ref="outputEl" class="editor" />
       </section>
     </div>
   </div>
@@ -268,26 +355,14 @@ header span {
   font-size: 12px;
   color: var(--vp-c-text-2);
 }
-textarea,
-pre {
+.editor {
   flex: 1;
   min-height: 440px;
-  margin: 0;
-  padding: 16px;
-  font-family: var(--vp-font-family-mono);
-  font-size: 13px;
-  line-height: 1.65;
-  background: transparent;
-  color: var(--vp-c-text-1);
-  border: 0;
-  resize: vertical;
-  white-space: pre;
-  overflow: auto;
-  tab-size: 2;
 }
-textarea:focus {
-  outline: none;
-  box-shadow: inset 0 0 0 2px var(--zamn-c-soft);
+section:focus-within {
+  box-shadow:
+    var(--zamn-glass-shadow),
+    inset 0 0 0 2px var(--zamn-c-soft);
 }
 .problems {
   margin: 0;

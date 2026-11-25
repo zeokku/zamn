@@ -22,7 +22,7 @@ Everything after the marker is copied as written, including the space after it.
 ```zamn
 /*
   Not ready yet:
-  each item in items
+  a(href=base + "/docs") Docs
 */
 /*! Built by zamn */
 p Done

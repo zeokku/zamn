@@ -29,14 +29,7 @@ The HTML is shown formatted, here and throughout the docs; the compiler writes i
 
 ## Static, on purpose
 
-A zamn template is data, not a program:
-
-- **No JavaScript.** Attribute values are strings, quoted or not, as in HTML. Expressions belong to your framework: `p= message` writes `{{ message }}`, and `:title="t"` or `@click="go"` pass through to Vue as they are.
-- **No control flow.** No `if`, no loops. Use your framework's directives (`li(v-for="item in items")`).
-- **No includes, no inheritance, no mixins.** A template is one file. Compose with components.
-- **No raw HTML.** Text is escaped, so `p a < b` shows `a < b`, and elements are written as elements: a line of HTML is an error.
-
-Each of these is reported as an error with a hint, rather than silently ignored. See [Not supported](./syntax/not-supported).
+A zamn template is markup. Logic, loops and composition belong to your framework: `li(v-for="item in items")`, `p(v-if="user")`, components. Attribute values are strings, as in HTML, and expressions go in bindings (`:title="t"`, `@click="go"`) or `= expr`, which writes `{{ expr }}`. Text is escaped, so `p a < b` shows `a < b`.
 
 Since there is nothing to run, a template compiles to the same HTML every time, in one pass, with a [source map](../reference/api#compile). Tooling can read it without executing anything: the [Vue language tools](../ecosystem/typescript), [ESLint](../ecosystem/eslint) and [Prettier](../ecosystem/prettier) all work on zamn templates.
 

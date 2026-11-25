@@ -22,7 +22,7 @@ export default defineConfigWithVueTs(
     name: "app/zamn-rules",
     files: ["**/*.vue"],
     rules: {
-      "vue-zamn/component-name-in-template-casing": "error",
+      "vue-zamn/component-name-in-template-casing": ["error", "kebab-case"],
     },
   },
 

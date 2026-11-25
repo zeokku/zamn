@@ -20,7 +20,7 @@ const unused = 1
 <template lang="zamn">
 section {
   // ESLint: no :key (vue/valid-v-for), `index` is never used (vue/no-unused-vars)
-  HelloWorld(v-for='(item, index) in items' :msg='item.name')
+  hello-world(v-for='(item, index) in items' :msg='item.name')
 
   // ESLint: v-if on the same element as v-for (vue/no-use-v-if-with-v-for)
   ul {
@@ -35,10 +35,10 @@ section {
   div(v-html='html' id='raw')
 
   // TypeScript: a number where `msg` wants a string
-  HelloWorld(:msg='count')
+  hello-world(:msg='count')
 
   // TypeScript: `msg` is required
-  HelloWorld
+  hello-world
 
   // TypeScript: no such property, in `tag= expr` and in `{{ }}`
   p= items[0]?.nmae
@@ -52,7 +52,8 @@ section {
   p Parent
     p Not a child
 
-  // zamn: there is no control flow, so both tools report a syntax error
-  each item in items
+  // zamn: an attribute value is a string, not JavaScript, so both tools
+  // report a syntax error (JS_EXPRESSION); a binding, `:href`, would do
+  a(href=base + "/docs") Docs
 }
 </template>

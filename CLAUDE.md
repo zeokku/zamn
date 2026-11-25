@@ -25,4 +25,4 @@ Generate commit message after a feature is implemented.
 
 ## Agent rules
 
-`skills/zamn/SKILL.md` is the source: Claude Code comes first. Change it first, then carry the change into `agents/zamn.md`, the same rules for other agents and tools. `docs/test/agent-rules.test.ts` checks that the rules (up to the end of the "Not available" table) are the same in both.
+`skills/zamn/SKILL.md` is the source: Claude Code comes first. Change it first, then carry the change into `agents/zamn.md`, the same rules for other agents and tools. `docs/test/agent-rules.test.ts` checks that the rules (up to the end of the "Syntax" section) are the same in both.
