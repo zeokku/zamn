@@ -80,10 +80,6 @@ export type Body =
   | { kind: "expr"; expr: string }
   /** Text straight after the head, from the end of the head, as written. */
   | { kind: "text"; parts: Part[] }
-  /** `tag | text`, or `tag |` when `parts` is empty. */
-  | { kind: "pipe"; parts: Part[] }
-  /** `tag |{ ... }` */
-  | { kind: "pipeBlock"; parts: Part[]; multiline: boolean }
   /** `tag { ... }` */
   | { kind: "braced"; children: Statement[] }
   /** `script` or `style` content: its lines, and the closing `/tag`. */
@@ -294,12 +290,6 @@ export class Builder {
         this.expect("BraceClose");
         return { kind: "braced", children };
       }
-      case "Pipe": {
-        const pipe = this.next();
-        return { kind: "pipe", parts: this.pipeParts(pipe) };
-      }
-      case "PipeOpen":
-        return { kind: "pipeBlock", ...this.pipeBlock() };
       case "Text":
       case "Mustache":
       case "InterpStart":

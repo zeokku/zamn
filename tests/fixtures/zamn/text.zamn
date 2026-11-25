@@ -1,6 +1,7 @@
 p Hello #{em world}, \#[escaped]
 p {
   | piped
+  |
   | text
 }
 p <b>html</b> in text

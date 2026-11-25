@@ -12,12 +12,12 @@ p Hello, world.
 <p>Hello, world.</p>
 ```
 
-A `|` after the tag, or text in `|{ }`, says the same thing. These three are identical:
+Piped text and text blocks are statements, and an element takes them as it takes any other child, after a `:`. These three are identical:
 
 ```zamn
 div some text
-div | some text
-div |{ some text }
+div: | some text
+div: |{ some text }
 ```
 
 ```html format
@@ -44,18 +44,28 @@ Not escaped: the content of [`script` and `style`](./script-style), [mustaches a
 
 ## Piped text
 
-A statement that is only text starts with `|`, anywhere an element could be. Consecutive `|` lines are joined with a line break:
+A statement that is only text starts with `|`, anywhere an element could be. Consecutive `|` lines are joined as they are, with nothing between them; a bare `|` is the space between two lines (see [Whitespace](#whitespace)):
 
 ```zamn
 p {
   | The first line
+  |
   | and the second.
 }
 ```
 
 ```html
-<p>The first line
-and the second.</p>
+<p>The first line and the second.</p>
+```
+
+A `|` means this only where a statement starts. After a tag, it is text like any other character:
+
+```zamn
+p | not piped
+```
+
+```html
+<p>| not piped</p>
 ```
 
 Text that begins with a mustache or an inline element needs the `|` too: a statement that starts with `{{` or `#{` is an error (`UNEXPECTED_TEXT`).
@@ -72,7 +82,7 @@ p {
 
 ## Whitespace
 
-Whitespace at the end of a line is ignored everywhere. The output has no whitespace between elements unless you write it, and a `|` on its own is one space. That's how a space between two lines is written:
+Text is trimmed at both ends: the whitespace after the tag, after `|` and after the tag of an inline element is left out, and so is whitespace at the end of a line, everywhere. The output has no whitespace between elements or lines of text unless you write it, and a `|` on its own is one space. That's how a space between two lines is written:
 
 ```zamn
 p {
@@ -97,7 +107,7 @@ p {
 - the lines are joined with line breaks.
 
 ```zamn
-pre |{
+pre: |{
   function go() \{
     return a < b;
   \}
@@ -110,7 +120,7 @@ pre |{
 }</pre>
 ```
 
-It can stand on its own inside a block, and holds [inline elements](#inline-elements):
+It can also stand inside a block, among other children, and holds [inline elements](#inline-elements):
 
 ```zamn
 p {
@@ -126,28 +136,23 @@ p {
 over two lines, with <em>inline</em> elements.</p>
 ```
 
-Whitespace around the `|` is optional: `div |{ … }`, `div | { … }` and `div|{ … }` are the same, as are `|{ … }` and `| { … }` on their own. That is why text that starts with a brace is written `| \{ …`.
+Whitespace between the `|` and the `{` is optional: `|{ … }` and `| { … }` are the same. That is why piped text that starts with a brace is written `| \{ …`. After a tag, a text block needs its `:` like any other child: `pre |{` is the text `|` followed by a bare `{`, an error (`UNESCAPED_BRACE`) whose hint says to write `pre: |{`.
 
 ## Escapes
 
 - `\{` and `\}` are literal braces. Any other brace in text is either a [mustache](./interpolation#inside-text) (`{{ }}`), a bare `{` (an error, `UNESCAPED_BRACE`) or a `}` that closes the block. See [Braces in text](./brace-blocks#braces-in-text).
-- `\|` at the start of text is a literal `|`, and the space after it is kept.
 - `\#{` is a literal `#{`, and `\#[` a literal `#[`.
 - Any other backslash is just a backslash.
 
 ```zamn
-p \| x
 p Write \#{ to start an inline element.
 p C:\temp
 ```
 
 ```html format
-<p>| x</p>
 <p>Write #{ to start an inline element.</p>
 <p>C:\temp</p>
 ```
-
-`p \| x` is the same as `p | | x`.
 
 ## Inline elements
 

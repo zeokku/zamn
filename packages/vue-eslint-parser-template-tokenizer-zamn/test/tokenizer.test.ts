@@ -74,7 +74,7 @@ test("elements, attributes, text and mustaches", () => {
       Card(v-for="item in items" :key="item.id" title="One" disabled) {
         span {{ item.name }} of #{b= items.length}
       }
-      p(v-else) |{
+      p(v-else): |{
         Off for
           {{ items.length }} items
       }
@@ -166,12 +166,13 @@ test("text: pieces next to each other are one text, as the browser shows it", ()
   const code = sfc(zamn`
     p {
       | Tom &amp; Jerry &rarr; a < b &copy \\{x\\} \\| C:\\temp
+      |
       | and \\#{ more
       |
       b bold
     }
-    p \\| x
-    pre |{
+    p | x
+    pre: |{
       if (a) \\{
         go();
       \\}
@@ -180,8 +181,8 @@ test("text: pieces next to each other are one text, as the browser shows it", ()
   expect(outline(code)).toEqual([
     `<p> "p" ... "}"`,
     // `&copy` without `;` is not a character reference: zamn escapes its `&`.
-    // `\|` is a `|` only at the start of text.
-    `  text "Tom & Jerry → a < b &copy {x} \\\\| C:\\\\temp\\nand #{ more " over "Tom &amp; Jerry &rarr; a < b &copy \\\\{x\\\\} \\\\| C:\\\\temp\\n  | and \\\\#{ more\\n  |"`,
+    // Lines of text join as they are; a bare `|` is a space.
+    `  text "Tom & Jerry → a < b &copy {x} \\\\| C:\\\\temp and #{ more " over "Tom &amp; Jerry &rarr; a < b &copy \\\\{x\\\\} \\\\| C:\\\\temp\\n  |\\n  | and \\\\#{ more\\n  |"`,
     `  <b> "b" ... "\\n"`,
     `    text "bold"`,
     `<p> "p" ... "\\n"`,

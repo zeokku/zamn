@@ -2,8 +2,7 @@
 source: crates/zamn/tests/fixtures.rs
 expression: html(&file)
 ---
-<p>Hello <em>world</em>, #[escaped]</p><p>piped
-text</p><p>&lt;b&gt;html&lt;/b&gt; in text</p>&lt;i&gt;escaped&lt;/i&gt; as well<script>if (a < b) {
+<p>Hello <em>world</em>, #[escaped]</p><p>piped text</p><p>&lt;b&gt;html&lt;/b&gt; in text</p>&lt;i&gt;escaped&lt;/i&gt; as well<script>if (a < b) {
   go();
 }</script><!-- a comment--><!--
   block comment

@@ -52,7 +52,7 @@ html(lang="en") {
   |
   u cool
 }
-pre |{
+pre: |{
   keeps its
     relative indentation
 }`,

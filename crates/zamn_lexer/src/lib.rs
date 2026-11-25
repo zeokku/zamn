@@ -34,9 +34,11 @@ pub enum TokenKind {
     AttrValue,
     AttrsClose,
     /// Text, with escapes already resolved by the span: a `\` that escapes
-    /// `{`, `}`, `|` or `#{` is left out of the span of the text around it.
+    /// `{`, `}` or `#{` is left out of the span of the text around it. A run
+    /// of text (after a head, a `|` or the tag of a `#{`) is trimmed at both
+    /// ends.
     Text,
-    /// `|` before text, or bare `|` (one space).
+    /// `|` starting a statement of text, or a bare `|` (one space).
     Pipe,
     /// `|{`, with optional whitespace between `|` and `{`, opening a text
     /// block. Its text runs to the matching `PipeClose`.

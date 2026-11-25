@@ -261,8 +261,8 @@ The token types are:
 | `Tag`, `Id`, `Class` | the tag name, `#id` and `.class`, with their `#` and `.` |
 | `AttrsOpen`, `AttrName`, `AttrEq`, `AttrEqRaw`, `AttrValue`, `AttrsClose` | `(`, a name, `=`, `!=`, a value, `)` |
 | `BraceOpen`, `BraceClose` | the `{` and `}` of a block |
-| `Text` | text, and each line of raw content; a `\` that escapes a brace, `\|` or `#{` is left out of the range |
-| `Pipe` | `\|` before text, or a bare `\|` (one space) |
+| `Text` | text, and each line of raw content; a `\` that escapes a brace or `#{` is left out of the range |
+| `Pipe` | `\|` starting a statement of text, or a bare `\|` (one space) |
 | `PipeOpen`, `PipeClose` | the `\|{` and `}` of a text block |
 | `TextNewline` | a line break inside a `\|{ }` block or raw content |
 | `Mustache` | `{{ ... }}` in text, braces included |

@@ -24,7 +24,7 @@ main#app.page.md:flex.gap-1.5.w-[42rem](:class="{ active: active && items.length
     span {{ row.id }} of #{b= items.length} & #{i.hover:underline {{ item.name }}}
   }
   p(v-if="active" :class={ on: active, 'is-new': items.length > 1 }) On
-  p(v-else) |{
+  p(v-else): |{
     Off for
     {{ items.length }} items < 2 &amp; more
   }

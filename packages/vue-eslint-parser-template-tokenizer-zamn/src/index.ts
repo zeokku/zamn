@@ -354,10 +354,12 @@ export default class ZamnTokenizer {
     // are in, and leaves a void element closed.
     const open = !(this.namespace === HTML_NAMESPACE && VOID.has(el.name.toLowerCase()));
 
-    // What closes the element: the `}` of its block or of its `|{ }` text,
-    // the `/script` line, or the `}` of the `#{ }` it is in. Without one,
-    // its statement ends with its line, or at the `}` of the block it is in.
+    // What closes the element: the `}` of its block or of its `tag: |{ }`
+    // text, the `/script` line, or the `}` of the `#{ }` it is in. Without
+    // one, its statement ends with its line, or at the `}` of the block it
+    // is in.
     let close: ZamnToken | undefined;
+    if (this.lexed[i]?.type === "Colon" && this.lexed[i + 1]?.type === "PipeOpen") i++;
     if (OWN.has(this.lexed[i]?.type ?? "")) close = this.match(i);
     else if (this.lexed[first - 1]?.type === "InterpStart") close = this.match(first - 1);
     // The lexer closes what is left open with an empty token.

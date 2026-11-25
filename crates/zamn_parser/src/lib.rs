@@ -90,31 +90,17 @@ impl<'a> Parser<'a> {
         self.kind(i) == Pipe && !matches!(self.kind(i + 1), Text | Mustache | InterpStart)
     }
 
-    /// Whether the statement at `i` is text: `| text` or `|{ text }`.
-    fn text_statement(&self, i: usize) -> bool {
-        self.kind(i) == PipeOpen || (self.kind(i) == Pipe && !self.bare_pipe(i))
-    }
-
-    /// Statements up to the end of the enclosing block.
+    /// Statements up to the end of the enclosing block. Lines of text are
+    /// joined as they are: a bare `|` is how a space between them is written.
     fn items(&mut self, out: &mut Vec<Node>) {
-        let mut last_text = false;
         loop {
             match self.peek() {
                 Eos | BraceClose => break,
                 Newline => {
-                    let t = self.next();
-                    // Lines of text are joined with a line break, unless
-                    // one of them is a bare `|`, which is a space.
-                    if last_text && self.text_statement(self.i) {
-                        out.push(Node::Text(ast::Text {
-                            value: "\n".into(),
-                            span: t.span,
-                        }));
-                    }
+                    self.next();
                 }
                 _ => {
                     let before = self.i;
-                    last_text = self.text_statement(before);
                     self.statement(out);
                     if self.i == before {
                         self.unexpected();
@@ -313,7 +299,6 @@ impl<'a> Parser<'a> {
                 self.items(&mut el.children);
                 self.accept(BraceClose);
             }
-            Pipe | PipeOpen => self.pipe(&mut el.children),
             Text | Mustache | InterpStart => self.inline(&mut el.children),
             RawStart => {
                 self.next();
@@ -667,7 +652,7 @@ mod tests {
 
     #[test]
     fn whitespace_at_the_end_of_a_line_is_ignored() {
-        let nodes = ok("p text \t\np {\n  | piped  \n}\nb \n");
+        let nodes = ok("p   text \t\np {\n  |   piped  \n}\nb \n");
         assert_eq!(shape(&el(&nodes[0]).children), ["\"text\""]);
         assert_eq!(shape(&el(&nodes[1]).children), ["\"piped\""]);
         assert!(el(&nodes[2]).children.is_empty());
@@ -675,23 +660,33 @@ mod tests {
 
     #[test]
     fn a_bare_pipe_is_a_space() {
-        // No line break joins a bare `|` to the `|` lines around it.
-        let nodes = ok("p {\n  b this\n  |  \n  | is\n  |\n  u cool\n  | a\n  |{ b }\n}\n");
+        let nodes = ok("p {\n  b this\n  |  \n  | is\n  |\n  u cool\n}\n");
         assert_eq!(
             shape(&el(&nodes[0]).children),
-            ["b", "\" \"", "\"is\"", "\" \"", "u", "\"a\"", "\"\\n\"", "\"b\""]
+            ["b", "\" \"", "\"is\"", "\" \"", "u"]
+        );
+    }
+
+    #[test]
+    fn lines_of_text_join_as_they_are() {
+        let nodes = ok("p {\n  | a\n  | b\n  |{ c }\n  |\n  | d\n}\n");
+        assert_eq!(
+            shape(&el(&nodes[0]).children),
+            ["\"a\"", "\"b\"", "\"c\"", "\" \"", "\"d\""]
         );
     }
 
     #[test]
     fn text_forms_are_the_same() {
-        let a = ok("div some text\ndiv | some text\ndiv |{ some text }");
+        let a = ok("div some text\ndiv: | some text\ndiv: |{ some text }\ndiv { |{ some text } }");
         for n in &a {
             assert_eq!(shape(&el(n).children), ["\"some text\""]);
         }
-        let nodes = ok("div \\| x\ndiv | | x");
+        // After a head, a `|` is text.
+        let nodes = ok("div | x\ndiv: | | x\ndiv \\| x");
         assert_eq!(shape(&el(&nodes[0]).children), ["\"| x\""]);
         assert_eq!(shape(&el(&nodes[1]).children), ["\"| x\""]);
+        assert_eq!(shape(&el(&nodes[2]).children), ["\"\\\\| x\""]);
     }
 
     #[test]
@@ -720,7 +715,7 @@ mod tests {
 
     #[test]
     fn multi_line_text_blocks() {
-        let nodes = ok("pre |{\n    line one\n      indented\n\n    last\n  }");
+        let nodes = ok("pre: |{\n    line one\n      indented\n\n    last\n  }");
         assert_eq!(
             shape(&el(&nodes[0]).children),
             ["\"line one\\n  indented\\n\\nlast\""]

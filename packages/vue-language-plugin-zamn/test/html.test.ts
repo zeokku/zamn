@@ -84,11 +84,11 @@ test("is the HTML that compile() makes, but for classes", () => {
          too */
       /*! kept
          as well */
-      pre |{
+      pre: |{
         a < b & c &amp; d
           {{ x }}
       }
-      p | \\{ braces \\} and \\| a pipe
+      p: | \\{ braces \\} and \\| a pipe
       input(type="checkbox" checked=true hidden=false)
       img(src="a.png" style={ fontSize: '12px', marginTop: 4px })
       p(style={}) no style
@@ -163,7 +163,7 @@ test("maps names, values, text and expressions", () => {
 
 test("end tags go on the `}` of `|{ }`, of `#{ }` and on `/script`", () => {
   const source = zamn`
-    p |{
+    p: |{
       text
     }
     p a #{b(:x="y") bold } c

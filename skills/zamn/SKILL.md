@@ -14,7 +14,7 @@ zamn compiles to HTML. A template is static: no JavaScript, no control flow, no 
 - A `{` straight after the tag head opens a block. It closes at its matching `}`, on the same line or a later one; `}}` closes two. `p {}` is empty. After the `}` of a child's block, another child may follow on the same line: `ul { li { a x } li { b y } }`.
 - Indentation means nothing: indent for people, but a line indented under another without braces is its sibling (warning `MISLEADING_INDENTATION`).
 - Text and `= expr` run to the end of the line or to the `}` that closes their block, so after text the next child goes on a new line: `p { b bold i italic }` is one `b` with the text `bold i italic`.
-- Text: `p Hello` (after the tag), `| text` (a statement of text), `|` alone (one space, to join two lines). Consecutive `|` lines join with a line break. A statement of text must start with `|`, also when it starts with `{{` or `#{`. `pre |{ ... }` holds text over several lines: blank first and last lines are dropped and the common indentation is stripped.
+- Text: `p Hello` (after the tag), `| text` (a statement of text), `|` alone (one space, to join two lines). `|` and `|{ }` are statements: after a tag they need a `:` (`p: | text`), and without it a `|` is plain text. Text is trimmed at both ends, and consecutive `|` lines join with nothing between them, so put a bare `|` between lines that need a space. A statement of text must start with `|`, also when it starts with `{{` or `#{`. `pre: |{ ... }` holds text over several lines, line breaks kept: blank first and last lines are dropped and the common indentation is stripped.
 - Text is HTML-escaped: `p a < b` shows `a < b`, and tags written in text show as text. Character references pass through: `&nbsp;`, `&rarr;`.
 - Braces in text: `{{ expr }}` passes through as written. Every other brace is `\{` or `\}`: a bare `{` is an error, and a bare `}` closes the block. `p {b}` is a `p` holding a `b`; `p \{b\}` is the text `{b}`.
 - Inline element inside text: `p Read #{a(href="/docs") the docs} first.` One element per `#{ }`; they nest.
@@ -44,6 +44,7 @@ zamn compiles to HTML. A template is static: no JavaScript, no control flow, no 
 | children nested by indentation alone | put them inside `{ }` |
 | `:markdown` filters | render the content before it reaches the template |
 | `p text {` to open a block after text | put the text inside: `p {` then `\| text` |
+| `p \| text`, `pre \|{ ... }` | `p text` or `p: \| text`, `pre: \|{ ... }` |
 
 ## Workflow
 

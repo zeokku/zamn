@@ -11,7 +11,7 @@ style(scoped)
   .a > .b { color: red }
 
 /style
-pre |{
+pre: |{
   first line
     indented
   last line
@@ -22,4 +22,4 @@ pre {
       two
   }
 }
-pre |{ one line }
+pre: |{ one line }

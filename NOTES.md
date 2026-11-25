@@ -212,7 +212,7 @@ the current agent advice is here.
 
 ## Formatting zamn text
 
-- The parser joins two text statements (`| x` or `|{ }`, not a bare `|`) with a `"\n"` only when a line break separates them. On one line they join with nothing, and a comment between them stops the join. A formatter must neither split them onto separate lines nor merge them.
+- The parser joins text statements (`| x`, `|{ }`, a bare `|`) with nothing between them, whether or not a line break separates them: a bare `|` is the only way to write a space between them. So a formatter may move them between lines, but must not add or drop a bare `|`. Text is trimmed at both ends; only a multi-line `|{ }` keeps line breaks.
 - In `lex()` output, `Text` values have escapes resolved, and a token after an escape starts after the backslash. To copy text as written, slice the source between the surrounding tokens instead of joining token values.
 - Prettier 3.10.1's `IntSupportOption` type has no `exception` field, although Prettier reads it (see "A Prettier option that is a number or `false`"). The plugin types the option as `IntSupportOption & { exception }`.
 

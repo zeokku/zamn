@@ -195,8 +195,8 @@ expression: json
           "type": "Text",
           "value": "<code> & </code>",
           "span": {
-            "start": 189,
-            "end": 205
+            "start": 190,
+            "end": 206
           }
         }
       ],
@@ -204,7 +204,7 @@ expression: json
       "raw": false,
       "span": {
         "start": 180,
-        "end": 207
+        "end": 208
       }
     }
   ]

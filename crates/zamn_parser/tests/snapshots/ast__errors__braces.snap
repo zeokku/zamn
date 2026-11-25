@@ -16,7 +16,7 @@ expression: report
   hint: a script with `src` needs no `/script`
 15:3 error[UNMATCHED_CLOSE] This `/div` does not close anything "/div"
   hint: close elements with `}`; only `script` and `style` content ends with a `/` line
-16:9 error[UNSUPPORTED_SYNTAX] Content on the `style` line is not supported "|{ a {} }"
+16:8 error[UNSUPPORTED_SYNTAX] Content on the `style` line is not supported ": |{ a {} }"
   hint: write the content on the lines below, and end it with `/style` on its own line
 17:10 error[UNSUPPORTED_SYNTAX] Content on the `script` line is not supported "some text"
   hint: write the content on the lines below, and end it with `/script` on its own line

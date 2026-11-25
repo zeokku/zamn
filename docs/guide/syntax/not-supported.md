@@ -90,7 +90,7 @@ For HTML that comes from data, use your framework: `div(v-html="html")` in Vue.
 | Not this | Hint | Write |
 |---|---|---|
 | `p Some #[b bold] text` | use `#{...}` | `p Some #{b bold} text` |
-| `p.` or `script.` with an indented block of text | `\|{ ... }` for text, `/script` content for scripts and styles | `p \|{ ... }`, or [`script` … `/script`](./script-style) |
+| `p.` or `script.` with an indented block of text | `\|{ ... }` for text, `/script` content for scripts and styles | `p: \|{ ... }`, or [`script` … `/script`](./script-style) |
 | `img/`, `foo/` | drop the `/` | `img`, `foo`: void elements need nothing, and other elements always get a closing tag |
 
 ```zamn error=UNSUPPORTED_SYNTAX

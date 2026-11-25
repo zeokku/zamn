@@ -2,5 +2,5 @@
 source: crates/zamn/tests/fixtures.rs
 expression: "report.join(\"\\n\")"
 ---
-indentation.zamn:15:5: warning[MISLEADING_INDENTATION]: This line is indented as if it were nested, but indentation means nothing in zamn
+indentation.zamn:16:5: warning[MISLEADING_INDENTATION]: This line is indented as if it were nested, but indentation means nothing in zamn
   hint: wrap the children in `{ }` on the line above, or remove the indentation

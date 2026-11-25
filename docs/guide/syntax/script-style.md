@@ -72,4 +72,4 @@ script
 
 ## `pre` and other elements
 
-Only `script` and `style` hold raw content. `pre` is an ordinary element, whose text is escaped and may hold [inline elements](./text#inline-elements). Write multi-line text in it with `pre |{ ... }`; see [Text blocks](./text#text-blocks).
+Only `script` and `style` hold raw content. `pre` is an ordinary element, whose text is escaped and may hold [inline elements](./text#inline-elements). Write multi-line text in it with `pre: |{ ... }`; see [Text blocks](./text#text-blocks).

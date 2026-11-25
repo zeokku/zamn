@@ -1,15 +1,16 @@
 //- inline
-div { b |{ some text here } u |{another child} b without pipe
+div { b: |{ some text here } u: |{another child} b without pipe
 span so next one must go on a new line }
 .one-liner { b { u biba }}
 .should-use-new-line { b some text
 u next child after b
 s and another one}
 div some text
-div | some text
-div |{ some text }
-div \| starts with
-div | | starts with
+div: | some text
+div: |{ some text }
+div | starts with
+div: | | starts with
+div    trimmed   
 div {
 .first
 .second

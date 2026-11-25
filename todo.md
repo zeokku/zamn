@@ -4,45 +4,6 @@
 
 what's the point of paragraph about '(' and ')'
 
-## pipe inline should behave as entity tag and be used after :
-
-```
-div some text
-div | some text
-div |{ some text }
-```
-
-this:
-
-```
-div some text
-div: | some text
-div: |{ some text }
-```
-
-```
-pre |{ }
-
-// should be
-
-pre: |{ }
-// or
-pre {
-  |{
-    ...
-  }
-}
-
-
-```
-
-to align with one line logic and no special handling for | entity
-
-## piped text
-
-two consecutive | should not add any new lines
-and spaces should be trimmed both ends: after | and at the end of line
-
 ## cheatsheet on main page accessible with /#cheatsheet
 
 ## "not supported" page is redundant and may confuse agents, only list existing features

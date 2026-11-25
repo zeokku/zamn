@@ -549,7 +549,8 @@ impl<'a> Lexer<'a> {
         self.pos = stop;
     }
 
-    /// `|` at `at`: a bare `|`, `| text` or a `|{ ... }` text block.
+    /// `|` at `at`, starting a statement: a bare `|`, `| text` (trimmed) or
+    /// a `|{ ... }` text block.
     fn pipe(&mut self, at: usize) {
         let eol = self.line_end(at);
         let j = self.skip_ws(at + 1, eol);
@@ -558,11 +559,7 @@ impl<'a> Lexer<'a> {
             return self.pipe_block(j);
         }
         self.push(Pipe, at, at + 1);
-        let mut p = at + 1;
-        if self.at(p) == b' ' {
-            p += 1;
-        }
-        self.text_run(p.min(eol));
+        self.text_run(j);
     }
 
     /// The text of a `|{` block whose `{` is at `open`, up to and including
@@ -849,8 +846,9 @@ impl<'a> Lexer<'a> {
         None
     }
 
-    /// What follows a head: children in `{ }`, `: child`, `= expr`, text, or
-    /// for `script` and `style` the raw content on the lines below. `raw` is
+    /// What follows a head: children in `{ }`, `: child`, `= expr`, text
+    /// (where a `|` is text like any other), or for `script` and `style` the
+    /// raw content on the lines below. `raw` is
     /// the tag name for those two, and whether it takes content (a script
     /// with `src` does not).
     fn follow(&mut self, head_start: usize, raw: Option<(&str, bool)>) {
@@ -928,7 +926,6 @@ impl<'a> Lexer<'a> {
                     );
                     self.skip_statement();
                 }
-                b'|' => self.pipe(p),
                 b'{' if self.at(p + 1) != b'{' => self.block(p),
                 // `p{{ msg }}`
                 b'{' => self.text_run(p),
@@ -936,10 +933,8 @@ impl<'a> Lexer<'a> {
                     let q = self.skip_ws(p, eol);
                     match self.b[q] {
                         b'}' => self.pos = q,
-                        b'|' => self.pipe(q),
                         b'{' if self.at(q + 1) != b'{' => self.block(q),
-                        // One space separates the head from its text.
-                        _ => self.text_run(p + 1),
+                        _ => self.text_run(q),
                     }
                 }
                 _ => {
@@ -1180,13 +1175,6 @@ impl<'a> Lexer<'a> {
         let mut eol = self.line_end(start);
         let mut p = start.min(eol);
         let mut seg = p;
-        // `\|` at the start of the text is a literal `|`.
-        let lead = self.skip_ws(p, eol);
-        if lead + 1 < eol && self.b[lead] == b'\\' && self.b[lead + 1] == b'|' {
-            self.text(seg, lead);
-            seg = lead + 1;
-            p = lead + 2;
-        }
         // Unescaped `{`s, already reported: their `}`s are text too.
         let mut stray = 0usize;
         while p < eol {
@@ -1226,10 +1214,17 @@ impl<'a> Lexer<'a> {
                     seg = p;
                 }
                 b'{' => {
+                    // `tag |{`, text that starts with a text block.
+                    let lead = self.skip_ws(start, p);
+                    let block = self.b[lead] == b'|' && self.skip_ws(lead + 1, p) == p;
                     self.error_hint(
                         "UNESCAPED_BRACE",
                         "A `{` in text must be escaped",
-                        "write `\\{` for a literal brace",
+                        if block {
+                            "a text block after a tag is `tag: |{ ... }`; write `\\{` for a literal brace"
+                        } else {
+                            "write `\\{` for a literal brace"
+                        },
                         p,
                         p + 1,
                     );
@@ -1359,12 +1354,12 @@ mod tests {
 
     #[test]
     fn statements_after_a_closing_brace() {
-        let src = "div { b |{ some text here } u |{another child} b without pipe\nspan so next }";
+        let src = "div { b: |{ some text here } u: |{another child} b without pipe\nspan so next }";
         assert_eq!(
             kinds(src),
             vec![
-                Tag, BraceOpen, Tag, PipeOpen, Text, PipeClose, Tag, PipeOpen, Text, PipeClose,
-                Tag, Text, Newline, Tag, Text, BraceClose, Eos
+                Tag, BraceOpen, Tag, Colon, PipeOpen, Text, PipeClose, Tag, Colon, PipeOpen,
+                Text, PipeClose, Tag, Text, Newline, Tag, Text, BraceClose, Eos
             ]
         );
         assert_eq!(
@@ -1377,16 +1372,30 @@ mod tests {
     fn three_ways_to_write_text() {
         for src in [
             "div some text",
-            "div | some text",
-            "div |{ some text }",
-            "div|{ some text }",
-            "div | { some text }",
+            "div   some text  ",
+            "div: | some text",
+            "div: |   some text",
+            "div: |{ some text }",
+            "div: | { some text }",
         ] {
             assert_eq!(texts(src, Text), ["some text"], "{src}");
         }
-        assert_eq!(texts("div | | x", Text), ["| x"]);
-        assert_eq!(texts("div \\| x", Text), ["| x"]);
-        assert_eq!(texts("| \\| x", Text), ["| x"]);
+        // After a head, `|` is text like any other character.
+        assert_eq!(kinds("div | x"), vec![Tag, Text, Eos]);
+        assert_eq!(texts("div | x", Text), ["| x"]);
+        assert_eq!(texts("| | x", Text), ["| x"]);
+        assert_eq!(texts("div \\| x", Text), ["\\| x"]);
+        assert_eq!(codes("div|x"), ["UNEXPECTED_TEXT"]);
+    }
+
+    #[test]
+    fn a_text_block_after_a_head_needs_a_colon() {
+        let r = lex("div |{ x }");
+        assert_eq!(r.diagnostics.len(), 1);
+        assert_eq!(r.diagnostics[0].code, "UNESCAPED_BRACE");
+        assert!(r.diagnostics[0].hint.as_deref().unwrap().contains("tag: |{"));
+        let r = lex("div a { x }");
+        assert!(!r.diagnostics[0].hint.as_deref().unwrap().contains("tag: |{"));
     }
 
     #[test]
@@ -1440,6 +1449,7 @@ mod tests {
         );
         assert_eq!(texts(src, Text), ["some ", "biba ", "x", " boba"]);
         assert_eq!(texts("p #{strong= count} x", Expr), ["count"]);
+        assert_eq!(texts("p a #{b   x  } c", Text), ["a ", "x", " c"]);
         assert_eq!(codes("p #{b x"), ["UNCLOSED_BRACE"]);
         assert_eq!(codes("p #[b x]"), ["UNSUPPORTED_SYNTAX"]);
     }
@@ -1450,15 +1460,16 @@ mod tests {
             kinds("p {\n  |\n}"),
             vec![Tag, BraceOpen, Pipe, BraceClose, Eos]
         );
-        assert_eq!(kinds("p |"), vec![Tag, Pipe, Eos]);
+        assert_eq!(texts("p |", Text), ["|"]);
         assert_eq!(kinds("| {{ x }}"), vec![Pipe, Mustache, Eos]);
         assert_eq!(texts("| \\{ literal", Text), ["{ literal"]);
-        assert_eq!(texts("|  two", Text), [" two"]);
+        assert_eq!(texts("|  two  ", Text), ["two"]);
+        assert_eq!(kinds("p: |"), vec![Tag, Colon, Pipe, Eos]);
     }
 
     #[test]
     fn multi_line_pipe_blocks() {
-        let src = "pre |{\n    line one\n      indented\n\n    #{b x} last\n  }";
+        let src = "pre: |{\n    line one\n      indented\n\n    #{b x} last\n  }";
         let r = lex(src);
         assert!(r.diagnostics.is_empty(), "{:?}", r.diagnostics);
         let dump: Vec<_> = r
@@ -1470,6 +1481,7 @@ mod tests {
             dump,
             [
                 "Tag \"pre\"",
+                "Colon \":\"",
                 "PipeOpen \"|{\"",
                 "Text \"line one\"",
                 "TextNewline \"\\n    \"",
@@ -1486,8 +1498,8 @@ mod tests {
             ]
         );
         // Text on the `|{` line loses its leading whitespace.
-        assert_eq!(texts("p |{   a\n  b }", Text), ["a", "b"]);
-        assert_eq!(codes("p |{ a\nb"), ["UNCLOSED_BRACE"]);
+        assert_eq!(texts("p: |{   a\n  b }", Text), ["a", "b"]);
+        assert_eq!(codes("p: |{ a\nb"), ["UNCLOSED_BRACE"]);
     }
 
     #[test]
@@ -1532,7 +1544,7 @@ mod tests {
         assert_eq!(codes("script(:src=\"a\")\n/script"), ["UNMATCHED_CLOSE"]);
         assert_eq!(codes("script(src=\"a\") {}"), ["UNSUPPORTED_SYNTAX"]);
         assert_eq!(codes("script {\n  go()\n}"), ["UNSUPPORTED_SYNTAX"]);
-        assert_eq!(codes("style |{ a {} }"), ["UNSUPPORTED_SYNTAX"]);
+        assert_eq!(codes("style: |{ a {} }"), ["UNSUPPORTED_SYNTAX"]);
         assert_eq!(codes("script\n  go()\n"), ["UNCLOSED_RAW"]);
         assert_eq!(codes("div {\n  script\n  go()\n}"), ["UNCLOSED_RAW"]);
         assert_eq!(codes("pre\n/pre"), ["UNMATCHED_CLOSE"]);
@@ -1644,7 +1656,7 @@ mod tests {
             "div { b x\n    i y }",
             "p a\n    // comment\np b",
             "a(\n    href=x\n  ) y\nb",
-            "p |{\n    a\n  }\nb",
+            "p: |{\n    a\n  }\nb",
         ] {
             assert!(codes(src).is_empty(), "{src}: {:?}", codes(src));
         }

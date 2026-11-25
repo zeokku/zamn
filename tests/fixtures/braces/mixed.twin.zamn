@@ -15,13 +15,15 @@ a(href="/about") About
 }
 }
 main {
-p |{
+p: |{
 A text block
 keeps working \}
 }
 pre {
-| line one
-| line two
+|{
+line one
+line two
+}
 }
 section {}
 footer {}

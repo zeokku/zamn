@@ -142,7 +142,7 @@ The same template AST an HTML template gives, positioned on the zamn source:
 | `{{ expr }}` in text, `tag= expr` | `VExpressionContainer` |
 | `script` and `style` content | `VText`, as written |
 | `//`, `//!`, `/* */` and `/*! */` | comments |
-| the `}` of the element's block, of its `\|{ }` text or of the `#{ }` it is in, its `/script` line, or else the end of its statement: its line break, or the `}` of the block it is in | the end tag |
+| the `}` of the element's block, of its `tag: \|{ }` text or of the `#{ }` it is in, its `/script` line, or else the end of its statement: its line break, or the `}` of the block it is in | the end tag |
 
 Elements that end at the same `}`, as in `ul { li: a Home }`, share it as their end tag. Variables of `<script setup>` used in the template count as used.
 

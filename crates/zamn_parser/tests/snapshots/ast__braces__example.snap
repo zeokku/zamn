@@ -36,8 +36,8 @@ expression: json
               "type": "Text",
               "value": "some text here",
               "span": {
-                "start": 22,
-                "end": 36
+                "start": 23,
+                "end": 37
               }
             }
           ],
@@ -45,15 +45,15 @@ expression: json
           "raw": false,
           "span": {
             "start": 17,
-            "end": 38
+            "end": 39
           }
         },
         {
           "type": "Element",
           "name": "u",
           "nameSpan": {
-            "start": 39,
-            "end": 40
+            "start": 40,
+            "end": 41
           },
           "attrs": [],
           "children": [
@@ -61,24 +61,24 @@ expression: json
               "type": "Text",
               "value": "another child",
               "span": {
-                "start": 43,
-                "end": 56
+                "start": 45,
+                "end": 58
               }
             }
           ],
           "braced": false,
           "raw": false,
           "span": {
-            "start": 39,
-            "end": 57
+            "start": 40,
+            "end": 59
           }
         },
         {
           "type": "Element",
           "name": "b",
           "nameSpan": {
-            "start": 58,
-            "end": 59
+            "start": 60,
+            "end": 61
           },
           "attrs": [],
           "children": [
@@ -86,24 +86,24 @@ expression: json
               "type": "Text",
               "value": "without pipe",
               "span": {
-                "start": 60,
-                "end": 72
+                "start": 62,
+                "end": 74
               }
             }
           ],
           "braced": false,
           "raw": false,
           "span": {
-            "start": 58,
-            "end": 72
+            "start": 60,
+            "end": 74
           }
         },
         {
           "type": "Element",
           "name": "span",
           "nameSpan": {
-            "start": 73,
-            "end": 77
+            "start": 75,
+            "end": 79
           },
           "attrs": [],
           "children": [
@@ -111,16 +111,16 @@ expression: json
               "type": "Text",
               "value": "so next one must go on a new line",
               "span": {
-                "start": 78,
-                "end": 111
+                "start": 80,
+                "end": 113
               }
             }
           ],
           "braced": false,
           "raw": false,
           "span": {
-            "start": 73,
-            "end": 111
+            "start": 75,
+            "end": 113
           }
         }
       ],
@@ -128,7 +128,7 @@ expression: json
       "raw": false,
       "span": {
         "start": 11,
-        "end": 113
+        "end": 115
       }
     },
     {
@@ -139,19 +139,19 @@ expression: json
         {
           "name": "class",
           "nameSpan": {
-            "start": 114,
-            "end": 124
+            "start": 116,
+            "end": 126
           },
           "value": "one-liner",
           "valueSpan": {
-            "start": 115,
-            "end": 124
+            "start": 117,
+            "end": 126
           },
           "escaped": false,
           "shorthand": "Class",
           "span": {
-            "start": 114,
-            "end": 124
+            "start": 116,
+            "end": 126
           }
         }
       ],
@@ -160,8 +160,8 @@ expression: json
           "type": "Element",
           "name": "b",
           "nameSpan": {
-            "start": 127,
-            "end": 128
+            "start": 129,
+            "end": 130
           },
           "attrs": [],
           "children": [
@@ -169,8 +169,8 @@ expression: json
               "type": "Element",
               "name": "u",
               "nameSpan": {
-                "start": 131,
-                "end": 132
+                "start": 133,
+                "end": 134
               },
               "attrs": [],
               "children": [
@@ -178,32 +178,32 @@ expression: json
                   "type": "Text",
                   "value": "biba",
                   "span": {
-                    "start": 133,
-                    "end": 137
+                    "start": 135,
+                    "end": 139
                   }
                 }
               ],
               "braced": false,
               "raw": false,
               "span": {
-                "start": 131,
-                "end": 137
+                "start": 133,
+                "end": 139
               }
             }
           ],
           "braced": true,
           "raw": false,
           "span": {
-            "start": 127,
-            "end": 139
+            "start": 129,
+            "end": 141
           }
         }
       ],
       "braced": true,
       "raw": false,
       "span": {
-        "start": 114,
-        "end": 140
+        "start": 116,
+        "end": 142
       }
     },
     {
@@ -214,19 +214,19 @@ expression: json
         {
           "name": "class",
           "nameSpan": {
-            "start": 141,
-            "end": 161
+            "start": 143,
+            "end": 163
           },
           "value": "should-use-new-line",
           "valueSpan": {
-            "start": 142,
-            "end": 161
+            "start": 144,
+            "end": 163
           },
           "escaped": false,
           "shorthand": "Class",
           "span": {
-            "start": 141,
-            "end": 161
+            "start": 143,
+            "end": 163
           }
         }
       ],
@@ -235,8 +235,8 @@ expression: json
           "type": "Element",
           "name": "b",
           "nameSpan": {
-            "start": 164,
-            "end": 165
+            "start": 166,
+            "end": 167
           },
           "attrs": [],
           "children": [
@@ -244,24 +244,24 @@ expression: json
               "type": "Text",
               "value": "some text",
               "span": {
-                "start": 166,
-                "end": 175
+                "start": 168,
+                "end": 177
               }
             }
           ],
           "braced": false,
           "raw": false,
           "span": {
-            "start": 164,
-            "end": 175
+            "start": 166,
+            "end": 177
           }
         },
         {
           "type": "Element",
           "name": "u",
           "nameSpan": {
-            "start": 176,
-            "end": 177
+            "start": 178,
+            "end": 179
           },
           "attrs": [],
           "children": [
@@ -269,24 +269,24 @@ expression: json
               "type": "Text",
               "value": "next child after b",
               "span": {
-                "start": 178,
-                "end": 196
+                "start": 180,
+                "end": 198
               }
             }
           ],
           "braced": false,
           "raw": false,
           "span": {
-            "start": 176,
-            "end": 196
+            "start": 178,
+            "end": 198
           }
         },
         {
           "type": "Element",
           "name": "s",
           "nameSpan": {
-            "start": 197,
-            "end": 198
+            "start": 199,
+            "end": 200
           },
           "attrs": [],
           "children": [
@@ -294,32 +294,32 @@ expression: json
               "type": "Text",
               "value": "and another one",
               "span": {
-                "start": 199,
-                "end": 214
+                "start": 201,
+                "end": 216
               }
             }
           ],
           "braced": false,
           "raw": false,
           "span": {
-            "start": 197,
-            "end": 214
+            "start": 199,
+            "end": 216
           }
         }
       ],
       "braced": true,
       "raw": false,
       "span": {
-        "start": 141,
-        "end": 215
+        "start": 143,
+        "end": 217
       }
     },
     {
       "type": "Element",
       "name": "div",
       "nameSpan": {
-        "start": 216,
-        "end": 219
+        "start": 218,
+        "end": 221
       },
       "attrs": [],
       "children": [
@@ -327,24 +327,24 @@ expression: json
           "type": "Text",
           "value": "some text",
           "span": {
-            "start": 220,
-            "end": 229
+            "start": 222,
+            "end": 231
           }
         }
       ],
       "braced": false,
       "raw": false,
       "span": {
-        "start": 216,
-        "end": 229
+        "start": 218,
+        "end": 231
       }
     },
     {
       "type": "Element",
       "name": "div",
       "nameSpan": {
-        "start": 230,
-        "end": 233
+        "start": 232,
+        "end": 235
       },
       "attrs": [],
       "children": [
@@ -352,24 +352,24 @@ expression: json
           "type": "Text",
           "value": "some text",
           "span": {
-            "start": 236,
-            "end": 245
+            "start": 239,
+            "end": 248
           }
         }
       ],
       "braced": false,
       "raw": false,
       "span": {
-        "start": 230,
-        "end": 245
+        "start": 232,
+        "end": 248
       }
     },
     {
       "type": "Element",
       "name": "div",
       "nameSpan": {
-        "start": 246,
-        "end": 249
+        "start": 249,
+        "end": 252
       },
       "attrs": [],
       "children": [
@@ -377,24 +377,24 @@ expression: json
           "type": "Text",
           "value": "some text",
           "span": {
-            "start": 253,
-            "end": 262
+            "start": 257,
+            "end": 266
           }
         }
       ],
       "braced": false,
       "raw": false,
       "span": {
-        "start": 246,
-        "end": 264
-      }
-    },
-    {
-      "type": "Element",
-      "name": "div",
-      "nameSpan": {
-        "start": 265,
+        "start": 249,
         "end": 268
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 269,
+        "end": 272
       },
       "attrs": [],
       "children": [
@@ -402,24 +402,24 @@ expression: json
           "type": "Text",
           "value": "| starts with",
           "span": {
-            "start": 270,
-            "end": 283
+            "start": 273,
+            "end": 286
           }
         }
       ],
       "braced": false,
       "raw": false,
       "span": {
-        "start": 265,
-        "end": 283
+        "start": 269,
+        "end": 286
       }
     },
     {
       "type": "Element",
       "name": "div",
       "nameSpan": {
-        "start": 284,
-        "end": 287
+        "start": 287,
+        "end": 290
       },
       "attrs": [],
       "children": [
@@ -427,24 +427,49 @@ expression: json
           "type": "Text",
           "value": "| starts with",
           "span": {
-            "start": 290,
-            "end": 303
+            "start": 294,
+            "end": 307
           }
         }
       ],
       "braced": false,
       "raw": false,
       "span": {
-        "start": 284,
-        "end": 303
-      }
-    },
-    {
-      "type": "Element",
-      "name": "div",
-      "nameSpan": {
-        "start": 304,
+        "start": 287,
         "end": 307
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 308,
+        "end": 311
+      },
+      "attrs": [],
+      "children": [
+        {
+          "type": "Text",
+          "value": "trimmed",
+          "span": {
+            "start": 315,
+            "end": 322
+          }
+        }
+      ],
+      "braced": false,
+      "raw": false,
+      "span": {
+        "start": 308,
+        "end": 322
+      }
+    },
+    {
+      "type": "Element",
+      "name": "div",
+      "nameSpan": {
+        "start": 326,
+        "end": 329
       },
       "attrs": [],
       "children": [
@@ -456,19 +481,19 @@ expression: json
             {
               "name": "class",
               "nameSpan": {
-                "start": 312,
-                "end": 318
+                "start": 334,
+                "end": 340
               },
               "value": "first",
               "valueSpan": {
-                "start": 313,
-                "end": 318
+                "start": 335,
+                "end": 340
               },
               "escaped": false,
               "shorthand": "Class",
               "span": {
-                "start": 312,
-                "end": 318
+                "start": 334,
+                "end": 340
               }
             }
           ],
@@ -476,8 +501,8 @@ expression: json
           "braced": false,
           "raw": false,
           "span": {
-            "start": 312,
-            "end": 318
+            "start": 334,
+            "end": 340
           }
         },
         {
@@ -488,19 +513,19 @@ expression: json
             {
               "name": "class",
               "nameSpan": {
-                "start": 321,
-                "end": 328
+                "start": 343,
+                "end": 350
               },
               "value": "second",
               "valueSpan": {
-                "start": 322,
-                "end": 328
+                "start": 344,
+                "end": 350
               },
               "escaped": false,
               "shorthand": "Class",
               "span": {
-                "start": 321,
-                "end": 328
+                "start": 343,
+                "end": 350
               }
             }
           ],
@@ -508,8 +533,8 @@ expression: json
           "braced": false,
           "raw": false,
           "span": {
-            "start": 321,
-            "end": 328
+            "start": 343,
+            "end": 350
           }
         },
         {
@@ -520,19 +545,19 @@ expression: json
             {
               "name": "class",
               "nameSpan": {
-                "start": 331,
-                "end": 337
+                "start": 353,
+                "end": 359
               },
               "value": "third",
               "valueSpan": {
-                "start": 332,
-                "end": 337
+                "start": 354,
+                "end": 359
               },
               "escaped": false,
               "shorthand": "Class",
               "span": {
-                "start": 331,
-                "end": 337
+                "start": 353,
+                "end": 359
               }
             }
           ],
@@ -541,16 +566,16 @@ expression: json
               "type": "Text",
               "value": "piped text",
               "span": {
-                "start": 345,
-                "end": 355
+                "start": 367,
+                "end": 377
               }
             }
           ],
           "braced": true,
           "raw": false,
           "span": {
-            "start": 331,
-            "end": 359
+            "start": 353,
+            "end": 381
           }
         },
         {
@@ -561,19 +586,19 @@ expression: json
             {
               "name": "class",
               "nameSpan": {
-                "start": 363,
-                "end": 369
+                "start": 385,
+                "end": 391
               },
               "value": "forth",
               "valueSpan": {
-                "start": 364,
-                "end": 369
+                "start": 386,
+                "end": 391
               },
               "escaped": false,
               "shorthand": "Class",
               "span": {
-                "start": 363,
-                "end": 369
+                "start": 385,
+                "end": 391
               }
             }
           ],
@@ -582,16 +607,16 @@ expression: json
               "type": "Text",
               "value": "text inside it",
               "span": {
-                "start": 370,
-                "end": 384
+                "start": 392,
+                "end": 406
               }
             }
           ],
           "braced": false,
           "raw": false,
           "span": {
-            "start": 363,
-            "end": 384
+            "start": 385,
+            "end": 406
           }
         },
         {
@@ -602,19 +627,19 @@ expression: json
             {
               "name": "class",
               "nameSpan": {
-                "start": 388,
-                "end": 398
+                "start": 410,
+                "end": 420
               },
               "value": "one-liner",
               "valueSpan": {
-                "start": 389,
-                "end": 398
+                "start": 411,
+                "end": 420
               },
               "escaped": false,
               "shorthand": "Class",
               "span": {
-                "start": 388,
-                "end": 398
+                "start": 410,
+                "end": 420
               }
             }
           ],
@@ -623,8 +648,8 @@ expression: json
               "type": "Element",
               "name": "p",
               "nameSpan": {
-                "start": 401,
-                "end": 402
+                "start": 423,
+                "end": 424
               },
               "attrs": [],
               "children": [
@@ -632,16 +657,16 @@ expression: json
                   "type": "Text",
                   "value": "some paragraph ",
                   "span": {
-                    "start": 407,
-                    "end": 422
+                    "start": 429,
+                    "end": 444
                   }
                 },
                 {
                   "type": "Element",
                   "name": "b",
                   "nameSpan": {
-                    "start": 424,
-                    "end": 425
+                    "start": 446,
+                    "end": 447
                   },
                   "attrs": [],
                   "children": [
@@ -649,84 +674,84 @@ expression: json
                       "type": "Text",
                       "value": "biba",
                       "span": {
-                        "start": 426,
-                        "end": 430
+                        "start": 448,
+                        "end": 452
                       }
                     }
                   ],
                   "braced": false,
                   "raw": false,
                   "span": {
-                    "start": 424,
-                    "end": 430
+                    "start": 446,
+                    "end": 452
                   }
                 },
                 {
                   "type": "Text",
                   "value": " boba",
                   "span": {
-                    "start": 431,
-                    "end": 436
+                    "start": 453,
+                    "end": 458
                   }
                 }
               ],
               "braced": true,
               "raw": false,
               "span": {
-                "start": 401,
-                "end": 437
+                "start": 423,
+                "end": 459
               }
             }
           ],
           "braced": true,
           "raw": false,
           "span": {
-            "start": 388,
-            "end": 439
+            "start": 410,
+            "end": 461
           }
         },
         {
           "type": "Element",
           "name": "button",
           "nameSpan": {
-            "start": 443,
-            "end": 449
+            "start": 465,
+            "end": 471
           },
           "attrs": [
             {
               "name": "class",
               "nameSpan": {
-                "start": 449,
-                "end": 456
+                "start": 471,
+                "end": 478
               },
               "value": "styled",
               "valueSpan": {
-                "start": 450,
-                "end": 456
+                "start": 472,
+                "end": 478
               },
               "escaped": false,
               "shorthand": "Class",
               "span": {
-                "start": 449,
-                "end": 456
+                "start": 471,
+                "end": 478
               }
             },
             {
               "name": "style",
               "nameSpan": {
-                "start": 457,
-                "end": 462
+                "start": 479,
+                "end": 484
               },
               "value": "font-size:1em;text-align:center;padding:1rem 0.5rem;transition-property:color, background;",
               "valueSpan": {
-                "start": 463,
-                "end": 585
+                "start": 485,
+                "end": 607
               },
               "escaped": true,
               "shorthand": null,
               "span": {
-                "start": 457,
-                "end": 585
+                "start": 479,
+                "end": 607
               }
             }
           ],
@@ -734,16 +759,16 @@ expression: json
           "braced": false,
           "raw": false,
           "span": {
-            "start": 443,
-            "end": 586
+            "start": 465,
+            "end": 608
           }
         }
       ],
       "braced": true,
       "raw": false,
       "span": {
-        "start": 304,
-        "end": 588
+        "start": 326,
+        "end": 610
       }
     }
   ]

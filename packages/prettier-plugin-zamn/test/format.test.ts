@@ -106,56 +106,56 @@ test("blocks written on one line are printed over several", async () => {
 test("text after the head: tag text", async () => {
   const source = zamn`
     div some text
-    div | some text
-    div |{ some text }
-    div|{   trimmed   }
+    div: | some text
+    div: |{ some text }
+    div: |{   trimmed   }
     p {
       | the only child
     }
     p { |{ one line } }
-    p   two spaces stay
-    p |  so does this one
+    p   two spaces go
+    p: |   and so do these
     p{{ msg }}
-    p |{ {{ msg }} and #{b( x = 'y' ) z} }
+    p: |{ {{ msg }} and #{b( x = 'y' ) z} }
   `;
   expect(await same(source)).toBe(zamn`
     div some text
-    div some text
-    div some text
-    div trimmed
+    div: | some text
+    div: |{ some text }
+    div: |{ trimmed }
     p the only child
     p one line
-    p   two spaces stay
-    p  so does this one
+    p two spaces go
+    p: | and so do these
     p {{ msg }}
-    p {{ msg }} and #{b(x="y") z}
+    p: |{ {{ msg }} and #{b(x="y") z} }
   `);
 });
 
-test("text that starts with | or a brace keeps what it needs", async () => {
+test("after the head, | is text; braces keep their escapes", async () => {
   const source = zamn`
-    p \\| escaped
-    p | | piped
-    p |{ | in a block }
-    p |{ \\| escaped in a block }
+    p | literal
+    p: | | piped
     p { | | the only child }
+    p { |{ | in a block } }
+    p \\| a backslash
     p \\{ brace
-    p |{ \\{ brace in a block \\} }
-    p |{ \\#{ not inline }
-    p |{}
-    p |
+    p { |{ \\{ brace in a block \\} } }
+    p { |{ \\#{ not inline } }
+    p { |{} }
+    p: |
   `;
   expect(await same(source)).toBe(zamn`
-    p \\| escaped
-    p | | piped
-    p | | in a block
-    p \\| escaped in a block
-    p | | the only child
+    p | literal
+    p: | | piped
+    p | the only child
+    p | in a block
+    p \\| a backslash
     p \\{ brace
     p \\{ brace in a block \\}
     p \\#{ not inline
     p
-    p |
+    p: |
   `);
 });
 
@@ -164,7 +164,7 @@ test("text statements: | lines, bare |, and |{ } on one line", async () => {
     p {
        b this
          |
-       | is
+       |    is
           |
       u cool
     }
@@ -176,8 +176,8 @@ test("text statements: | lines, bare |, and |{ } on one line", async () => {
     | top
     | level
   `;
-  // Text statements on two lines are joined with a line break, on one line
-  // without: the ones that share a line keep sharing it.
+  // Text statements are joined as they are: the ones that share a line keep
+  // sharing it.
   expect(await same(source)).toBe(zamn`
     p {
       b this
@@ -201,7 +201,7 @@ test("text statements: | lines, bare |, and |{ } on one line", async () => {
 test("|{ } over several lines stays a block, re-indented", async () => {
   const source = zamn`
     div {
-          pre |{
+          pre: |{
                 function go() \\{
                   return a < b;
                 \\}
@@ -211,11 +211,16 @@ test("|{ } over several lines stays a block, re-indented", async () => {
             and keeps #{em its} relative
               indentation }
       }
+      pre {
+        |{
+          kept in braces
+        }
+      }
     }
   `;
   expect(await same(source)).toBe(zamn`
     div {
-      pre |{
+      pre: |{
         function go() \\{
           return a < b;
         \\}
@@ -225,6 +230,11 @@ test("|{ } over several lines stays a block, re-indented", async () => {
           starts on the line
           and keeps #{em its} relative
             indentation
+        }
+      }
+      pre {
+        |{
+          kept in braces
         }
       }
     }

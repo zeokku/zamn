@@ -395,43 +395,40 @@ test("text: mustaches, #{} inline elements, escapes and unescaped braces", async
   ]);
 });
 
-test("pipes: `| text`, `div | text`, `|{ }` and `\\|`", async () => {
+test("pipes: `| text`, `div: | text`, `|{ }`, and `|` after a head is text", async () => {
   const source = zamn`
     | text
-    div | some text
-    div |{ some text }
-    div|{ x }
+    div: | some text
+    div: |{ some text }
     | { y }
-    div \\| x
-    pre |{
+    div | x
+    pre: |{
       line {{ a }} #{b c}
         \\} deeper
     }
   `;
+  const COLON = ":  punctuation.separator.expansion";
   expect(await tokens(source)).toEqual([
     PIPE,
     " text",
     `div  ${TAG}`,
+    COLON,
     PIPE,
     " some text",
     `div  ${TAG}`,
+    COLON,
     PIPE,
     BEGIN,
     " some text ",
-    END,
-    `div  ${TAG}`,
-    PIPE,
-    BEGIN,
-    " x ",
     END,
     PIPE,
     BEGIN,
     " y ",
     END,
     `div  ${TAG}`,
-    `\\|  ${ESCAPE}`,
-    " x",
+    "| x",
     `pre  ${TAG}`,
+    COLON,
     PIPE,
     BEGIN,
     "  line ",

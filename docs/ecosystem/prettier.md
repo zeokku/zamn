@@ -46,11 +46,11 @@ export default {
 
 - Puts one statement on each line, and the children of an element in a `{ }` block: the `{` ends the line of the tag, and the `}` goes on a line of its own. A block written on one line (`ul { li { a x } }`) is printed over several.
 - Indents every block with `tabWidth` / `useTabs`. Indentation means nothing to zamn, so this never changes the output, and it fixes [misleading indentation](../guide/syntax/brace-blocks#indentation).
-- Writes an element whose only child is a line of text as `tag text`: `p | Hello`, `p |{ Hello }` and `p { | Hello }` all become `p Hello`. Text that starts with `|` keeps what it needs to stay text (`p | | x`).
-- Keeps `| text` lines and a bare `|` (a space) as they are. Text statements that share a line stay on it, since zamn joins two lines of text with a line break.
+- Writes an element whose only child is a line of text as `tag text`: `p { | Hello }` and `p { |{ Hello } }` become `p Hello`. `p: | Hello` and `p: |{ Hello }` stay as written.
+- Keeps `| text` lines and a bare `|` (a space) as they are. Text is trimmed at both ends, so the whitespace after a tag or a `|` becomes one space. Text statements that share a line stay on it.
 - Keeps a `|{ }` written over several lines a block, with its lines indented one level deeper and the `}` on a line of its own. zamn strips the indentation the lines have in common, so the text doesn't change; deeper indentation stays.
 - Indents the content of `script` and `style` one level deeper, with `/script` or `/style` at the level of the tag, and changes nothing else in it.
-- Copies text, mustaches, escapes (`\{`, `\}`, `\|`, `\#{`), `= expr` and comments as written. A block comment over several lines is kept exactly as it is, since a `/*! */` goes into the HTML. A comment written after a `{` or a `}` on the line of other statements goes on a line of its own.
+- Copies text, mustaches, escapes (`\{`, `\}`, `\#{`), `= expr` and comments as written. A block comment over several lines is kept exactly as it is, since a `/*! */` goes into the HTML. A comment written after a `{` or a `}` on the line of other statements goes on a line of its own.
 - Writes quoted values with the quotes `singleQuote` asks for, unless the other quote needs fewer escapes. Unquoted values (`href=/docs`, `:class={ on: x }`, `style={color: red}`) stay as written. Attributes are printed with the separator `zamnAttributeSeparator` asks for.
 - Puts attributes one per line when there are more of them than `zamnMaxAttributesPerLine`, or when the tag, ids, classes and attributes don't fit in `printWidth`. Text after the tag doesn't count and is never wrapped. With `-1` and `false`, the print width is not looked at. An inline element `#{...}` always stays on its line, attributes and all, and a value that spans several lines puts every attribute on its own.
 - Keeps at most one blank line between statements, and writes an empty block as `{}`.

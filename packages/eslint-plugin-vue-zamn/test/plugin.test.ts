@@ -46,7 +46,7 @@ test("recommended: zamn templates are read, and no rule about HTML complains", a
       my-card(v-for="item in items" :key="item.id" title='One' n=1 checked=true @click="go(item)") {
         p.text Hello #{b world} and {{ item.name }} &rarr; done
         span= item.count
-        p |{
+        p: |{
           A block of text
           over two lines.
         }

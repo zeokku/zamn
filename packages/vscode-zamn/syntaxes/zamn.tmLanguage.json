@@ -261,7 +261,7 @@
       ]
     },
     "pipe": {
-      "comment": "`| text`, and `div | text`: text to the end of the line or the `}` of the parent",
+      "comment": "`| text`, a statement: text to the end of the line or the `}` of the parent",
       "begin": "[ \\t]*(\\|)",
       "end": "$|(?=\\})",
       "beginCaptures": {
@@ -270,9 +270,6 @@
         }
       },
       "patterns": [
-        {
-          "include": "#text-start"
-        },
         {
           "include": "#inline"
         }
@@ -346,12 +343,6 @@
           "include": "#block"
         },
         {
-          "include": "#pipe-block"
-        },
-        {
-          "include": "#pipe"
-        },
-        {
           "begin": "(:)[ \\t]+",
           "end": "(?<=\\})|$|(?=\\})",
           "beginCaptures": {
@@ -373,22 +364,11 @@
           "end": "$|(?=\\})",
           "patterns": [
             {
-              "include": "#text-start"
-            },
-            {
               "include": "#inline"
             }
           ]
         }
       ]
-    },
-    "text-start": {
-      "match": "\\G[ \\t]*(\\\\\\|)",
-      "captures": {
-        "1": {
-          "name": "constant.character.escape.zamn"
-        }
-      }
     },
     "inline": {
       "comment": "text: `{{ }}`, `#{el ...}` and the escapes; a `{` of its own must be escaped",

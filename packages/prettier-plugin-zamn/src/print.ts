@@ -6,7 +6,7 @@
 // `style` content: the compiler strips the indentation their lines have in
 // common. Text, comments and expressions are copied as written.
 import { doc, util, type AstPath, type Doc, type ParserOptions } from "prettier";
-import type { Attr, Body, Element, Interp, Part, Root, Statement } from "./tree.js";
+import type { Attr, Element, Interp, Part, Root, Statement } from "./tree.js";
 
 const { hardline, indent, join, literalline } = doc.builders;
 
@@ -36,10 +36,7 @@ function trimBlank(lines: string[]): string[] {
   return lines.slice(from, to);
 }
 
-/** Text after `|` starts after one space, if there is one. */
-const afterPipe = (text: string) => (text.startsWith(" ") ? text.slice(1) : text);
-
-/** A text statement: `| text` or `|{ }`, which zamn joins with a line break. */
+/** A text statement: `| text` or `|{ }`. */
 const isText = (node: Statement) =>
   node.type === "PipeBlock" || (node.type === "Pipe" && node.parts.length > 0);
 
@@ -138,35 +135,19 @@ export function print(path: AstPath<Root>, options: Options): Doc {
   }
 
   /**
-   * What follows the head for text: `tag text` where that means the same,
-   * or `tag | text`. `keepBlock` keeps a `|{ }` on one line as it is, for
-   * where something may follow it on the line.
+   * Text after the head: `tag text`. Text is trimmed at both ends, so the
+   * whitespace after the head is one space, and after it a `|` is text.
    */
-  function inlineText(body: Body & { kind: "text" | "pipe" | "pipeBlock" }, keepBlock: boolean) {
-    switch (body.kind) {
-      case "text": {
-        // One space or tab separates the head from its text; more are text.
-        const text = render(body.parts);
-        return ` ${/^[ \t]/.test(text) ? text.slice(1) : text}`;
-      }
-      case "pipe": {
-        if (!body.parts.length) return " |";
-        const text = afterPipe(render(body.parts));
-        // After the head, a `|` would start the text again.
-        return text.trimStart().startsWith("|") ? ` | ${text}` : ` ${text}`;
-      }
-      case "pipeBlock": {
-        if (keepBlock) return ` ${oneLine(body.parts)}`;
-        // Text in `|{ }` on one line is trimmed.
-        const text = render(body.parts).trim();
-        if (!text) return "";
-        return text.startsWith("|") ? ` | ${text}` : ` ${text}`;
-      }
-    }
+  function inlineText(parts: Part[]) {
+    const text = render(parts).trim();
+    return text ? ` ${text}` : "";
   }
 
-  /** The text of a `|` statement. */
-  const pipe = (parts: Part[]) => (parts.length ? `| ${afterPipe(render(parts))}` : "|");
+  /** The text of a `|` statement, trimmed like all text. */
+  const pipe = (parts: Part[]) => {
+    const text = render(parts).trim();
+    return text ? `| ${text}` : "|";
+  };
 
   /** A statement on one line, inside `#{...}`. */
   function flat(node: Statement): string {
@@ -193,9 +174,7 @@ export function print(path: AstPath<Root>, options: Options): Doc {
             rest = `= ${body.expr}`;
             break;
           case "text":
-          case "pipe":
-          case "pipeBlock":
-            rest = inlineText(body, true);
+            rest = inlineText(body.parts);
             break;
           case "braced":
             rest = body.children.length ? ` { ${body.children.map(flat).join(" ")} }` : " {}";
@@ -210,8 +189,7 @@ export function print(path: AstPath<Root>, options: Options): Doc {
   function siblings(nodes: Statement[], column: number): Doc[] {
     return nodes.map((node, i) => {
       const prev = nodes[i - 1];
-      // Text statements on two lines are joined with a line break, and on
-      // one line without, so they stay on their line.
+      // Text statements that share a line stay on it.
       if (prev && node.sameLine && isText(prev) && isText(node)) {
         return [" ", statement(node, column)];
       }
@@ -243,11 +221,10 @@ export function print(path: AstPath<Root>, options: Options): Doc {
         // An element whose only child is a line of text: `tag text`.
         if (body.kind === "braced" && body.children.length === 1) {
           const [child] = body.children as [Statement];
-          if (child.type === "Pipe" && child.parts.length) {
-            body = { kind: "pipe", parts: child.parts };
-          } else if (child.type === "PipeBlock" && !child.multiline) {
-            body = { kind: "pipeBlock", parts: child.parts, multiline: false };
-          }
+          const line =
+            (child.type === "Pipe" && child.parts.length) ||
+            (child.type === "PipeBlock" && !child.multiline);
+          if (line) body = { kind: "text", parts: child.parts };
         }
         switch (body.kind) {
           case "none":
@@ -257,13 +234,7 @@ export function print(path: AstPath<Root>, options: Options): Doc {
           case "expr":
             return [headDoc, `= ${body.expr}`];
           case "text":
-          case "pipe":
-            return [headDoc, inlineText(body, false)];
-          case "pipeBlock": {
-            if (!body.multiline) return [headDoc, inlineText(body, false)];
-            const lines = blockLines(body.parts);
-            return [headDoc, lines.length ? [" ", textBlock(lines)] : ""];
-          }
+            return [headDoc, inlineText(body.parts)];
           case "braced":
             if (!body.children.length) return [headDoc, " {}"];
             return [

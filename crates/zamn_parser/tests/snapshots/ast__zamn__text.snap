@@ -81,18 +81,18 @@ expression: json
         },
         {
           "type": "Text",
-          "value": "\n",
+          "value": " ",
           "span": {
             "start": 49,
-            "end": 49
+            "end": 50
           }
         },
         {
           "type": "Text",
           "value": "text",
           "span": {
-            "start": 51,
-            "end": 55
+            "start": 55,
+            "end": 59
           }
         }
       ],
@@ -100,15 +100,15 @@ expression: json
       "raw": false,
       "span": {
         "start": 33,
-        "end": 57
+        "end": 61
       }
     },
     {
       "type": "Element",
       "name": "p",
       "nameSpan": {
-        "start": 58,
-        "end": 59
+        "start": 62,
+        "end": 63
       },
       "attrs": [],
       "children": [
@@ -116,32 +116,32 @@ expression: json
           "type": "Text",
           "value": "<b>html</b> in text",
           "span": {
-            "start": 60,
-            "end": 79
+            "start": 64,
+            "end": 83
           }
         }
       ],
       "braced": false,
       "raw": false,
       "span": {
-        "start": 58,
-        "end": 79
+        "start": 62,
+        "end": 83
       }
     },
     {
       "type": "Text",
       "value": "<i>escaped</i> as well",
       "span": {
-        "start": 82,
-        "end": 104
+        "start": 86,
+        "end": 108
       }
     },
     {
       "type": "Element",
       "name": "script",
       "nameSpan": {
-        "start": 105,
-        "end": 111
+        "start": 109,
+        "end": 115
       },
       "attrs": [],
       "children": [
@@ -149,16 +149,16 @@ expression: json
           "type": "Text",
           "value": "if (a < b) {\n  go();\n}",
           "span": {
-            "start": 114,
-            "end": 140
+            "start": 118,
+            "end": 144
           }
         }
       ],
       "braced": false,
       "raw": true,
       "span": {
-        "start": 105,
-        "end": 148
+        "start": 109,
+        "end": 152
       }
     },
     {
@@ -167,8 +167,8 @@ expression: json
       "block": false,
       "value": " a comment",
       "span": {
-        "start": 150,
-        "end": 163
+        "start": 154,
+        "end": 167
       }
     },
     {
@@ -177,8 +177,8 @@ expression: json
       "block": false,
       "value": " a silent comment",
       "span": {
-        "start": 164,
-        "end": 183
+        "start": 168,
+        "end": 187
       }
     },
     {
@@ -187,16 +187,16 @@ expression: json
       "block": true,
       "value": "\n  block comment\n    stays raw\n",
       "span": {
-        "start": 184,
-        "end": 220
+        "start": 188,
+        "end": 224
       }
     },
     {
       "type": "Element",
       "name": "p",
       "nameSpan": {
-        "start": 221,
-        "end": 222
+        "start": 225,
+        "end": 226
       },
       "attrs": [],
       "children": [
@@ -204,16 +204,16 @@ expression: json
           "type": "Text",
           "value": "ünïcödé 😀 ",
           "span": {
-            "start": 223,
-            "end": 240
+            "start": 227,
+            "end": 244
           }
         },
         {
           "type": "Element",
           "name": "b",
           "nameSpan": {
-            "start": 242,
-            "end": 243
+            "start": 246,
+            "end": 247
           },
           "attrs": [],
           "children": [
@@ -221,24 +221,24 @@ expression: json
               "type": "Text",
               "value": "ok",
               "span": {
-                "start": 244,
-                "end": 246
+                "start": 248,
+                "end": 250
               }
             }
           ],
           "braced": false,
           "raw": false,
           "span": {
-            "start": 242,
-            "end": 246
+            "start": 246,
+            "end": 250
           }
         }
       ],
       "braced": false,
       "raw": false,
       "span": {
-        "start": 221,
-        "end": 247
+        "start": 225,
+        "end": 251
       }
     }
   ]

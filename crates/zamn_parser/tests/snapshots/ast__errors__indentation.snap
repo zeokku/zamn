@@ -2,5 +2,5 @@
 source: crates/zamn_parser/tests/ast.rs
 expression: report
 ---
-15:5 warning[MISLEADING_INDENTATION] This line is indented as if it were nested, but indentation means nothing in zamn ".second"
+16:5 warning[MISLEADING_INDENTATION] This line is indented as if it were nested, but indentation means nothing in zamn ".second"
   hint: wrap the children in `{ }` on the line above, or remove the indentation

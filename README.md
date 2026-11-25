@@ -32,7 +32,7 @@ p Some text
 <p>Some text</p><b>bold</b>
 ```
 
-**Text.** `p Hello`, `p | Hello` and `p |{ Hello }` are the same. A statement of text starts with `|`; a bare `|` is one space, and is how a space between two lines is written. `|{ }` may span lines: blank first and last lines are dropped and the common indentation is stripped.
+**Text.** `p Hello`, `p: | Hello` and `p: |{ Hello }` are the same: `|` and `|{ }` are statements, and an element takes them as it takes any other child. A statement of text starts with `|`. Text is trimmed at both ends, and lines of text are joined as they are: a bare `|` is one space, and is how a space between two lines is written. After a tag, a `|` is just text. `|{ }` may span lines: blank first and last lines are dropped and the common indentation is stripped.
 
 ```
 p {
@@ -42,7 +42,7 @@ p {
   |
   u cool
 }
-pre |{
+pre: |{
   if (a < b) \{
     go();
   \}
@@ -55,7 +55,7 @@ pre |{
 }</pre>
 ```
 
-**Escaping.** Text is HTML-escaped: `<`, `>` and `&` become entities, but a character reference such as `&nbsp;` or `&rarr;` passes through. Tags written in text show as text; for HTML from data, use your framework (`div(v-html="html")`). In text, `{{ expr }}` is a mustache, copied as it is; every other brace is written `\{` or `\}`. `\|` and `\#{` are a literal `|` and `#{`.
+**Escaping.** Text is HTML-escaped: `<`, `>` and `&` become entities, but a character reference such as `&nbsp;` or `&rarr;` passes through. Tags written in text show as text; for HTML from data, use your framework (`div(v-html="html")`). In text, `{{ expr }}` is a mustache, copied as it is; every other brace is written `\{` or `\}`. `\#{` is a literal `#{`.
 
 **Inline elements and interpolation.** `#{...}` holds one element in the middle of text, and `= expr` writes `{{ expr }}`:
 

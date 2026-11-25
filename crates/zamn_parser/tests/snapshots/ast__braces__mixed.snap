@@ -333,8 +333,8 @@ expression: json
                       "type": "Text",
                       "value": "A text block\nkeeps working }",
                       "span": {
-                        "start": 291,
-                        "end": 328
+                        "start": 292,
+                        "end": 329
                       }
                     }
                   ],
@@ -342,80 +342,64 @@ expression: json
                   "raw": false,
                   "span": {
                     "start": 278,
-                    "end": 336
+                    "end": 337
                   }
                 },
                 {
                   "type": "Element",
                   "name": "pre",
                   "nameSpan": {
-                    "start": 343,
-                    "end": 346
+                    "start": 344,
+                    "end": 347
                   },
                   "attrs": [],
                   "children": [
                     {
                       "type": "Text",
-                      "value": "line one",
+                      "value": "line one\nline two",
                       "span": {
-                        "start": 359,
-                        "end": 367
-                      }
-                    },
-                    {
-                      "type": "Text",
-                      "value": "\n",
-                      "span": {
-                        "start": 376,
-                        "end": 376
-                      }
-                    },
-                    {
-                      "type": "Text",
-                      "value": "line two",
-                      "span": {
-                        "start": 378,
-                        "end": 386
+                        "start": 371,
+                        "end": 398
                       }
                     }
                   ],
                   "braced": true,
                   "raw": false,
                   "span": {
-                    "start": 343,
-                    "end": 394
+                    "start": 344,
+                    "end": 416
                   }
                 },
                 {
                   "type": "Element",
                   "name": "section",
                   "nameSpan": {
-                    "start": 401,
-                    "end": 408
+                    "start": 423,
+                    "end": 430
                   },
                   "attrs": [],
                   "children": [],
                   "braced": true,
                   "raw": false,
                   "span": {
-                    "start": 401,
-                    "end": 411
+                    "start": 423,
+                    "end": 433
                   }
                 },
                 {
                   "type": "Element",
                   "name": "footer",
                   "nameSpan": {
-                    "start": 418,
-                    "end": 424
+                    "start": 440,
+                    "end": 446
                   },
                   "attrs": [],
                   "children": [],
                   "braced": true,
                   "raw": false,
                   "span": {
-                    "start": 418,
-                    "end": 427
+                    "start": 440,
+                    "end": 449
                   }
                 }
               ],
@@ -423,15 +407,15 @@ expression: json
               "raw": false,
               "span": {
                 "start": 265,
-                "end": 433
+                "end": 455
               }
             },
             {
               "type": "Element",
               "name": "p",
               "nameSpan": {
-                "start": 438,
-                "end": 439
+                "start": 460,
+                "end": 461
               },
               "attrs": [],
               "children": [
@@ -439,16 +423,16 @@ expression: json
                   "type": "Text",
                   "value": "after",
                   "span": {
-                    "start": 440,
-                    "end": 445
+                    "start": 462,
+                    "end": 467
                   }
                 }
               ],
               "braced": false,
               "raw": false,
               "span": {
-                "start": 438,
-                "end": 445
+                "start": 460,
+                "end": 467
               }
             }
           ],
@@ -456,7 +440,7 @@ expression: json
           "raw": false,
           "span": {
             "start": 78,
-            "end": 449
+            "end": 471
           }
         }
       ],
@@ -464,7 +448,7 @@ expression: json
       "raw": false,
       "span": {
         "start": 13,
-        "end": 451
+        "end": 473
       }
     }
   ]
