@@ -42,6 +42,7 @@
 
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: var(--zamn-gradient);
+  --vp-home-hero-image-background-image: none;
 
   --vp-custom-block-tip-border: transparent;
   --vp-custom-block-tip-text: var(--vp-c-text-1);
