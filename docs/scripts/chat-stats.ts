@@ -272,6 +272,8 @@ export interface StepResult {
   usage: Totals;
   /** Calls to the requested model. */
   calls: number;
+  /** Each of those calls in order. Chats recorded before it was have none. */
+  byCall?: ModelCall[];
   /** Each tool call, as its name and the first line of its command or file. */
   tools: string[];
   zamnRuns: number;
@@ -426,6 +428,44 @@ async function warmUp(arm: Arm) {
 const describeProblem = (p: Problem) =>
   `${p.by === "tool" ? p.tool : p.by}${p.codes.length ? ` ${[...new Set(p.codes)].join(" ")}` : `: ${oneLine(p.text, 60)}`}`;
 
+/** A call to the requested model: what it did, and how much it thought. */
+export interface ModelCall {
+  /** The tools it called, in order; none for the reply. */
+  tools: string[];
+  /**
+   * Claude Code's estimate of its thinking tokens, from the last
+   * `thinking_tokens` message before it. The exact count is only given per
+   * prompt (the step's `usage.thinking`); the estimates come close to it.
+   */
+  thinking: number;
+  thinkingMs: number;
+}
+
+/**
+ * The calls to `model` in a prompt's messages. A call's `thinking_tokens`
+ * messages come before its first message, as a running estimate, so the last
+ * one seen goes to the next call to start.
+ */
+export function callsOf(messages: any[], model: string): ModelCall[] {
+  const calls = new Map<string, ModelCall>();
+  let estimate = 0;
+  for (const m of messages) {
+    if (m.type === "system" && m.subtype === "thinking_tokens") estimate = m.estimated_tokens ?? estimate;
+    if (m.type !== "assistant") continue;
+    const id = m.message?.id;
+    const own = m.message?.model === model;
+    if (own && !calls.has(id)) calls.set(id, { tools: [], thinking: estimate, thinkingMs: 0 });
+    estimate = 0;
+    if (!own) continue;
+    const call = calls.get(id)!;
+    for (const c of m.message.content ?? []) {
+      if (c.type === "tool_use") call.tools.push(c.name);
+      else if (c.type === "thinking") call.thinkingMs += m.thinking_duration_ms ?? 0;
+    }
+  }
+  return [...calls.values()];
+}
+
 const isZamnRun = (c: any) => c.name === "Bash" && /(^|[\s|;&(])zamn(\s|$)/m.test(c.input?.command ?? "");
 
 /** Runs one chat: the page's steps in turn. */
@@ -504,6 +544,7 @@ async function chat(arm: Arm, page: Page, repeat: number, log: Log): Promise<Cha
         step: i,
         usage: minus(totals, previous),
         calls: new Set(messages.filter((m) => m.type === "assistant" && m.message.model === MODEL).map((m) => m.message.id)).size,
+        byCall: callsOf(messages, MODEL),
         tools: toolUses.map((c: any) => {
           const what = c.input?.command ?? c.input?.file_path ?? c.input?.skill ?? "";
           return `${c.name}: ${String(what).split("\n")[0]!.replace(env.dir, ".")}`.slice(0, 120);
