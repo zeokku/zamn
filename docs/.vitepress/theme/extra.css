@@ -2,7 +2,7 @@
    `rgb(var(--zamn-rgb-accent) / 0.2)`. The first four are the brand; the rest
    are derived from them. */
 :root {
-  --zamn-rgb-fg: 184 175 230; /* the main colour: text in dark mode */
+  --zamn-rgb-fg: 184 175 230; /* the main colour */
   --zamn-rgb-fg-lighter: 255 255 255; /* headings in dark mode */
   --zamn-rgb-bg: 33 33 33; /* the dark background, and the text in light mode */
   --zamn-rgb-accent: 84 104 197; /* buttons, links, highlights */
@@ -15,6 +15,7 @@
   --zamn-rgb-accent-dark: 70 86 176;
   --zamn-rgb-purple: 112 100 200; /* between the accent and fg, for gradients */
   --zamn-rgb-fg-dark: 104 92 180; /* fg dark enough to read on white */
+  --zamn-rgb-fg-text: 202 195 236; /* fg a quarter of the way to white: body text in dark mode */
   --zamn-rgb-bg-light: 246 245 251; /* the light background: white, tinted with fg */
   --zamn-rgb-bg-raised: 42 41 52; /* dark glass: bg lifted toward fg */
 
@@ -104,8 +105,54 @@
   margin: 0 auto;
   padding: 0 24px 32px;
 }
-.home-extra > p {
-  max-width: 72ch;
+/* The text under "Write this / Get this": a readable measure of about 65
+   characters, centred as a block but left-aligned, without orphans. */
+.home-example > div > p {
+  max-width: 65ch;
   margin-left: auto;
   margin-right: auto;
+  text-wrap: pretty;
+}
+/* Both descriptions, the hero's tagline and the text above, in the main text
+   colour (VitePress greys the tagline out with --vp-c-text-2). */
+.VPHero .tagline,
+.home-example > div > p {
+  color: var(--vp-c-text-1);
+}
+
+/* The hero logo glows in the brand colours: a tight drop-shadow that follows
+   the mark's shape, over a soft radial glow in VitePress's own `.image-bg`
+   circle. A wide drop-shadow made a visible ring where it faded out. */
+.VPHero .image-src {
+  filter: drop-shadow(0 0 8px rgb(var(--zamn-rgb-accent) / 0.45));
+}
+.dark .VPHero .image-src {
+  filter: drop-shadow(0 0 8px rgb(var(--zamn-rgb-accent) / 0.7));
+}
+:root {
+  --vp-home-hero-image-background-image: radial-gradient(
+    closest-side,
+    rgb(var(--zamn-rgb-fg) / 0.32),
+    rgb(var(--zamn-rgb-accent) / 0.1) 60%,
+    transparent
+  );
+  --vp-home-hero-image-filter: none;
+}
+.dark {
+  --vp-home-hero-image-background-image: radial-gradient(
+    closest-side,
+    rgb(var(--zamn-rgb-accent) / 0.5),
+    rgb(var(--zamn-rgb-accent) / 0.16) 60%,
+    transparent
+  );
+}
+/* The mark is wide: an ellipse behind it, VitePress's circle stretched. */
+.VPHero .image-bg {
+  aspect-ratio: 8 / 5;
+  height: auto;
+  transform: translate(-50%, -50%) scale(1.45);
+}
+/* The cheatsheet reads as a reference card: narrower than the page. */
+.home-cheatsheet {
+  max-width: 880px;
 }

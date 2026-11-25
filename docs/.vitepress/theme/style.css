@@ -42,7 +42,6 @@
 
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: var(--zamn-gradient);
-  --vp-home-hero-image-background-image: none;
 
   --vp-custom-block-tip-border: transparent;
   --vp-custom-block-tip-text: var(--vp-c-text-1);
@@ -53,9 +52,9 @@
 .dark {
   --vp-c-bg: rgb(var(--zamn-rgb-bg));
   --vp-c-bg-soft: rgb(var(--zamn-rgb-fg) / 0.05);
-  --vp-c-text-1: rgb(var(--zamn-rgb-fg));
-  --vp-c-text-2: rgb(var(--zamn-rgb-fg) / 0.74);
-  --vp-c-text-3: rgb(var(--zamn-rgb-fg) / 0.5);
+  --vp-c-text-1: rgb(var(--zamn-rgb-fg-text));
+  --vp-c-text-2: rgb(var(--zamn-rgb-fg-text) / 0.76);
+  --vp-c-text-3: rgb(var(--zamn-rgb-fg-text) / 0.52);
   --vp-c-divider: rgb(var(--zamn-rgb-fg) / 0.12);
   --vp-c-gutter: rgb(0 0 0 / 0.4);
 }

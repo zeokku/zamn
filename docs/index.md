@@ -36,7 +36,7 @@ features:
     link: /ecosystem/overview
 ---
 
-<div class="home-extra">
+<div class="home-extra home-cheatsheet">
 
 ## Cheatsheet {#cheatsheet}
 

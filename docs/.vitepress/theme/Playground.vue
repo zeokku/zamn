@@ -98,7 +98,7 @@ onMounted(async () => {
     await (mod as unknown as { default: () => Promise<unknown> }).default();
     api.value = mod;
   } catch (error) {
-    loadError.value = String(error);
+    loadError.value = `Could not load the compiler: ${error}`;
   }
   try {
     await mountEditors();
@@ -158,6 +158,11 @@ async function mountEditors() {
   document.fonts.ready.then(() => m.editor.remeasureFonts());
   monaco.value = m;
 }
+
+// What the panes wait for, until the compiler and the editor have both loaded.
+const loading = computed(() =>
+  loadError.value ? "" : !api.value ? "Loading the compiler…" : !monaco.value ? "Loading the editor…" : "",
+);
 
 // A preset or a shared link replaces the source: show it in the editor.
 watch(source, (value) => {
@@ -260,11 +265,18 @@ const sizes = computed(() => ({ zamn: source.value.length, html: result.value.ht
       <section>
         <header>zamn <span>{{ sizes.zamn }} characters</span></header>
         <div ref="sourceEl" class="editor" />
+        <div v-if="!monaco && !loadError" class="loading" role="status">
+          <span class="spinner" aria-hidden="true" />
+          Loading the editor…
+        </div>
       </section>
       <section>
         <header>HTML <span v-if="result.html">{{ sizes.html }} characters</span></header>
-        <p v-if="loadError" class="problem">Could not load the compiler: {{ loadError }}</p>
-        <p v-else-if="!api" class="muted">Loading the compiler…</p>
+        <p v-if="loadError" class="problem load-error">{{ loadError }}</p>
+        <div v-else-if="loading" class="loading" role="status">
+          <span class="spinner" aria-hidden="true" />
+          {{ loading }}
+        </div>
         <template v-else>
           <ul v-if="result.problems.length" class="problems">
             <li v-for="(p, i) in result.problems" :key="i" :class="p.severity === 'warning' ? 'warning' : 'problem'">
@@ -284,6 +296,7 @@ const sizes = computed(() => ({ zamn: source.value.length, html: result.value.ht
 
 <style scoped>
 .playground {
+  --pane-header: 42px;
   margin-top: 20px;
 }
 .toolbar {
@@ -340,6 +353,9 @@ section {
   box-shadow: var(--zamn-glass-shadow);
 }
 header {
+  /* Fixed, so the loading overlay can start right below it. */
+  height: var(--pane-header);
+  box-sizing: border-box;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -394,8 +410,42 @@ section:focus-within {
   color: var(--vp-c-text-2);
   font-size: 13px;
 }
-.muted {
+.load-error {
   padding: 16px;
+}
+/* Over the pane, below its header, until the compiler and the editor load. */
+.loading {
+  position: absolute;
+  inset: var(--pane-header) 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 14px;
   color: var(--vp-c-text-2);
+}
+.spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--zamn-c-soft);
+  border-top-color: var(--zamn-c-accent);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    50% {
+      opacity: 0.4;
+    }
+  }
 }
 </style>
