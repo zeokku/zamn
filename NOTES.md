@@ -128,7 +128,7 @@ works on a subscription. What it relies on:
 
 ## Measuring chats with `claude -p`
 
-`docs/scripts/chat-stats.ts` (`docs:chats`) runs a page's steps from `docs/token-corpus/chats.yaml` in one chat through `docs/scripts/claude-stream.ts`. Seen in Claude Code 2.1.319:
+`docs/scripts/chat-stats.ts` (`docs:chats`) runs a page's steps from `docs/token-corpus/chats.yaml` in one chat through `docs/scripts/claude-stream.ts`. Each run writes `docs/data/chats/<started>.json` and its tables in `<started>.md`, both gitignored; `--resume` continues the newest. Seen in Claude Code 2.1.319:
 
 - `--setting-sources project` also skips the user's `effortLevel`, so runs without `--effort` use Claude Code's built-in default, not the level the user works at. The script uses that default; `--effort` sets a level, and the results record which.
 - A PostToolUse hook that exits with 2 has its stderr passed to Claude after the tool result, as `PostToolUse:Write hook blocking error from command: "<command>": [<command>]: <stderr>`. Exit 0 with no output passes nothing. The command is quoted in every error, so the hook is a short `zamn-hook` on `PATH`. With `--include-hook-events`, each run is a `system`/`hook_response` message with `exit_code`, `stdout` and `stderr`.
@@ -136,12 +136,13 @@ works on a subscription. What it relies on:
 - Thinking blocks come with empty text; `system`/`thinking_tokens` messages give a running estimate of their size, which ran above the final `thinkingTokens`.
 - An `assistant` message's `usage` has the call's input and cache figures but not its final output; one call's content blocks come as separate messages with the same id.
 - A denied tool call comes back as a tool result with `is_error`, starting with "Permission to use"; asking for a tool that isn't enabled comes back as "No such tool available".
-- `rate_limit_event` messages carry the account's use of each window (`unifiedWindows.five_hour.utilization`, `resetsAt`). Parallel conversations see slightly different figures.
+- `rate_limit_event` messages carry the account's use of each window (`unifiedWindows.five_hour.utilization`, `resetsAt`). Parallel conversations see slightly different figures. `resetsAt` is Unix seconds, and windows already reset are left out.
+- A turn that hits the usage limit ends with a `result` with `is_error`; it doesn't hang. With `CLAUDE_CODE_RETRY_WATCHDOG` in the environment, Claude Code instead waits out the limit itself, sending a retry message about every 30 seconds.
 - Parallel chats share the prompt cache. With `--exclude-dynamic-system-prompt-sections` and one warm-up prompt per arm, a chat's first call read about 4.3k tokens of Claude Code's prefix from the cache and wrote about 5k of its own (environment, skill listing, prompt), about the same in every arm. Without the warm-up, whichever chat starts first pays for writing the shared prefix.
 
 ## What the chat measurements showed (2026-11-24)
 
-Measured with `bun run docs:chats --repeats 1`: `claude-opus-5-5` at Claude Code's default effort, Claude Code 2.1.319, six pages, a chat each of 7 steps (write the page, then 6 edits), one run of each of the four arms. The tables are in `docs/data/chat-summary.md`. Since then `docs:chats` runs only `html` and `zamnHook` by default, once: the hook arm cost the least of the zamn arms (+11% over HTML, against +23% with the skill alone and +31% with Bash `zamn`). `--arms` still runs `zamn` and `zamnCli`.
+Measured with `bun run docs:chats --repeats 1`: `claude-opus-5-5` at Claude Code's default effort, Claude Code 2.1.319, six pages, a chat each of 7 steps (write the page, then 6 edits), one run of each of the four arms. Its tables were not kept; the figures here are from them. Since then `docs:chats` runs only `html` and `zamnHook` by default, once: the hook arm cost the least of the zamn arms (+11% over HTML, against +23% with the skill alone and +31% with Bash `zamn`). `--arms` still runs `zamn` and `zamnCli`.
 
 **How input adds up.** Every model call sends the whole conversation so far as its input: system prompt, every message, every tool call and its result. So input grows with the chat, and each step pays again for all the ones before it (about 24k tokens on edit 1 of the hook arm, 28k on edit 6). Loading the skill is one extra model call, and from then on the skill's text sits in the conversation as a tool result, so every later call reads it again. Writing a page took HTML 2 calls (Write, then the reply) and the hook arm 3 (Skill, Write, reply), two of them with the skill in their input.
 
@@ -155,7 +156,7 @@ Measured with `bun run docs:chats --repeats 1`: `claude-opus-5-5` at Claude Code
 
 So every token of SKILL.md costs about two tokens of input per step for the rest of the chat.
 
-**Why the tables compare cost, not tokens.** Token types are priced very differently: relative to fresh input, a cache read is about 0.1×, a cache write about 1.25× and output (thinking included) about 5×. About 95% of the input here was read from the cache, so +31% input came to only +11% cost. `total_cost_usd` is Claude Code's estimate at API list prices. Whether a subscription's usage limits weigh token types the same way is not published, so cost stands in for quota but does not measure it. The `rate_limit_event` utilization does measure quota, but it covers the whole account (other sessions included) and parallel chats, so it can't be put down to one chat.
+**Why the tables compare cost, not tokens.** Token types are priced very differently: for `claude-opus-5-5`, uncached input is $4 per million tokens, a cache write 2× that, a cache read 0.05× and output (thinking included) 5×. These prices give `total_cost_usd` of every step of the 2026-11-25 run exactly. About 95% of the input here was read from the cache, so +31% input came to only +11% cost. `total_cost_usd` is Claude Code's estimate at API list prices. Whether a subscription's usage limits weigh token types the same way is not published, so cost stands in for quota but does not measure it. The `rate_limit_event` utilization does measure quota, but it covers the whole account (other sessions included) and parallel chats, so it can't be put down to one chat.
 
 **Thinking differences from one run are noise.** The hook arm thought 2,961 tokens, the Bash arm 2,379. All of the gap was in writing the page (2,167 against 1,398); on the edits the hook arm thought less (794 against 981). Within one arm, thinking while writing a page ranged from 0 to 629 tokens per page, and the `zamn` arm, with exactly the Bash arm's skill text, thought 4,423. This matches the 100–1,300 tokens single runs vary by on one page (see "What in the skill changes how much Claude thinks"). 600 thinking tokens cost about $0.015.
 

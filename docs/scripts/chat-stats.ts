@@ -1,11 +1,11 @@
 // Has Claude Code write a page and then edit it, step by step in one chat, as
 // HTML and as zamn with different setups, and records what each step cost.
-// The steps are in docs/token-corpus/chats.yaml. Writes
-// docs/data/chat-stats.json and the tables in docs/data/chat-summary.md.
+// The steps are in docs/token-corpus/chats.yaml. Each run writes
+// docs/data/chats/<started>.json, and its tables in <started>.md.
 //
 //   bun run docs:chats [--arms html,zamnHook] [--pages landing,SignupForm.vue]
 //                      [--repeats 1] [--effort low|medium|high|xhigh|max] [--budget 60] [--parallel 6]
-//                      [--max-usage 95] [--model claude-opus-5-5] [--quiet]
+//                      [--max-usage 95] [--model claude-opus-5-5] [--quiet] [--resume]
 //
 // By default it runs the html and zamnHook arms once; `--arms` picks others
 // (zamn, zamnCli) and `--repeats` runs each chat more times.
@@ -46,14 +46,16 @@
 // no recorded chat pays for writing Claude Code's system prompt to it and the
 // others don't, depending on which one starts first.
 //
-// Chats run repeat by repeat, arms and pages shuffled within a repeat. Only
-// complete repeats go into chat-stats.json (the rest into
-// chat-stats.partial.json); chats of the arms and pages not run are kept from
-// the previous run. --budget stops starting new chats once the cost reaches
-// that many dollars, and --max-usage stops starting them while any of the
+// Chats run repeat by repeat, arms and pages shuffled within a repeat. The
+// .json holds the run's settings and every chat it finished, saved after each
+// one; the tables take only complete repeats, with every arm and page in them.
+// --resume continues the newest run in docs/data/chats, with its own arms,
+// pages, repeats, model and effort, and runs only the chats it lacks.
+// --budget stops starting new chats once this invocation's cost reaches that
+// many dollars, and --max-usage stops starting them while any of the
 // account's rate-limit windows is that many percent used, until it resets.
 import { $ } from "bun";
-import { chmod, mkdtemp, rm, symlink } from "node:fs/promises";
+import { chmod, mkdtemp, readdir, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { parseArgs, styleText } from "node:util";
@@ -66,9 +68,7 @@ import {
 } from "./claude-stream";
 
 const docs = resolve(import.meta.dir, "..");
-const out = resolve(docs, "data/chat-stats.json");
-const partialOut = resolve(docs, "data/chat-stats.partial.json");
-const summaryOut = resolve(docs, "data/chat-summary.md");
+const runsDir = resolve(docs, "data/chats");
 const chatsFile = resolve(docs, "token-corpus/chats.yaml");
 const skillFile = resolve(docs, "../skills/zamn/SKILL.md");
 const zamnBinary = resolve(docs, "../target/debug/zamn");
@@ -95,21 +95,24 @@ const spec = (a: Arm): ArmSpec => arms[a];
 
 const { values: args } = parseArgs({
   options: {
-    arms: { type: "string", default: "html,zamnHook" },
+    // No defaults for the run's settings, so that --resume can tell those given.
+    arms: { type: "string" },
     pages: { type: "string" },
-    repeats: { type: "string", default: "1" },
+    repeats: { type: "string" },
     effort: { type: "string" },
     budget: { type: "string", default: "60" },
     "max-usage": { type: "string", default: "95" },
     parallel: { type: "string", default: "6" },
-    model: { type: "string", default: "claude-opus-5-5" },
+    model: { type: "string" },
     quiet: { type: "boolean", default: false },
+    resume: { type: "boolean", default: false },
   },
 });
 setQuiet(args.quiet);
-const MODEL = args.model;
+// With --resume, main() sets both to the run's.
+let MODEL = args.model ?? "claude-opus-5-5";
 /** The effort level asked for, or "default": then no --effort is passed and Claude Code picks its own. */
-const EFFORT = args.effort ?? "default";
+let EFFORT = args.effort ?? "default";
 const effortText = (effort: string) => (effort === "default" ? "Claude Code's default effort" : `effort ${effort}`);
 
 /** The skill's check step, for the arm whose hook does the checking. */
@@ -299,13 +302,73 @@ export interface Chat {
   steps: StepResult[];
 }
 
+/** A run: its settings, so that --resume can go on with it, and every chat it finished. */
 export interface ChatStats {
-  generated: string;
+  /** When the run started, local time, as 2026-11-25 20:09:00; its files are named after it. */
+  started: string;
+  /** When its last chat was saved. */
+  updated: string;
   model: string;
+  /** The version the run started with. */
   claudeCode: string;
   /** The level passed with --effort, or "default" for Claude Code's own. */
   effort: string;
+  arms: Arm[];
+  /** Page names, in chats.yaml order. */
+  pages: string[];
+  repeats: number;
   chats: Chat[];
+}
+
+type Slot = { arm: Arm; page: string; repeat: number };
+const slotKey = (s: Slot) => `${s.arm} ${s.page} ${s.repeat}`;
+
+/** The chats a run lacks, repeat by repeat. */
+export function missing(stats: ChatStats): Slot[][] {
+  const has = new Set(stats.chats.map(slotKey));
+  return Array.from({ length: stats.repeats }, (_, i) =>
+    stats.arms.flatMap((arm) => stats.pages.map((page) => ({ arm, page, repeat: i + 1 }))).filter((s) => !has.has(slotKey(s))),
+  );
+}
+
+/** The run with only its complete repeats: those with a chat of every arm and page. */
+export function complete(stats: ChatStats): ChatStats {
+  const incomplete = new Set(missing(stats).flat().map((s) => s.repeat));
+  return { ...stats, chats: stats.chats.filter((c) => !incomplete.has(c.repeat)) };
+}
+
+const now = () => new Date().toLocaleString("sv");
+export const runFile = (started: string) => join(runsDir, `${started.replace(" ", "T").replaceAll(":", "-")}.json`);
+const tablesFile = (file: string) => file.replace(/\.json$/, ".md");
+
+/** Writes the run's tables next to its .json. */
+export const writeTables = (file: string, stats: ChatStats) => Bun.write(tablesFile(file), summary(complete(stats)));
+
+/** Writes the run, its chats in order, and its tables. */
+export async function saveRun(file: string, stats: ChatStats) {
+  stats.chats.sort((a, b) => slotKey(a).localeCompare(slotKey(b)));
+  await Bun.write(file, JSON.stringify(stats, null, 2) + "\n");
+  await writeTables(file, stats);
+}
+
+/** The newest run in docs/data/chats, by the time in its name. */
+export async function latestRun() {
+  const names = await readdir(runsDir).catch(() => [] as string[]);
+  const name = names.filter((n) => /^\d{4}-\d\d-\d\dT\d\d-\d\d-\d\d\.json$/.test(n)).sort().at(-1);
+  if (!name) throw new Error(`no run in ${runsDir} to resume: start one without --resume`);
+  const file = join(runsDir, name);
+  return { file, stats: (await Bun.file(file).json()) as ChatStats };
+}
+
+/** The settings given on the command line that differ from the run's. */
+export function conflicts(given: Partial<Record<"arms" | "pages" | "repeats" | "model" | "effort", string>>, stats: ChatStats) {
+  const set = (s: string) => [...new Set(s.split(","))].sort().join(",");
+  const theirs = { arms: stats.arms.join(","), pages: stats.pages.join(","), repeats: String(stats.repeats), model: stats.model, effort: stats.effort };
+  const same = (k: keyof typeof theirs, a: string, b: string) =>
+    k === "arms" || k === "pages" ? set(a) === set(b) : k === "repeats" ? Number(a) === Number(b) : a === b;
+  return (Object.keys(theirs) as (keyof typeof theirs)[])
+    .filter((k) => given[k] !== undefined && !same(k, given[k]!, theirs[k]))
+    .map((k) => `--${k} ${given[k]} (the run's: ${theirs[k]})`);
 }
 
 /** A temporary directory set up for an arm, and how to start Claude Code in it. */
@@ -329,7 +392,7 @@ async function prepare(arm: Arm) {
   const allowed = ["Write", "Read", "Edit", ...(cli ? ["Bash(zamn *)"] : [])];
   const start = (log: Log, maxBudgetUsd: number, onMessage?: (message: any) => void) =>
     new Session({
-      model: MODEL, cwd: dir, tools, allowed, effort: args.effort, maxBudgetUsd, log, onMessage,
+      model: MODEL, cwd: dir, tools, allowed, effort: EFFORT === "default" ? undefined : EFFORT, maxBudgetUsd, log, onMessage,
       env: { ...process.env, PATH: `${bin}:${process.env.PATH}` },
     });
   const cleanUp = async () => {
@@ -411,14 +474,20 @@ async function chat(arm: Arm, page: Page, repeat: number, log: Log): Promise<Cha
       const at = performance.now();
       problems = [];
       snapshots = [];
-      let result = await session.send(label, promptFor(page, i, lang));
+      // A turn that ended in an error (a rate limit, the budget) fails the chat: it isn't saved, and --resume runs it again.
+      const answer = async (name: string, text: string) => {
+        const result = await session.send(name, text);
+        if (result.is_error) throw new Error(`${name}: ended with ${result.subtype}${result.api_error_status ? ` (${result.api_error_status})` : ""}`);
+        return result;
+      };
+      let result = await answer(label, promptFor(page, i, lang));
       let found = await inspect(env.dir, file, lang, page.vue);
       let fixUp: string[] | null = null;
       if (found.problems) {
         fixUp = found.codes;
         problems.push({ by: "check", codes: found.codes, text: found.problems, file: found.text });
         log.warn(`${label}: ${found.codes.join(" ")}, sending the errors back`);
-        result = await session.send(`${label}, fix`, fixPrompt(file, found.problems));
+        result = await answer(`${label}, fix`, fixPrompt(file, found.problems));
         found = await inspect(env.dir, file, lang, page.vue);
       }
       const totals = usageOf(result, MODEL);
@@ -483,58 +552,66 @@ function shuffle<T>(xs: T[]): T[] {
 
 async function main() {
   const all = await readPages();
-  const only = args.pages?.split(",");
-  for (const name of only ?? []) if (!all.some((p) => p.name === name)) throw new Error(`no page ${name} in chats.yaml`);
-  const pages = all.filter((p) => !only || only.includes(p.name));
-  const chosen = args.arms.split(",") as Arm[];
-  for (const arm of chosen) if (!(arm in arms)) throw new Error(`unknown arm ${arm}`);
+  const names = all.map((p) => p.name);
+  const checkPages = (pages: string[]) => {
+    for (const name of pages) if (!names.includes(name)) throw new Error(`no page ${name} in chats.yaml`);
+  };
+  let file: string;
+  let stats: ChatStats;
+  if (args.resume) {
+    ({ file, stats } = await latestRun());
+    const differ = conflicts(args, stats);
+    if (differ.length) throw new Error(`--resume goes on with ${file} as it was started, but ${differ.join(", ")}`);
+    MODEL = stats.model;
+    EFFORT = stats.effort;
+  } else {
+    const only = args.pages?.split(",");
+    checkPages(only ?? []);
+    const started = now();
+    file = runFile(started);
+    stats = {
+      started, updated: started, model: MODEL, claudeCode: "", effort: EFFORT,
+      arms: (args.arms ?? "html,zamnHook").split(",") as Arm[],
+      pages: names.filter((n) => !only || only.includes(n)),
+      repeats: Number(args.repeats ?? "1"),
+      chats: [],
+    };
+  }
+  checkPages(stats.pages);
+  for (const arm of stats.arms) if (!(arm in arms)) throw new Error(`unknown arm ${arm}`);
+  const budget = Number(args.budget);
+
+  const queue = missing(stats).flatMap((slots) =>
+    shuffle(slots.map((s) => ({ ...s, page: all.find((p) => p.name === s.page)! }))),
+  );
+  const total = queue.length;
+  if (!total) {
+    await writeTables(file, stats);
+    run.info(`${file} has all its ${plural(stats.chats.length, "chat")}: nothing left to run, rewrote its tables`);
+    return;
+  }
+  const chosen = stats.arms.filter((a) => queue.some((q) => q.arm === a));
   if (chosen.some((a) => spec(a).lang === "zamn") && !(await Bun.file(zamnBinary).exists())) {
     throw new Error(`${zamnBinary} not found: run \`bun run build\` first`);
   }
-  const repeats = Number(args.repeats);
-  const budget = Number(args.budget);
 
-  const queue = Array.from({ length: repeats }, (_, i) =>
-    shuffle(chosen.flatMap((arm) => pages.map((page) => ({ arm, page, repeat: i + 1 })))),
-  ).flat();
-  const total = queue.length;
-  const perRepeat = total / repeats;
-
-  const previous: ChatStats | null = await Bun.file(out).json().catch(() => null);
-  const ran = (c: Chat) => chosen.includes(c.arm) && pages.some((p) => p.name === c.page);
-  const kept = (previous?.chats ?? []).filter((c) => c.arm in arms && !ran(c));
   const claudeCode = (await $`claude --version`.text()).trim().split(" ")[0]!;
+  stats.claudeCode ||= claudeCode;
+  if (stats.claudeCode !== claudeCode) run.warn(`the run started with Claude Code ${stats.claudeCode}, this is ${claudeCode}`);
   run.info(`${MODEL} at ${effortText(EFFORT)}, through Claude Code ${claudeCode}`);
-  run.info(`arms ${chosen.join(", ")}`);
-  run.info(`pages ${pages.map((p) => `${p.name} (${p.steps.length} steps)`).join(", ")}, ${repeats} run${repeats === 1 ? "" : "s"} of each`);
-  run.info(`${plural(total, "chat")}, ${fmt(queue.reduce((n, q) => n + q.page.steps.length, 0))} prompts, ${args.parallel} at a time, budget $${budget}`);
-  if (kept.length) {
-    const byArm = Object.entries(Object.groupBy(kept, (c) => c.arm)).map(([a, cs]) => `${a} ${cs!.length}`);
-    run.info(`kept from the previous run: ${byArm.join(", ")}`);
-    if (previous && (previous.effort !== EFFORT || previous.model !== MODEL)) {
-      run.warn(`the kept chats ran with ${previous.model} at ${effortText(previous.effort)}`);
-    }
-  }
+  if (args.resume) run.info(`resuming the run of ${stats.started}, ${plural(stats.chats.length, "chat")} done`);
+  run.info(`arms ${stats.arms.join(", ")}`);
+  run.info(
+    `pages ${stats.pages.map((n) => `${n} (${all.find((p) => p.name === n)!.steps.length} steps)`).join(", ")}, ` +
+      `${plural(stats.repeats, "run")} of each`,
+  );
+  run.info(
+    `${plural(total, "chat")}${args.resume ? " left" : ""}, ${fmt(queue.reduce((n, q) => n + q.page.steps.length, 0))} prompts, ` +
+      `${args.parallel} at a time, budget $${budget}`,
+  );
 
-  const done: Chat[] = [];
   let spent = 0;
-  const save = async () => {
-    const complete = done.filter((c) => done.filter((d) => d.repeat === c.repeat).length === perRepeat);
-    const partial = done.filter((c) => !complete.includes(c));
-    if (partial.length) await Bun.write(partialOut, JSON.stringify(partial, null, 2) + "\n");
-    else await rm(partialOut, { force: true });
-    const order = (c: Chat) => `${c.arm} ${c.page} ${c.repeat}`;
-    const stats: ChatStats = {
-      generated: new Date().toLocaleDateString("sv"),
-      model: MODEL,
-      claudeCode,
-      effort: EFFORT,
-      chats: [...kept, ...complete].sort((a, b) => order(a).localeCompare(order(b))),
-    };
-    await Bun.write(out, JSON.stringify(stats, null, 2) + "\n");
-    await Bun.write(summaryOut, summary(stats));
-    return { complete: complete.length, partial: partial.length, stats };
-  };
+  const save = () => saveRun(file, Object.assign(stats, { updated: now() }));
 
   run.info("warming the prompt cache, one prompt per arm");
   for (const cost of await Promise.all(chosen.map(warmUp))) spent += cost;
@@ -551,12 +628,18 @@ async function main() {
   const waitForLimit = () => {
     if (rateLimit.used < maxUsage && rateLimit.status !== "rejected") return null;
     pause ??= (async () => {
-      const until = rateLimit.resetsAt * 1000 + 60_000;
-      run.warn(
-        `${rateLimit.window || "rate"} limit ${rateLimit.used}% used (${rateLimit.status}), --max-usage ${maxUsage}: ` +
-          `no new chats until it resets, at ${new Date(until).toLocaleTimeString("sv")}`,
-      );
-      await Bun.sleep(Math.max(0, until - Date.now()));
+      const { window, used, status, resetsAt } = rateLimit;
+      // resetsAt is Unix seconds. Without one still to come, wait 5 minutes and let the next chat's event decide.
+      const until = resetsAt * 1000 > Date.now() ? resetsAt * 1000 + 60_000 : Date.now() + 5 * 60_000;
+      const at = new Date(until).toLocaleString("sv");
+      run.warn(`${window || "rate"} limit ${used}% used (${status}), --max-usage ${maxUsage}: no new chats until it resets, at ${at}`);
+      // Short sleeps checked against the clock: one long timer runs late after the computer sleeps.
+      for (let logged = Date.now(); Date.now() < until; ) {
+        await Bun.sleep(Math.min(60_000, until - Date.now()));
+        if (Date.now() - logged < 15 * 60_000) continue;
+        logged = Date.now();
+        run.info(`still waiting for the ${window || "rate"} limit to reset, at ${at}`);
+      }
       forgetRateLimit();
       run.info("rate limit window reset, starting chats again");
       pause = null;
@@ -584,32 +667,32 @@ async function main() {
         continue;
       }
       spent += c.usage.cost;
-      done.push(c);
+      stats.chats.push(c);
       log.info(
         `done in ${duration(performance.now() - at)}: ${describeTotals(c.usage)}. ` +
           `Spent ${usd(spent)} of $${budget}; ${finished} of ${total} chats finished` +
           `${failed ? ` (${failed} failed)` : ""}${finished < total ? `, about ${left()} to go` : ""}`,
       );
-      const saved = await save();
-      log.detail(
-        `saved: ${saved.complete} chats in complete repeats` +
-          `${saved.partial ? `, ${saved.partial} in chat-stats.partial.json until their repeat is complete` : ""}`,
-      );
+      await save();
+      log.detail(`saved: ${stats.chats.length} chats, ${complete(stats).chats.length} of them in complete repeats`);
     }
   };
   await Promise.all(Array.from({ length: Number(args.parallel) }, worker));
-  const { complete, partial, stats } = await save();
+  await save();
+  const ran = finished - failed;
   run.info(
-    `wrote ${out} (${complete} new chats${partial ? `, ${partial} partial` : ""}${failed ? `, ${failed} failed` : ""}) ` +
-      `and ${summaryOut}, ${usd(spent)} in ${duration(elapsed())}`,
+    `wrote ${file} (${plural(ran, "new chat")}${failed ? `, ${failed} failed` : ""}) and its tables, ` +
+      `${usd(spent)} in ${duration(elapsed())}`,
   );
-  console.log(`\n${summary(stats).replace(/^<!--.*-->\n/, "")}`);
+  console.log(`\n${summary(complete(stats)).replace(/^<!--.*-->\n/, "")}`);
 }
 
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : NaN);
 const num = (v: number) => (Number.isNaN(v) ? "—" : fmt(v));
 const money = (v: number) => (Number.isNaN(v) ? "—" : usd(v));
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+const days = ({ started, updated }: ChatStats) =>
+  started.slice(0, 10) === updated.slice(0, 10) ? started.slice(0, 10) : `${started.slice(0, 10)} to ${updated.slice(0, 10)}`;
 const change = (a: number, b: number) => {
   if (!b || Number.isNaN(a) || Number.isNaN(b)) return "—";
   const pct = Math.round((a / b - 1) * 100);
@@ -699,7 +782,7 @@ export function summary(stats: ChatStats): string {
     ...perStep, "", ...cumulative, "", ...totals, "", ...perPage, "",
     `${plural(pages.length, "page")}, a chat each of ${steps} steps (write the page, then ${plural(steps - 1, "edit")}), ` +
       `${repeats === 1 ? "one run" : `up to ${repeats} runs`} of each; ` +
-      `${stats.model} at ${effortText(stats.effort)} through Claude Code ${stats.claudeCode}, ${stats.generated}. ` +
+      `${stats.model} at ${effortText(stats.effort)} through Claude Code ${stats.claudeCode}, ${days(stats)}. ` +
       "Costs are Claude Code's list-price estimates. Every figure is a page's mean over its runs, summed over the pages; " +
       "the cost per chat gives the range over the runs in brackets.",
     "",

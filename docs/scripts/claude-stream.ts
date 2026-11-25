@@ -132,7 +132,11 @@ let mostUsed = -1;
 /** The account's use of its rate limits, from the latest event: the most used window. */
 export const rateLimit = { status: "", window: "", used: -1, resetsAt: 0 };
 /** Forgets the figures, after waiting for a window to reset: the next event brings new ones. */
-export const forgetRateLimit = () => Object.assign(rateLimit, { status: "", window: "", used: -1, resetsAt: 0 });
+export const forgetRateLimit = () => {
+  lastStatus = "";
+  mostUsed = -1;
+  Object.assign(rateLimit, { status: "", window: "", used: -1, resetsAt: 0 });
+};
 
 /** Logs a conversation's stream-json messages; `label` names the prompt being answered. */
 function follower(log: Log, dir: string, model: string) {
@@ -221,7 +225,7 @@ function follower(log: Log, dir: string, model: string) {
           const windows = Object.entries(info.unifiedWindows ?? {}) as [string, any][];
           const used = Math.max(-1, ...windows.map(([, w]) => Math.round((w.utilization ?? 0) * 100)));
           const [name, most] = windows.find(([, w]) => Math.round((w.utilization ?? 0) * 100) === used) ?? ["", {}];
-          Object.assign(rateLimit, { status: info.status ?? "", window: name.replace("_", " "), used, resetsAt: most.resetsAt ?? info.resetsAt ?? 0 });
+          Object.assign(rateLimit, { status: info.status ?? "", window: name.replace("_", " "), used, resetsAt: (info.status === "rejected" && info.resetsAt) || (most.resetsAt ?? info.resetsAt ?? 0) });
           if (info.status === lastStatus && used <= mostUsed) break;
           lastStatus = info.status;
           mostUsed = Math.max(mostUsed, used);
@@ -275,6 +279,7 @@ export interface Labelled {
  * resolves with its `result`; the next prompt must wait for it, since prompts
  * that arrive while Claude is busy are merged into one turn.
  */
+const IDLE_MS = 15 * 60_000;
 export class Session {
   readonly messages: Labelled[] = [];
   private proc: Bun.Subprocess<"pipe", "pipe", "pipe">;
@@ -284,6 +289,7 @@ export class Session {
   private reading: Promise<void>;
   private stderr: Promise<string>;
   private onMessage: SessionOptions["onMessage"];
+  private lastMessage = performance.now();
 
   constructor(options: SessionOptions) {
     const { model, cwd, tools, allowed, effort, env, maxBudgetUsd, log, onMessage } = options;
@@ -320,6 +326,7 @@ export class Session {
         buffer = buffer.slice(newline + 1);
         if (!line) continue;
         const message = JSON.parse(line);
+        this.lastMessage = performance.now();
         this.messages.push({ label: this.label, message });
         this.follow.message(message);
         this.onMessage?.(message);
@@ -345,7 +352,17 @@ export class Session {
     const result = new Promise<any>((resolve, reject) => (this.waiting = { resolve, reject }));
     this.proc.stdin.write(JSON.stringify({ type: "user", message: { role: "user", content: text } }) + "\n");
     this.proc.stdin.flush();
-    return result;
+    // A chat that goes silent would hold its worker forever. Claude Code waiting out a limit
+    // itself still sends a retry message every 30 seconds or so.
+    this.lastMessage = performance.now();
+    const watch = setInterval(() => {
+      if (!this.waiting || performance.now() - this.lastMessage < IDLE_MS) return;
+      const { reject } = this.waiting;
+      this.waiting = null;
+      this.proc.kill();
+      reject(new Error(`claude sent nothing for ${duration(IDLE_MS)}`));
+    }, 30_000);
+    return result.finally(() => clearInterval(watch));
   }
 
   /** Ends the conversation; throws if Claude Code failed. */
