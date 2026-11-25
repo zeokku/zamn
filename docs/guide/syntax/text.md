@@ -20,8 +20,10 @@ div | some text
 div |{ some text }
 ```
 
-```html
-<div>some text</div><div>some text</div><div>some text</div>
+```html format
+<div>some text</div>
+<div>some text</div>
+<div>some text</div>
 ```
 
 ## Escaping
@@ -139,8 +141,10 @@ p Write \#{ to start an inline element.
 p C:\temp
 ```
 
-```html
-<p>| x</p><p>Write #{ to start an inline element.</p><p>C:\temp</p>
+```html format
+<p>| x</p>
+<p>Write #{ to start an inline element.</p>
+<p>C:\temp</p>
 ```
 
 `p \| x` is the same as `p | | x`.

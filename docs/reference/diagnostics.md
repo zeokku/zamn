@@ -71,8 +71,9 @@ p Some text
   b bold
 ```
 
-```html
-<p>Some text</p><b>bold</b>
+```html format
+<p>Some text</p>
+<b>bold</b>
 ```
 
 ## Text

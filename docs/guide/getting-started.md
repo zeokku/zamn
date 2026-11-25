@@ -52,13 +52,23 @@ Compile it from the command line:
 zamn page.zamn -o page.html
 ```
 
-`page.html` now holds:
+`page.html` now holds this page, shown formatted:
 
-```html
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>My page</title></head><body><h1>Hello</h1><p class="lead">Plain HTML, without the angle brackets.</p></body></html>
+```html format
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>My page</title>
+  </head>
+  <body>
+    <h1>Hello</h1>
+    <p class="lead">Plain HTML, without the angle brackets.</p>
+  </body>
+</html>
 ```
 
-The output has no whitespace between tags. Whitespace you want in the page is written explicitly; see [Text](./syntax/text).
+The compiler writes it on one line, with no whitespace between tags. Whitespace you want in the page is written explicitly; see [Text](./syntax/text). The docs show HTML formatted like this, except where the exact whitespace is the point.
 
 ## From JavaScript
 

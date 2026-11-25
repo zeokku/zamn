@@ -14,9 +14,18 @@ article.post#intro {
 }
 ```
 
-```html
-<article class="post" id="intro"><h2 class="title">Hello</h2><p>Written in <a href="https://github.com/zeokku/zamn">zamn</a>.</p></article>
+```html format
+<article class="post" id="intro">
+  <h2 class="title">Hello</h2>
+  <p>
+    Written in
+    <a href="https://github.com/zeokku/zamn">zamn</a>
+    .
+  </p>
+</article>
 ```
+
+The HTML is shown formatted, here and throughout the docs; the compiler writes it on one line.
 
 ## Static, on purpose
 

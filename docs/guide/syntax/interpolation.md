@@ -11,8 +11,9 @@ p {
 }
 ```
 
-```html
-<h1>{{ title }}</h1><p>{{ greeting }} {{ name }}</p>
+```html format
+<h1>{{ title }}</h1>
+<p>{{ greeting }} {{ name }}</p>
 ```
 
 The expression runs to the end of the line, or to the `}` that closes the block it is in, and is copied as it is, without escaping. Braces and quoted strings in it are counted, so `p { span= { a: 1 }.a }` works. zamn never parses it otherwise, so any expression your framework accepts works: `p= items.length > 0 ? "some" : "none"`.
@@ -28,8 +29,13 @@ p Hello {{ user.name }}, you have #{strong= count} messages.
 p {{ a < b && c ? "yes" : "no" }}
 ```
 
-```html
-<p>Hello {{ user.name }}, you have <strong>{{ count }}</strong> messages.</p><p>{{ a < b && c ? "yes" : "no" }}</p>
+```html format
+<p>
+  Hello {{ user.name }}, you have
+  <strong>{{ count }}</strong>
+  messages.
+</p>
+<p>{{ a < b && c ? "yes" : "no" }}</p>
 ```
 
 A mustache must close within its text; one that doesn't is an error (`UNCLOSED_INTERPOLATION`). A statement can't start with `{{`: write `| {{ name }}`, or `= name`.

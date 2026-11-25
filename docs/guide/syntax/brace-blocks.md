@@ -11,8 +11,13 @@ div {
 }
 ```
 
-```html
-<div><div class="another-div"><button @click="go">Text</button><p>{{ message }}</p></div></div>
+```html format
+<div>
+  <div class="another-div">
+    <button @click="go">Text</button>
+    <p>{{ message }}</p>
+  </div>
+</div>
 ```
 
 ## The rules
@@ -32,8 +37,14 @@ ul.nav { li { a(href="/") Home } li { a(href="/about") About } }
 .card { .card-body { h2 Title }}
 ```
 
-```html
-<ul class="nav"><li><a href="/">Home</a></li><li><a href="/about">About</a></li></ul><div class="card"><div class="card-body"><h2>Title</h2></div></div>
+```html format
+<ul class="nav">
+  <li><a href="/">Home</a></li>
+  <li><a href="/about">About</a></li>
+</ul>
+<div class="card">
+  <div class="card-body"><h2>Title</h2></div>
+</div>
 ```
 
 `}}` closes two blocks, as in `.card` above, unless it ends a [`{{ }}` mustache](./interpolation#inside-text) in text.
@@ -50,8 +61,12 @@ p {
 }
 ```
 
-```html
-<p><b>bold i italic</b></p><p><b>bold</b><i>italic</i></p>
+```html format
+<p><b>bold i italic</b></p>
+<p>
+  <b>bold</b>
+  <i>italic</i>
+</p>
 ```
 
 In `= expr`, braces and quoted strings are counted, so an object literal passes through:
@@ -79,8 +94,11 @@ p {
 }
 ```
 
-```html
-<section><h2>Title</h2><p>Text</p></section>
+```html format
+<section>
+  <h2>Title</h2>
+  <p>Text</p>
+</section>
 ```
 
 [Prettier](../../ecosystem/prettier) indents every block for you.
@@ -92,8 +110,9 @@ p Some text
   b bold
 ```
 
-```html
-<p>Some text</p><b>bold</b>
+```html format
+<p>Some text</p>
+<b>bold</b>
 ```
 
 The `b` is not inside the `p`: put it in braces (`p { | Some text` and `b bold` on the lines below), or indent it as a sibling. It is a warning, not an error: the template still compiles. The first line of a block, continued attribute lists, [`|{ }` text](./text#text-blocks), [script and style content](./script-style) and comments can be indented as you like.
@@ -108,8 +127,10 @@ p some \{ text \}
 p {{ message }}
 ```
 
-```html
-<p>some { text }</p>{ more text }<p>{{ message }}</p>
+```html format
+<p>some { text }</p>
+{ more text }
+<p>{{ message }}</p>
 ```
 
 `{{` never opens a block, so `p {{ message }}` is text, as Vue expects. `p {b}` is a `p` holding a `<b>` element; `p \{b\}` is the text `{b}`.

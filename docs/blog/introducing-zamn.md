@@ -18,8 +18,12 @@ brackets. zamn is a small, static syntax for the same markup:
 }
 ```
 
-```html
-<div class="card" :class="{ active: isActive }"><h2 class="title">{{ item.title }}</h2><p v-if="item.body">{{ item.body }}</p><MyButton @click="select(item)">Select</MyButton></div>
+```html format
+<div class="card" :class="{ active: isActive }">
+  <h2 class="title">{{ item.title }}</h2>
+  <p v-if="item.body">{{ item.body }}</p>
+  <MyButton @click="select(item)">Select</MyButton>
+</div>
 ```
 
 ## Static, on purpose

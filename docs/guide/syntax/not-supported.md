@@ -74,8 +74,13 @@ b bold
 p Some #{b bold} text.
 ```
 
-```html
-<b>bold</b><p>Some <b>bold</b> text.</p>
+```html format
+<b>bold</b>
+<p>
+  Some
+  <b>bold</b>
+  text.
+</p>
 ```
 
 For HTML that comes from data, use your framework: `div(v-html="html")` in Vue.

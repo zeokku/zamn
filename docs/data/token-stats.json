@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-22",
+  "generated": "2026-11-24",
   "tokenizers": {
     "openai": "o200k_base (gpt-tokenizer)",
     "claude": null
@@ -9,34 +9,28 @@
       "name": "article",
       "counts": {
         "zamnFlat": {
-          "chars": 2065,
-          "openai": 584,
+          "chars": 2067,
+          "openai": 586,
           "claude": null,
-          "sha": "4d46f12dd10e5bff"
+          "sha": "b71ffd312dcfabf0"
         },
         "zamnOneLine": {
-          "chars": 2065,
-          "openai": 584,
+          "chars": 2067,
+          "openai": 586,
           "claude": null,
-          "sha": "4d46f12dd10e5bff"
+          "sha": "b71ffd312dcfabf0"
         },
         "zamnUnquoted": {
-          "chars": 2039,
-          "openai": 582,
+          "chars": 2041,
+          "openai": 584,
           "claude": null,
-          "sha": "2eb57c8bd1486c1f"
-        },
-        "zamnIndent": {
-          "chars": 2185,
-          "openai": 626,
-          "claude": null,
-          "sha": "e7da22b711fe6134"
+          "sha": "08208f607720e9c5"
         },
         "zamnFormatted": {
-          "chars": 2663,
-          "openai": 691,
+          "chars": 2665,
+          "openai": 693,
           "claude": null,
-          "sha": "dc2ebc9248181924"
+          "sha": "9600ecf1ef4a800b"
         },
         "htmlMinified": {
           "chars": 2374,
@@ -73,12 +67,6 @@
           "claude": null,
           "sha": "7b43dd737867cfbd"
         },
-        "zamnIndent": {
-          "chars": 2060,
-          "openai": 589,
-          "claude": null,
-          "sha": "8d442686da811391"
-        },
         "zamnFormatted": {
           "chars": 2400,
           "openai": 673,
@@ -106,31 +94,25 @@
           "chars": 2030,
           "openai": 558,
           "claude": null,
-          "sha": "9d0fb0cea505ffce"
+          "sha": "803b554a9c05dce6"
         },
         "zamnOneLine": {
           "chars": 1994,
           "openai": 544,
           "claude": null,
-          "sha": "3b6b94fdaa0d0928"
+          "sha": "ffb711ff79ac2b73"
         },
         "zamnUnquoted": {
           "chars": 1948,
           "openai": 527,
           "claude": null,
-          "sha": "49c1f363cc80ad44"
-        },
-        "zamnIndent": {
-          "chars": 2118,
-          "openai": 574,
-          "claude": null,
-          "sha": "ccaf1cd438d100bb"
+          "sha": "ec5d17e236d2fdb4"
         },
         "zamnFormatted": {
           "chars": 2808,
           "openai": 670,
           "claude": null,
-          "sha": "e604e7dc6f9e6cf4"
+          "sha": "ffea49c6977e30c9"
         },
         "htmlMinified": {
           "chars": 2514,
@@ -153,31 +135,25 @@
           "chars": 3630,
           "openai": 970,
           "claude": null,
-          "sha": "63d539ef0c33a259"
+          "sha": "f47366edd2e77eee"
         },
         "zamnOneLine": {
           "chars": 3624,
           "openai": 967,
           "claude": null,
-          "sha": "de7a854eea95f014"
+          "sha": "7def8812ed74e4f3"
         },
         "zamnUnquoted": {
           "chars": 3500,
           "openai": 935,
           "claude": null,
-          "sha": "062ace9ae0eaa2ee"
-        },
-        "zamnIndent": {
-          "chars": 3939,
-          "openai": 1029,
-          "claude": null,
-          "sha": "a0b80b10eeb79c36"
+          "sha": "8b9fb7f6ced50cfb"
         },
         "zamnFormatted": {
           "chars": 5152,
           "openai": 1152,
           "claude": null,
-          "sha": "c418c6cdbbcbfbbc"
+          "sha": "ec08ff66cf4db9c8"
         },
         "htmlMinified": {
           "chars": 4349,
@@ -213,12 +189,6 @@
           "openai": 436,
           "claude": null,
           "sha": "36185c6c9b8d8d02"
-        },
-        "zamnIndent": {
-          "chars": 1845,
-          "openai": 507,
-          "claude": null,
-          "sha": "73d40db43181dff3"
         },
         "zamnFormatted": {
           "chars": 2175,
@@ -261,12 +231,6 @@
           "claude": null,
           "sha": "37758e89516c8149"
         },
-        "zamnIndent": {
-          "chars": 1358,
-          "openai": 368,
-          "claude": null,
-          "sha": "ecfa89e1fc782f9f"
-        },
         "zamnFormatted": {
           "chars": 1724,
           "openai": 441,
@@ -290,28 +254,23 @@
   ],
   "totals": {
     "zamnFlat": {
-      "chars": 12890,
-      "openai": 3550,
+      "chars": 12892,
+      "openai": 3552,
       "claude": null
     },
     "zamnOneLine": {
-      "chars": 12830,
-      "openai": 3523,
+      "chars": 12832,
+      "openai": 3525,
       "claude": null
     },
     "zamnUnquoted": {
-      "chars": 12488,
-      "openai": 3404,
-      "claude": null
-    },
-    "zamnIndent": {
-      "chars": 13505,
-      "openai": 3693,
+      "chars": 12490,
+      "openai": 3406,
       "claude": null
     },
     "zamnFormatted": {
-      "chars": 16922,
-      "openai": 4205,
+      "chars": 16924,
+      "openai": 4207,
       "claude": null
     },
     "htmlMinified": {
@@ -327,10 +286,10 @@
   },
   "overhead": {
     "rules": {
-      "chars": 4020,
-      "openai": 1248,
+      "chars": 6076,
+      "openai": 1785,
       "claude": null,
-      "sha": "decfe70d7a40f0b6"
+      "sha": "1b3450bfe7a3120c"
     },
     "skillDescription": {
       "chars": 236,
@@ -339,10 +298,10 @@
       "sha": "69418e9301f84635"
     },
     "skillBody": {
-      "chars": 4388,
-      "openai": 1352,
+      "chars": 6182,
+      "openai": 1812,
       "claude": null,
-      "sha": "270b842d3e6ed6e2"
+      "sha": "cec3aac9d0adafad"
     }
   }
 }

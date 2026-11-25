@@ -15,7 +15,7 @@ import { Glob } from "bun";
 import { resolve } from "node:path";
 import * as prettier from "prettier";
 import { compile, ZamnError } from "zamn";
-import { htmlFormat } from "../.vitepress/theme/format";
+import { html5, htmlFormat } from "../.vitepress/theme/format";
 
 const root = resolve(import.meta.dir, "../..");
 const files = [
@@ -84,7 +84,7 @@ for (const file of files) {
         else expect(codes).toEqual([]);
         if (next?.lang !== "html") return;
         if (/\bformat\b/.test(next.meta)) {
-          expect((await prettier.format(code, htmlFormat)).trimEnd()).toBe(next.code);
+          expect(html5((await prettier.format(code, htmlFormat)).trimEnd())).toBe(next.code);
         } else {
           expect(code).toBe(next.code);
         }

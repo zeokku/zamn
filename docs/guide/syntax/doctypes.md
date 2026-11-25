@@ -12,8 +12,14 @@ html {
 }
 ```
 
-```html
-<!DOCTYPE html><html><body><input type="checkbox" checked><br></body></html>
+```html format
+<!DOCTYPE html>
+<html>
+  <body>
+    <input type="checkbox" checked>
+    <br>
+  </body>
+</html>
 ```
 
 `doctype X` writes `<!DOCTYPE X>`, whatever `X` is:

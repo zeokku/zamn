@@ -11,8 +11,11 @@ ul {
 }
 ```
 
-```html
-<ul><li>One</li><li>Two</li></ul>
+```html format
+<ul>
+  <li>One</li>
+  <li>Two</li>
+</ul>
 ```
 
 Text after the name and a space is the element's content. See [Text](./text). Blocks are explained in [Brace blocks](./brace-blocks).
@@ -26,8 +29,11 @@ my-card {
 }
 ```
 
-```html
-<my-card><MyButton>Go</MyButton><svg:circle r="4"></svg:circle></my-card>
+```html format
+<my-card>
+  <MyButton>Go</MyButton>
+  <svg:circle r="4"></svg:circle>
+</my-card>
 ```
 
 A tag can't hold a `.`: that starts a class. `Form.Input` is the tag `Form` with the class `Input`.
@@ -57,8 +63,13 @@ ul {
 }
 ```
 
-```html
-<ul><li><a href="/">Home</a></li><li><a href="/about"><b>About</b></a></li></ul>
+```html format
+<ul>
+  <li><a href="/">Home</a></li>
+  <li>
+    <a href="/about"><b>About</b></a>
+  </li>
+</ul>
 ```
 
 The space after the `:` is required; `svg:path` is a tag name.
@@ -73,8 +84,10 @@ br
 icon-star
 ```
 
-```html
-<img src="/logo.png" alt="Logo"><br><icon-star></icon-star>
+```html format
+<img src="/logo.png" alt="Logo">
+<br>
+<icon-star></icon-star>
 ```
 
 Giving a void element content is an error (`SELF_CLOSING_CONTENT`), and so is a `/` after a tag (`img/`): there is nothing to self-close.

@@ -52,8 +52,9 @@ a(href=/docs/, target=_blank) Docs
 a(href="/search?q=zamn") Search
 ```
 
-```html
-<a href="/docs/" target="_blank">Docs</a><a href="/search?q=zamn">Search</a>
+```html format
+<a href="/docs/" target="_blank">Docs</a>
+<a href="/search?q=zamn">Search</a>
 ```
 
 ## Style objects
@@ -69,8 +70,10 @@ a(href="/search?q=zamn") Search
 p(style={color: red, fontSize: 12px, --accent: rgb(0, 128, 255), 'line-height': 1.5}) Red
 ```
 
-```html
-<p style="color:red;font-size:12px;--accent:rgb(0, 128, 255);line-height:1.5;">Red</p>
+```html format
+<p style="color:red;font-size:12px;--accent:rgb(0, 128, 255);line-height:1.5;">
+  Red
+</p>
 ```
 
 This is for the static `style` attribute only: a `:style` binding is passed to your framework as written.
@@ -111,8 +114,10 @@ A binding (`:x`, `@x`, `#x`, `.x`, `v-*`) may also go without quotes, as HTML al
 RouterLink(:to=/about :class={ active: onAbout } @click=go()) About
 ```
 
-```html
-<RouterLink :to="/about" :class="{ active: onAbout }" @click="go()">About</RouterLink>
+```html format
+<RouterLink :to="/about" :class="{ active: onAbout }" @click="go()">
+  About
+</RouterLink>
 ```
 
 The value ends at its closing bracket, and whatever follows is the next attribute. Quote a value that goes on after it:
@@ -122,8 +127,9 @@ li(v-for="(item, i) in items")
 li(v-for=(item, i) in items)
 ```
 
-```html
-<li v-for="(item, i) in items"></li><li v-for="(item, i)" in items></li>
+```html format
+<li v-for="(item, i) in items"></li>
+<li v-for="(item, i)" in items></li>
 ```
 
 ## Names
@@ -139,8 +145,13 @@ MyInput(
 )
 ```
 
-```html
-<MyInput v-model.trim="name" :label="t('name')" @update:model-value="save" #prefix="{ icon }"></MyInput>
+```html format
+<MyInput
+  v-model.trim="name"
+  :label="t('name')"
+  @update:model-value="save"
+  #prefix="{ icon }"
+></MyInput>
 ```
 
 Quote a name to use other characters: `("odd name"="1")`. Each name may appear only once per element, except `class` (`DUPLICATE_ATTRIBUTE`).
@@ -158,10 +169,13 @@ div(
 )
 ```
 
-```html
-<div :class="{
+```html format
+<div
+  :class="{
     active: isActive
-  }" @click="select(item)"></div>
+  }"
+  @click="select(item)"
+></div>
 ```
 
 A `(` without its `)` is an error (`NO_END_BRACKET`), as is a `=` with no value (`MISSING_ATTRIBUTE_VALUE`).

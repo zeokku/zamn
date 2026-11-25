@@ -44,8 +44,12 @@ Class names can hold what utility frameworks such as Tailwind put in them, so th
 .[&>*]:p-2.h-[calc(100%-2rem)].bg-(--brand).@container.*:rounded
 ```
 
-```html
-<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 dark:bg-gray-900"></div><div class="w-1/2 px-2.5 md:flex hover:bg-sky-700 !mt-0"></div><div class="[&>*]:p-2 h-[calc(100%-2rem)] bg-(--brand) @container *:rounded"></div>
+```html format
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 dark:bg-gray-900"></div>
+<div class="w-1/2 px-2.5 md:flex hover:bg-sky-700 !mt-0"></div>
+<div
+  class="[&>*]:p-2 h-[calc(100%-2rem)] bg-(--brand) @container *:rounded"
+></div>
 ```
 
 After the `.`, a class name may hold:

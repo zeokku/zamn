@@ -8,8 +8,9 @@
 p Hello
 ```
 
-```html
-<!-- Everyone reading the page source sees this.--><p>Hello</p>
+```html format
+<!-- Everyone reading the page source sees this.-->
+<p>Hello</p>
 ```
 
 Everything after the marker is copied as written, including the space after it.
@@ -27,8 +28,9 @@ Everything after the marker is copied as written, including the space after it.
 p Done
 ```
 
-```html
-<!-- Built by zamn --><p>Done</p>
+```html format
+<!-- Built by zamn -->
+<p>Done</p>
 ```
 
 A block comment goes wherever a statement can start: on a line of its own, after a `{`, or after a child that ends with `}`:
@@ -37,8 +39,11 @@ A block comment goes wherever a statement can start: on a line of its own, after
 div { /* the title */ h2 { | Title } /* the body */ p Body }
 ```
 
-```html
-<div><h2>Title</h2><p>Body</p></div>
+```html format
+<div>
+  <h2>Title</h2>
+  <p>Body</p>
+</div>
 ```
 
 An unclosed block comment is an error (`UNCLOSED_COMMENT`).
@@ -52,8 +57,9 @@ a(href="https://zamn.dev") https://zamn.dev
 p Globs like src/*.ts stay as written.
 ```
 
-```html
-<a href="https://zamn.dev">https://zamn.dev</a><p>Globs like src/*.ts stay as written.</p>
+```html format
+<a href="https://zamn.dev">https://zamn.dev</a>
+<p>Globs like src/*.ts stay as written.</p>
 ```
 
 Comments are not escaped: what you write after `//!` or inside `/*! */` reaches the HTML as it is.

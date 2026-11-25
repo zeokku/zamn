@@ -36,8 +36,13 @@ body {
 }
 ```
 
-```html
-<body><p>Hello</p><script>console.log("loaded")</script></body>
+```html format
+<body>
+  <p>Hello</p>
+  <script>
+    console.log("loaded")
+  </script>
+</body>
 ```
 
 ## With `src`
@@ -49,8 +54,9 @@ script(type="module" src="/main.js")
 p Next
 ```
 
-```html
-<script type="module" src="/main.js"></script><p>Next</p>
+```html format
+<script type="module" src="/main.js"></script>
+<p>Next</p>
 ```
 
 ## Errors
