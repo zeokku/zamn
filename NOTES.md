@@ -142,7 +142,7 @@ works on a subscription. What it relies on:
 
 ## What the chat measurements showed (2026-11-24)
 
-Measured with `bun run docs:chats --repeats 1`: `claude-opus-5-5` at Claude Code's default effort, Claude Code 2.1.319, six pages, a chat each of 7 steps (write the page, then 6 edits), one run of each of the four arms. Its tables were not kept; the figures here are from them. Since then `docs:chats` runs only `html` and `zamnHook` by default, once: the hook arm cost the least of the zamn arms (+11% over HTML, against +23% with the skill alone and +31% with Bash `zamn`). `--arms` still runs `zamn` and `zamnCli`.
+Measured with `bun run docs:chats --repeats 1`: `claude-opus-5-5` at Claude Code's default effort, Claude Code 2.1.319, six pages, a chat each of 7 steps (write the page, then 6 edits), one run of each of the four arms. Its tables were not kept; the figures here are from them. Since then `docs:chats` runs only `html` and `zamnHook` by default, once: the hook arm cost the least of the zamn arms (+11% over HTML, against +23% with the skill alone and +31% with Bash `zamn`). `--arms` still runs `zamn` and `zamnCli`. Since 2026-11-26 the default zamn arm is `zamnHookTrust`: the hook arm, whose check step also says no other validation is needed, to test whether that lowers thinking (the Bash arm thought about half as much on writing a page, 2026-11-25).
 
 **How input adds up.** Every model call sends the whole conversation so far as its input: system prompt, every message, every tool call and its result. So input grows with the chat, and each step pays again for all the ones before it (about 24k tokens on edit 1 of the hook arm, 28k on edit 6). Loading the skill is one extra model call, and from then on the skill's text sits in the conversation as a tool result, so every later call reads it again. Writing a page took HTML 2 calls (Write, then the reply) and the hook arm 3 (Skill, Write, reply), two of them with the skill in their input.
 
@@ -168,6 +168,16 @@ So every token of SKILL.md costs about two tokens of input per step for the rest
 - Class names need `class="..."` for `.` and brackets too, not only `/` and `:`: `.p-0.5` is `INVALID_CLASS_NAME`, `.w-[10px]` is `UNEXPECTED_TEXT`.
 - `style={}` keys are copied as written: `style={fontSize: '2px'}` gives `fontSize:2px`; `{'font-size': '2px'}` gives CSS.
 - `img/` is a weak example of self-closing, since `img` is void anyway; it matters for components (`Icon/`).
+
+## What telling Claude the hook is its check changed (2026-11-26)
+
+Measured with `bun run docs:chats --arms zamnHookTrust --repeats 2` against `html` and `zamnHook` of the 2026-11-25 run (two runs each, same Claude Code 2.1.319 and default effort). `zamnHookTrust` differs from `zamnHook` only in its check step: "…so no extra validation is needed: write the file in one go, without checking the syntax yourself first."
+
+**Little, within noise.** Thinking while writing the page: 2,711 tokens over six pages against 3,120 (−13%, lower on 9 of 12 page-run pairs); on the edits 925 against 904. Cost $1.233 against $1.242 (+12% over HTML against +13%), cheaper on only 7 of 12 pairs. Validity, hook errors and fix-ups were the same.
+
+**Claude thinks while composing the page, not checking it afterwards.** By call, all the thinking while writing a page was in the call that made the Write: none in the Skill call, none in the reply after it. So wording about checking can only reach thinking done before the Write. The Bash arm, with the skill-only arm's text, still thought far less (1,740), and that is not noise: lower than the skill-only arm (3,392) on 12 of 12 pairs.
+
+**Thinking is the smaller lever.** Of the hook arm's +$0.146 over HTML (six pages), all its extra thinking comes to about $0.05; writing the skill to the cache comes to about $0.10. The per-call estimates added up to 8,036 against an exact 7,271 (+10%).
 
 ## What the AI measurements showed (2026-11-22)
 
