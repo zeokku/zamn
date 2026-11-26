@@ -86,5 +86,6 @@ jobs:
             (cd "$dir" && bun pm pack --destination "$out")
             tag=latest
             case "$(jq -r .version "$dir/package.json")" in *-*) tag=next ;; esac
-            npm stage publish "$out"/*.tgz --provenance --tag "$tag"
+            # A package npm doesn't have yet gets provenance only with an explicit --access public.
+            npm stage publish "$out"/*.tgz --provenance --access public --tag "$tag"
           done
