@@ -2,6 +2,25 @@
 
 An agent writes valid zamn with the rules in its context and a check of every file it writes. What that costs in Claude Code, and how this setup came out of it: [Engineering the zamn Claude Code skill for efficiency](../blog/engineering-zamn-claude-code-skill-for-efficiency).
 
+## Install
+
+In the project's root:
+
+::: code-group
+
+```sh [Claude Code]
+curl -fsSL --create-dirs -o .claude/skills/zamn/SKILL.md https://zeokku.github.io/zamn/downloads/SKILL.md
+cargo install zamn
+```
+
+```sh [Other agents]
+curl -fsSL https://zeokku.github.io/zamn/downloads/zamn-agent-rules.md >> AGENTS.md
+```
+
+:::
+
+The first installs the [skill](./skill) and the `zamn` command, which its [hook](./skill#add-the-hook) runs; the second adds the [rules](./rules) to `AGENTS.md`.
+
 ## The workflow
 
 1. **Write readable zamn**, laid out the way a person would: children in indented `{ }` blocks, one child per line, attributes on the tag's line.
