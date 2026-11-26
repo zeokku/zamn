@@ -76,6 +76,20 @@ a config file or through the API.
 - It builds one regex from those markers and then wants a space or tab and a tag (`TODO`, `!`, `?`) straight after the marker: `(?<PRE>(?:^|[ \t])${mark}[ \t])(?<TAG>...)` (the same in 3.3.21 and 3.4.6). So `// TODO` and `/* TODO */` (the block form only at the start of a line) are decorated, but `//! text` is not read as its `!` tag, and `//! TODO` or `/*! note */` are not decorated at all.
 - In a `.vue` file the language is `vue`: its own marker is `<!-- -->`, and `//` comes from the embedded script languages. Our injection grammar has no `language`, so its `embeddedLanguages` are never seen. The extension still gives `vue` the line comment `//` through `better-comments.languages` in `configurationDefaults`; since `//` already comes from the script languages, that entry is probably redundant now that zamn's marker is `//`.
 
+## Vue's directive grammar and zamn's scopes
+
+- The Vue extension (vue.volar 3.3.14) injects `vue-directives.json` into `text.html.vue` with `L:meta.tag -meta.attribute -meta.ng-binding -entity.name.tag.pug -attribute_value -source.tsx -source.js.jsx, L:meta.element -meta.attribute`. `L:` puts its patterns ahead of the embedded grammar's own, wherever the scope stack matches, `<template lang="zamn">` included.
+- zamn's elements were `meta.tag.zamn`, so Vue took `.logo`, and `.svg` in `src="./logo.svg"` (zamn's `meta.attributes` is not `meta.attribute`), for its `.prop` shorthand. Elements are now `meta.statement.element.zamn`: no scope of zamn's may start with `meta.tag` or `meta.element`. The doctype keeps `meta.tag.sgml.doctype`, since its rule is one `match` for the whole line.
+- Pug relies on the injection instead: only its tag name and `( )` are `meta.tag.other`, classes are `meta.selector.css`, values `attribute_value`, and the selector excludes pug's tag name and values by those names. Vue colours pug's `:x`, `@x`; zamn's grammar colours its directives itself.
+- Before the rename, Vue scoped such a class name `entity.other.attribute-name.html.vue`, which most themes colour as an attribute, unlike the `.` before it. See below for the colour it has now.
+
+## Classes and tags in one colour: the Vesper theme
+
+- zamn's classes and ids are `entity.other.attribute-name.class.zamn` and `entity.other.attribute-name.id.zamn`, the scopes HTML, CSS and pug use. The colour is the theme's.
+- Vesper (raunofreiberg.vesper 0.0.39) gives `entity.name.tag` and `entity.other.attribute-name.class` / `.id` the same `#FFC799`; only a plain `entity.other.attribute-name` is `#A0A0A0`. So in Vesper a zamn class has the colour of a tag, as a pug class does. It is not a grammar bug, and the grammar should not change its scopes for one theme.
+- The docs (playground and code blocks) use Shiki's GitHub light and dark themes, which colour classes and tags differently.
+- To tell them apart in Vesper, a user setting does it: `"editor.tokenColorCustomizations": { "[Vesper]": { "textMateRules": [{ "scope": "entity.other.attribute-name.class.zamn", "settings": { "foreground": "#A0A0A0" } }] } }`.
+
 ## zamn in the docs' code blocks
 
 The docs highlight ` ```zamn ` with the grammars of the VS Code extension,
