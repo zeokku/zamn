@@ -1,0 +1,76 @@
+name: VS Code publish
+
+# Any GitHub Release publishes the extension to the Visual Studio Marketplace
+# when its version is not there yet. See RELEASE.md.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vscode-publish
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      extension: ${{ steps.plan.outputs.extension }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: oven-sh/setup-bun@v2
+
+      # Fails when the packages don't share one major.minor.
+      - id: plan
+        run: |
+          bun scripts/release.ts
+          extension=$(bun scripts/release.ts vscode)
+          echo "extension=$extension" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: plan
+    if: needs.plan.outputs.extension != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # trusted publishing
+    defaults:
+      run:
+        working-directory: packages/vscode-zamn
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      # Pinned to the wasm-bindgen version in crates/zamn_wasm/Cargo.toml.
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen-cli@0.2.130
+
+      - uses: oven-sh/setup-bun@v2
+
+      # vsce needs Node 22 or later.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          package-manager-cache: false
+
+      - run: bun install --frozen-lockfile
+
+      # The extension bundles zamn's WebAssembly.
+      - run: bun run --cwd ../zamn build
+
+      - run: bun run test
+
+      - run: bun run package
+
+      - run: bunx vsce publish --oidc --packagePath "zamn-vscode-$(jq -r .version package.json).vsix"

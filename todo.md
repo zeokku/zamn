@@ -37,3 +37,7 @@ https://www.reddit.com/r/vuejs/comments/1c5wb86/cleaner_templates_using_pug_with
 
 Show playground instead of logo
 We'll add those converters as a separate converter page later to the docs webpage
+
+# webgl bg for the homepage with some cell noise maybe
+
+voronoi

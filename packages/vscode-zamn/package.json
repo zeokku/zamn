@@ -1,11 +1,16 @@
 {
-  "name": "vscode-zamn",
+  "name": "zamn-vscode",
   "displayName": "zamn",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "Syntax highlighting for zamn templates, in .zamn files and in Vue single-file components.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeokku/zamn.git",
+    "directory": "packages/vscode-zamn"
+  },
   "private": true,
-  "publisher": "zamn",
+  "publisher": "zeokku",
   "icon": "images/icon.png",
   "galleryBanner": {
     "color": "#212121",
@@ -71,7 +76,7 @@
   },
   "devDependencies": {
     "@types/vscode": "1.100.0",
-    "@vscode/vsce": "^3.0.0",
+    "@vscode/vsce": "^4.1.1",
     "typescript": "^7.0.2",
     "vscode-oniguruma": "^2.0.0",
     "vscode-textmate": "^9.0.0",

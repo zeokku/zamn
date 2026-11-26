@@ -106,7 +106,7 @@ Full setup and options: [Prettier](./prettier).
 ### 6. Highlight
 
 ```sh
-code --install-extension zamn.vscode-zamn
+code --install-extension zeokku.zamn-vscode
 ```
 
 Full setup and options: [VS Code](./vscode).

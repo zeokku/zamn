@@ -289,7 +289,7 @@ dependencies = [
 
 [[package]]
 name = "zamn"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "insta",
  "serde",
@@ -301,7 +301,7 @@ dependencies = [
 
 [[package]]
 name = "zamn_codegen"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "serde_json",
  "zamn_lexer",
@@ -310,7 +310,7 @@ dependencies = [
 
 [[package]]
 name = "zamn_lexer"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "insta",
  "serde",
@@ -318,7 +318,7 @@ dependencies = [
 
 [[package]]
 name = "zamn_parser"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "insta",
  "serde",
@@ -328,7 +328,7 @@ dependencies = [
 
 [[package]]
 name = "zamn_wasm"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "serde",
  "serde_json",

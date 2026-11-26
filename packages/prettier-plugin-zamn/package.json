@@ -1,8 +1,13 @@
 {
   "name": "prettier-plugin-zamn",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Prettier plugin for zamn templates.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeokku/zamn.git",
+    "directory": "packages/prettier-plugin-zamn"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,7 +24,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "zamn": "workspace:*"
+    "zamn": "workspace:~"
   },
   "peerDependencies": {
     "prettier": "^3.0.0"

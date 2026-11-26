@@ -117,6 +117,7 @@ Class shorthands take Tailwind-style names: `md:flex`, `w-1/2`, `px-2.5`, `[&>*]
 | `docs` | the documentation site (VitePress), with the playground, the blog and the token measurements |
 | `agents` | rules to paste into an agent's context so it writes valid zamn |
 | `skills` | a Claude Code skill for writing zamn |
+| `scripts` | `release.ts`: what a release publishes, and the check that every package shares one major.minor |
 | `assets` | the logo, and `logo.ts`, which writes its sizes (gitignored) for the docs and the VS Code extension |
 | `tests/fixtures` | shared fixtures; `pug/` holds pug's own test cases, kept for the coming pug converter |
 
@@ -150,4 +151,4 @@ bun run test      # cargo test + package tests
 bun run docs:dev  # the documentation site; see docs/README.md
 ```
 
-The WASM build needs `rustup target add wasm32-unknown-unknown` and `cargo install wasm-bindgen-cli --version 0.2.130`. Snapshots are updated with `INSTA_UPDATE=always cargo test`.
+The WASM build needs `rustup target add wasm32-unknown-unknown` and `cargo install wasm-bindgen-cli --version 0.2.130`. Snapshots are updated with `INSTA_UPDATE=always cargo test`. Releases to npm, crates.io and the VS Code Marketplace: [RELEASE.md](RELEASE.md).

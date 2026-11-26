@@ -1,8 +1,11 @@
 [package]
 name = "zamn_lexer"
-version.workspace = true
+version = "1.0.0"
 edition.workspace = true
 license.workspace = true
+description = "Lexer for zamn templates: source to tokens, spans and diagnostics."
+repository.workspace = true
+readme.workspace = true
 
 [dependencies]
 serde.workspace = true

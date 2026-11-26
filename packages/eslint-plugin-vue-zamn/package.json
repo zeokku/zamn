@@ -1,8 +1,13 @@
 {
   "name": "eslint-plugin-vue-zamn",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "ESLint plugin for zamn templates in Vue single-file components: a config for eslint-plugin-vue, and rules of its own.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeokku/zamn.git",
+    "directory": "packages/eslint-plugin-vue-zamn"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -22,8 +27,8 @@
     "test": "bun test"
   },
   "dependencies": {
-    "vue-eslint-parser-template-tokenizer-zamn": "workspace:*",
-    "zamn": "workspace:*"
+    "vue-eslint-parser-template-tokenizer-zamn": "workspace:~",
+    "zamn": "workspace:~"
   },
   "peerDependencies": {
     "eslint": "^9.0.0 || ^10.0.0",

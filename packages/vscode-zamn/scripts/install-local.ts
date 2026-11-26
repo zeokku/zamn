@@ -7,15 +7,17 @@ const root = `${import.meta.dir}/..`;
 
 await $`bun run package`.cwd(root);
 
-const versions = [...new Glob("vscode-zamn-*.vsix").scanSync(root)]
-  .map((file) => file.slice("vscode-zamn-".length, -".vsix".length))
+const versions = [...new Glob("zamn-vscode-*.vsix").scanSync(root)]
+  .map((file) => file.slice("zamn-vscode-".length, -".vsix".length))
   .sort(semver.order);
 const latest = versions.at(-1);
-if (!latest) throw new Error("no vscode-zamn-*.vsix found");
+if (!latest) throw new Error("no zamn-vscode-*.vsix found");
 
 // Installing over an older version does not always stick, so uninstall first.
+// zamn.vscode-zamn is the id the extension had before it was published under the zeokku publisher.
 await $`${cli} --uninstall-extension zamn.vscode-zamn`.nothrow();
-await $`${cli} --install-extension vscode-zamn-${latest}.vsix --force`.cwd(root);
+await $`${cli} --uninstall-extension zeokku.zamn-vscode`.nothrow();
+await $`${cli} --install-extension zamn-vscode-${latest}.vsix --force`.cwd(root);
 
 // The CLI cannot reload a running window, and open windows keep the old grammars until reloaded.
 console.log(

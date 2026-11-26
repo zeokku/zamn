@@ -32,7 +32,7 @@ cd packages/vscode-zamn
 bun run install:local                # or: bun run install:local code
 ```
 
-`install:local` packages `vscode-zamn-<version>.vsix`, uninstalls the extension and installs the newest `.vsix`, with `code-insiders` if it is on PATH, otherwise `code`; an argument names another CLI. Reload open windows to load it: the reload button on zamn in the Extensions view, or "Developer: Reload Window".
+`install:local` packages `zamn-vscode-<version>.vsix`, uninstalls the extension and installs the newest `.vsix`, with `code-insiders` if it is on PATH, otherwise `code`; an argument names another CLI. Reload open windows to load it: the reload button on zamn in the Extensions view, or "Developer: Reload Window".
 
 With WSL or another remote, the CLI installs on the side it runs on. A copy also installed on Windows wins over the one in WSL, and the editor keeps the old grammar: uninstall the copy under "Local" in the Extensions view, run `install:local` again, and reload.
 

@@ -1,8 +1,13 @@
 {
   "name": "zamn",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A static way to write HTML with { } blocks. Lexer, parser and compiler with source maps.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeokku/zamn.git",
+    "directory": "packages/zamn"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

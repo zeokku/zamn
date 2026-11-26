@@ -1,8 +1,13 @@
 {
   "name": "vue-eslint-parser-template-tokenizer-zamn",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Template tokenizer that lets vue-eslint-parser read zamn templates in single-file components.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeokku/zamn.git",
+    "directory": "packages/vue-eslint-parser-template-tokenizer-zamn"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -23,7 +28,7 @@
   },
   "dependencies": {
     "entities": "^9.0.0",
-    "zamn": "workspace:*"
+    "zamn": "workspace:~"
   },
   "peerDependencies": {
     "vue-eslint-parser": "^10.4.0"

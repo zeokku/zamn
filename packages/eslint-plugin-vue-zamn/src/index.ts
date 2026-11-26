@@ -1,4 +1,5 @@
 // ESLint plugin for zamn templates in Vue single-file components.
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import type { ESLint, Linter, Rule } from "eslint";
 import componentNameInTemplateCasing from "./rules/component-name-in-template-casing.js";
@@ -10,6 +11,9 @@ import preferShorthand from "./rules/prefer-shorthand.js";
 // it from wherever it is installed, and the config can be serialized, which
 // `eslint --cache` needs.
 const tokenizer = fileURLToPath(import.meta.resolve("vue-eslint-parser-template-tokenizer-zamn"));
+
+// Read at run time: package.json is outside src/, and the version changes with each release.
+const { version } = createRequire(import.meta.url)("../package.json") as { version: string };
 
 /**
  * Rules of eslint-plugin-vue that cannot be used on a zamn template. ESLint
@@ -59,7 +63,7 @@ export interface Plugin extends ESLint.Plugin {
 }
 
 const plugin: Plugin = {
-  meta: { name: "eslint-plugin-vue-zamn", version: "0.1.0" },
+  meta: { name: "eslint-plugin-vue-zamn", version },
   rules: {
     "component-name-in-template-casing": componentNameInTemplateCasing,
     "no-misleading-indentation": noMisleadingIndentation,

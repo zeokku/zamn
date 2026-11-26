@@ -1,12 +1,12 @@
 # VS Code
 
-The [zamn extension](https://marketplace.visualstudio.com/items?itemName=zamn.vscode-zamn) highlights and folds zamn templates:
+The [zamn extension](https://marketplace.visualstudio.com/items?itemName=zeokku.zamn-vscode) highlights and folds zamn templates:
 
 - in `.zamn` files;
 - in `<template lang="zamn">` in Vue components, alongside the [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) extension.
 
 ```sh
-code --install-extension zamn.vscode-zamn
+code --install-extension zeokku.zamn-vscode
 ```
 
 Expressions in `{{ }}`, after `tag=` and in the values of directives (`:to`, `@click`, `#default`, `v-if`), quoted or in brackets, are highlighted as TypeScript, and the content of `script` … `/script` and `style` … `/style` as JavaScript and CSS.
