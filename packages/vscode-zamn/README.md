@@ -51,11 +51,12 @@ In a `.vue` file the language is `vue`, whose only marker is `<!-- -->`. This ex
 
 ```sh
 cd packages/vscode-zamn
-bun run package                                   # writes vscode-zamn-0.1.2.vsix
-code --install-extension vscode-zamn-0.1.2.vsix
+bun run install:local                # or: bun run install:local code
 ```
 
-Installing a newer `.vsix` over an older one does not always stick: after a restart VS Code may go back to the previous version (0.1.1 instead of 0.1.2, say). Check the version in the Extensions view. If it is the old one, uninstall the extension and install the `.vsix` again:
+`install:local` runs `bun run package`, which writes `vscode-zamn-<version>.vsix`, then uninstalls the extension and installs the newest `.vsix` in the directory. It installs with `code-insiders` if that is on PATH, otherwise with `code`; an argument names another CLI. Open windows keep the old version until reloaded: click the reload button on zamn in the Extensions view, or run "Developer: Reload Window".
+
+Installing a newer `.vsix` over an older one does not always stick: after a restart VS Code may go back to the previous version (0.1.1 instead of 0.1.2, say). That is why `install:local` uninstalls first. By hand:
 
 ```sh
 code --uninstall-extension zamn.vscode-zamn

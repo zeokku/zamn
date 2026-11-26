@@ -63,7 +63,8 @@
   },
   "scripts": {
     "test": "bun test",
-    "package": "bun ../../assets/logo.ts && vsce package --no-dependencies"
+    "package": "bun ../../assets/logo.ts && vsce package --no-dependencies",
+    "install:local": "bun scripts/install-local.ts"
   },
   "devDependencies": {
     "@vscode/vsce": "^3.0.0",
