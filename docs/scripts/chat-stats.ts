@@ -1,14 +1,13 @@
 // Has Claude Code write a page and then edit it, step by step in one chat, as
-// HTML and as zamn with different setups, and records what each step cost.
-// The steps are in docs/token-corpus/chats.yaml. Each run writes
+// HTML and as zamn with the setup the docs give, and records what each step
+// cost. The steps are in docs/token-corpus/chats.yaml. Each run writes
 // docs/data/chats/<started>.json, and its tables in <started>.md.
 //
-//   bun run docs:chats [--arms html,zamnHookTrust] [--pages landing,SignupForm.vue]
+//   bun run docs:chats [--arms html,zamn] [--pages landing,SignupForm.vue]
 //                      [--repeats 1] [--effort low|medium|high|xhigh|max] [--budget 60] [--parallel 6]
 //                      [--max-usage 95] [--model claude-opus-5-5] [--quiet] [--resume]
 //
-// By default it runs the html and zamnHookTrust arms once; `--arms` picks
-// others (zamn, zamnHook, zamnCli) and `--repeats` runs each chat more times.
+// By default it runs both arms once; `--repeats` runs each chat more times.
 //
 // chats.yaml maps a page to its steps: the first writes the page, the others
 // edit it. A step is a prompt, or { prompt, has, lacks }: text the page's HTML
@@ -22,23 +21,13 @@
 // settings but the arm's own, no MCP servers. The user's settings, effortLevel
 // included, are skipped, so the effort is Claude Code's default unless --effort
 // sets one. Claude has Write, Read and Edit, and Skill; the arms add:
-//   html      nothing
-//   htmlBash  the Bash tool, with every call denied: whether Bash alone changes
-//             how much Claude thinks
-//   zamn      the zamn skill, installed in the directory; Claude loads it itself
-//   zamnHook  the skill with "a hook checks the file" for its check step, and a
-//             PostToolUse hook that runs `zamn --validate` after every Write
-//             and Edit and reports only errors (zamn-hook.ts)
-//   zamnHookTrust  the same hook, with a check step that also says no other
-//             validation is needed: write the file in one go, without checking
-//             the syntax first
-//   zamnHookLean  zamnHookTrust with the skill cut to its syntax and workflow:
-//             no reasons, no Prettier step, no converting HTML
-//   zamnHookCheck  the hook, with SKILL.md's check step kept as a check Claude
-//             does: "Check the results of the `zamn --validate` hook…"
-//   zamnHookBash  the hook, and Bash allowed to run `zamn`; the check step says
-//             Claude may run it too, though the hook has checked every write
-//   zamnCli   the skill, and Bash allowed to run `zamn` and nothing else
+//   html  nothing
+//   zamn  the setup docs/ai/skill.md gives: skills/zamn/SKILL.md installed in
+//         the directory (Claude loads it itself), the PostToolUse hook
+//         `zamn --hook` after every Write and Edit, and Bash allowed to run
+//         `zamn` and nothing else
+// Earlier runs measured other setups (a hook without Bash, other wordings of
+// the check step, Bash without a hook); NOTES.md has what they showed.
 //
 // After each step the script checks the file: zamn must compile, HTML must
 // parse, and a Vue template must compile with Vue's compiler. If it doesn't,
@@ -66,7 +55,7 @@
 // many dollars, and --max-usage stops starting them while any of the
 // account's rate-limit windows is that many percent used, until it resets.
 import { $ } from "bun";
-import { chmod, mkdtemp, readdir, rm, symlink } from "node:fs/promises";
+import { mkdtemp, readdir, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { parseArgs, styleText } from "node:util";
@@ -83,31 +72,21 @@ const runsDir = resolve(docs, "data/chats");
 const chatsFile = resolve(docs, "token-corpus/chats.yaml");
 const skillFile = resolve(docs, "../skills/zamn/SKILL.md");
 const zamnBinary = resolve(docs, "../target/debug/zamn");
-const hookScript = resolve(import.meta.dir, "zamn-hook.ts");
 
 type Lang = "html" | "zamn";
 interface ArmSpec {
   label: string;
   lang: Lang;
-  /** SKILL.md as it is, or changed as one of SKILLS says. */
-  skill: "readable" | keyof typeof SKILLS | null;
-  /** The PostToolUse hook that validates every write. */
+  /** skills/zamn/SKILL.md, installed in the directory. */
+  skill: boolean;
+  /** The PostToolUse hook `zamn --hook` after every Write and Edit. */
   hook: boolean;
-  /** The Bash tool. */
-  bash: boolean;
-  /** Bash allowed to run `zamn`, and nothing else; without it, every Bash call is denied. */
+  /** The Bash tool, allowed to run `zamn` and nothing else. */
   cli: boolean;
 }
 export const arms = {
-  html: { label: "HTML", lang: "html", skill: null, hook: false, bash: false, cli: false },
-  htmlBash: { label: "HTML, Bash", lang: "html", skill: null, hook: false, bash: true, cli: false },
-  zamn: { label: "zamn, skill", lang: "zamn", skill: "readable", hook: false, bash: false, cli: false },
-  zamnHook: { label: "zamn, skill, hook", lang: "zamn", skill: "hook", hook: true, bash: false, cli: false },
-  zamnHookTrust: { label: "zamn, skill, hook, no own check", lang: "zamn", skill: "hookTrust", hook: true, bash: false, cli: false },
-  zamnHookLean: { label: "zamn, short skill, hook, no own check", lang: "zamn", skill: "hookLean", hook: true, bash: false, cli: false },
-  zamnHookCheck: { label: "zamn, skill, hook, check its results", lang: "zamn", skill: "hookCheck", hook: true, bash: false, cli: false },
-  zamnHookBash: { label: "zamn, skill, hook, Bash zamn", lang: "zamn", skill: "hookBash", hook: true, bash: true, cli: true },
-  zamnCli: { label: "zamn, skill, Bash zamn", lang: "zamn", skill: "readable", hook: false, bash: true, cli: true },
+  html: { label: "HTML", lang: "html", skill: false, hook: false, cli: false },
+  zamn: { label: "zamn: skill, hook, Bash zamn", lang: "zamn", skill: true, hook: true, cli: true },
 } satisfies Record<string, ArmSpec>;
 export type Arm = keyof typeof arms;
 const spec = (a: Arm): ArmSpec => arms[a];
@@ -133,52 +112,6 @@ let MODEL = args.model ?? "claude-opus-5-5";
 /** The effort level asked for, or "default": then no --effort is passed and Claude Code picks its own. */
 let EFFORT = args.effort ?? "default";
 const effortText = (effort: string) => (effort === "default" ? "Claude Code's default effort" : `effort ${effort}`);
-
-/** The skill's check step, for the arms whose hook does the checking. */
-const HOOK_STEP = `2. A hook checks the file with \`zamn --validate\` after every write and edit, \`<template lang="zamn">\` of a \`.vue\` file included. It says nothing when the file is valid, and otherwise reports every error, each with a code and a hint: fix every error it reports.
-
-`;
-// Claude thought about half as much when it could run `zamn` itself (2026-11-25): tell it the hook is that check.
-const TRUST_STEP = `2. A hook validates the file with \`zamn --validate\` after every write and edit, \`<template lang="zamn">\` of a \`.vue\` file included, so no extra validation is needed: write the file in one go, without checking the syntax yourself first. The hook says nothing when the file is valid, and otherwise reports every error, each with a code and a hint: fix every error it reports.
-
-`;
-// SKILL.md's own check step, as a check of the hook's results: the Bash arm, told to run the check itself, thought
-// about half as much as the others (2026-11-25), and saying no check is needed didn't do the same (2026-11-26).
-const CHECK_STEP = `2. Check the results of the \`zamn --validate\` hook, and fix every error (each has a code and a hint). The hook runs after every write and edit, prints nothing when everything is valid, and checks the \`<template lang="zamn">\` of a \`.vue\` file in place.
-
-`;
-// The hook, and `zamn` Claude can run itself: the Bash arm thought about half as much (2026-11-25, 2026-11-26),
-// which no wording of the hook step did, while the Bash arm's checks after every step cost more than that saved.
-const HOOK_BASH_STEP = `2. A hook checks the file with \`zamn --validate\` after every write and edit, \`<template lang="zamn">\` of a \`.vue\` file included. It says nothing when the file is valid, and otherwise reports every error, each with a code and a hint: fix every error it reports. You can run \`zamn --validate\` yourself as well, but after a write or an edit the hook has already checked the file.
-
-`;
-/**
- * How an arm's skill differs from SKILL.md: its check step, and whether it is
- * cut to what the chats use. Writing the skill to the cache was most of the
- * hook arm's extra cost (2026-11-26), so `lean` drops what isn't syntax.
- */
-const SKILLS = {
-  hook: { step: HOOK_STEP, lean: false },
-  hookTrust: { step: TRUST_STEP, lean: false },
-  hookLean: { step: TRUST_STEP, lean: true },
-  hookCheck: { step: CHECK_STEP, lean: false },
-  hookBash: { step: HOOK_BASH_STEP, lean: false },
-};
-
-export async function skillText(kind: NonNullable<ArmSpec["skill"]>) {
-  const skill = await Bun.file(skillFile).text();
-  if (kind === "readable") return skill;
-  const { step, lean } = SKILLS[kind];
-  const start = skill.indexOf("2. Check it with `zamn --validate`");
-  const end = skill.indexOf("3. Format");
-  if (start < 0 || end < start) throw new Error("SKILL.md: workflow step 2 not found");
-  if (!lean) return skill.slice(0, start) + step + skill.slice(end);
-  // No reasons for step 1, and no Prettier step (the chats' directories have none) or converting HTML after it.
-  const head = skill.slice(0, start);
-  const reason = / Don't squeeze it:[^\n]*/;
-  if (!reason.test(head)) throw new Error("SKILL.md: step 1's reason not found");
-  return head.replace(reason, "") + step.trimEnd() + "\n";
-}
 
 interface Step {
   prompt: string;
@@ -426,22 +359,19 @@ export function conflicts(given: Partial<Record<"arms" | "pages" | "repeats" | "
 
 /** A temporary directory set up for an arm, and how to start Claude Code in it. */
 async function prepare(arm: Arm) {
-  const { skill, hook, bash, cli } = spec(arm);
+  const { skill, hook, cli } = spec(arm);
   const dir = await mkdtemp(join(tmpdir(), "zamn-chat-"));
   const bin = await mkdtemp(join(tmpdir(), "zamn-chat-bin-"));
   await $`git init -q`.cwd(dir);
-  if (skill) await Bun.write(join(dir, ".claude/skills/zamn/SKILL.md"), await skillText(skill));
+  if (skill) await Bun.write(join(dir, ".claude/skills/zamn/SKILL.md"), Bun.file(skillFile));
   if (hook) {
-    // The command is short, since Claude Code quotes it with every error it passes on.
-    await Bun.write(join(bin, "zamn-hook"), `#!/bin/sh\nexec bun "${hookScript}"\n`);
-    await chmod(join(bin, "zamn-hook"), 0o755);
-    const settings = { hooks: { PostToolUse: [{ matcher: "Write|Edit", hooks: [{ type: "command", command: "zamn-hook" }] }] } };
+    // As docs/ai/skill.md gives it.
+    const settings = { hooks: { PostToolUse: [{ matcher: "Write|Edit", hooks: [{ type: "command", command: "zamn --hook" }] }] } };
     await Bun.write(join(dir, ".claude/settings.json"), JSON.stringify(settings, null, 2));
   }
-  // `zamn` is on PATH from a directory outside the working one; only the Bash
-  // arm can run it itself, and the hook needs it.
+  // `zamn` is on PATH from a directory outside the working one.
   if (cli || hook) await symlink(zamnBinary, join(bin, "zamn"));
-  const tools = ["Skill", "Write", "Read", "Edit", ...(bash ? ["Bash"] : [])];
+  const tools = ["Skill", "Write", "Read", "Edit", ...(cli ? ["Bash"] : [])];
   const allowed = ["Write", "Read", "Edit", ...(cli ? ["Bash(zamn *)"] : [])];
   const start = (log: Log, maxBudgetUsd: number, onMessage?: (message: any) => void) =>
     new Session({
@@ -525,7 +455,7 @@ async function chat(arm: Arm, page: Page, repeat: number, log: Log): Promise<Cha
   const file = fileOf(page, lang);
   const env = await prepare(arm);
   log.detail(
-    `${file}, ${page.steps.length} steps, skill ${skill ?? "none"}${hook ? ", hook" : ""}, tools ${env.tools.join(",")}, ` +
+    `${file}, ${page.steps.length} steps, ${skill ? "skill" : "no skill"}${hook ? ", hook" : ""}, tools ${env.tools.join(",")}, ` +
       `allowed ${env.allowed.join(",")}, ${effortText(EFFORT)}, in ${env.dir}`,
   );
   // The errors Claude is shown during the current step, and reads of the file
@@ -663,7 +593,7 @@ async function main() {
     file = runFile(started);
     stats = {
       started, updated: started, model: MODEL, claudeCode: "", effort: EFFORT,
-      arms: (args.arms ?? "html,zamnHookTrust").split(",") as Arm[],
+      arms: (args.arms ?? "html,zamn").split(",") as Arm[],
       pages: names.filter((n) => !only || only.includes(n)),
       repeats: Number(args.repeats ?? "1"),
       chats: [],

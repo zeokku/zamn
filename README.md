@@ -127,6 +127,7 @@ The lexer and parser never fail: they report every problem as a diagnostic (code
 ```sh
 cargo run -p zamn -- page.zamn -o page.html --map page.html.map
 cargo run -p zamn -- --validate page.zamn Component.vue  # errors and warnings, or nothing; fails on errors only
+cargo run -p zamn -- --hook  # Claude Code PostToolUse hook: checks the .zamn or .vue file written; exits 2 on errors or warnings
 ```
 
 ```ts

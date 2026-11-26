@@ -1,7 +1,6 @@
 // Has Claude write and edit the corpus pages as HTML and as zamn, and records
 // what it cost in tokens, thinking included. Writes docs/data/generation-stats.json and
-// the tables the token-savings page includes (generation-summary.md,
-// edit-summary.md).
+// its tables (generation-summary.md, edit-summary.md).
 //
 //   bun run docs:generate [--arms html,zamn,zamnCli,htmlEdit,zamnEdit,...]
 //                         [--repeats 3] [--budget 20] [--parallel 6] [--pages landing,article]

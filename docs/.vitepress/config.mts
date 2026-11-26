@@ -121,7 +121,6 @@ const ai: DefaultTheme.SidebarItem[] = [
     text: "AI agents",
     items: [
       { text: "Writing zamn with agents", link: "/ai/" },
-      { text: "Token savings", link: "/ai/token-savings" },
       { text: "Agent rules", link: "/ai/rules" },
       { text: "Claude Code skill", link: "/ai/skill" },
     ],

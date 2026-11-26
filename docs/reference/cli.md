@@ -7,6 +7,7 @@ cargo install zamn
 ```text
 Usage: zamn [options] [file]
        zamn --validate [file...]
+       zamn --hook
 
 Compiles a zamn template to HTML on stdout. Without a file, or with `-`, the
 template is read from stdin. For a `.vue` file, its `<template lang="zamn">`
@@ -16,6 +17,7 @@ Options:
   -o, --out <file>     write the HTML to a file
       --map <file>     write a source map
       --validate       only check: print the errors and warnings, or nothing if there are none
+      --hook           run as a Claude Code PostToolUse hook: check the .zamn or .vue file just written, and exit 2 on any error or warning
       --tokens         print the token stream as JSON instead
       --ast            print the AST as JSON instead
   -h, --help           show this help
@@ -56,6 +58,10 @@ For a `.vue` file, zamn compiles its `<template lang="zamn">` and leaves the res
 
 `--validate` compiles each file and prints its errors and warnings, and nothing at all when there are none, so a check that passes costs an agent no output to read. It takes several files, checks every one even after an error, and exits with 1 if any has errors. Warnings alone don't fail it.
 
+## `--hook`
+
+`zamn --hook` is a Claude Code `PostToolUse` hook for `Write|Edit`: it reads the hook input on stdin and checks the `.zamn` or `.vue` file written, as `--validate` does, naming it relative to the project. It prints nothing for a valid file, any other file, or a `.vue` file with an HTML template. On any error or warning it prints them and exits with 2, which passes them on to Claude. It takes no files and no other options. [Setup](../ai/skill#add-the-hook).
+
 ## Errors and exit codes
 
 Every problem is printed to stderr, one per line, with its hint below it. Errors read `error[CODE]` and [warnings](./diagnostics) `warning[CODE]`:
@@ -71,5 +77,5 @@ Lines are 1-based, columns are 1-based. No HTML is written when there are errors
 | Exit code | Meaning |
 |---|---|
 | 0 | compiled, with or without warnings |
-| 1 | the template has errors, or a file could not be read or written |
-| 2 | wrong usage: an unknown option, an option without its value, several files without `--validate`, or no file while stdin is a terminal |
+| 1 | the template has errors, a file could not be read or written, or the `--hook` input could not be read |
+| 2 | wrong usage: an unknown option, an option without its value, several files without `--validate`, options with `--hook`, or no file while stdin is a terminal; or `--hook` found errors or warnings |

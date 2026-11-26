@@ -31,7 +31,7 @@ zamn compiles to HTML. A template is static markup: logic, loops and composition
 
 ## Workflow
 
-1. Write readable zamn, laid out the way a person would: children in indented `{ }` blocks, one child per line, attributes on the tag's line. Don't squeeze it: measured with Claude, the tersest form (no indentation, blocks on one line, no optional quotes) took more thinking than it saved, and was invalid more often.
+1. Write readable zamn, laid out the way a person would: children in indented `{ }` blocks, one child per line, attributes on the tag's line.
 
    ```zamn
    ul.nav {
@@ -43,28 +43,4 @@ zamn compiles to HTML. A template is static markup: logic, loops and composition
    }
    ```
 
-2. Check it with `zamn --validate`, and fix every error (each has a code and a hint), and every warning too: a `MISLEADING_INDENTATION` warning means a line is not where its indentation says. It prints nothing when everything is valid, fails only on errors, takes several files, and checks the `<template lang="zamn">` of a `.vue` file in place. Check once, after the last change, not after every edit:
-
-   ```sh
-   zamn --validate src/pages/home.zamn src/components/TodoList.vue
-   ```
-
-   To check zamn that is not in a file of its own (an answer, a snippet), pipe it in instead of writing a temporary file:
-
-   ```sh
-   zamn --validate <<'EOF'
-   ul {
-     li: a(href="/") Home
-   }
-   EOF
-   ```
-
-   In a Vue project, the project's `vue-tsc` and `eslint`, if it has them, also check the expressions in the template.
-
-3. Format the file for people, if the project uses Prettier with prettier-plugin-zamn:
-
-   ```sh
-   npx prettier --write path/to/file.zamn
-   ```
-
-When converting HTML: drop the closing tags and put children in `{ }`, turn `class="a b"` into `.a.b` (utility names such as `md:flex` included) and `id="x"` into `#x`, turn whitespace that matters between inline elements into `|` lines, and write the content of `<script>` and `<style>` as `script` … `/script`. Character references such as `&nbsp;` stay as they are, but text is escaped: tags inside text become `#{b ...}`, and braces in text become `\{` and `\}`.
+2. A hook checks the file with `zamn --validate` after every write and edit, `<template lang="zamn">` of a `.vue` file included. It says nothing when the file is valid, and otherwise reports every error and warning, each with a code and a hint: fix every one it reports. You can run `zamn --validate` yourself as well, but after a write or an edit the hook has already checked the file. If the project has no hook, run `zamn --validate <file>` once, after the last change.

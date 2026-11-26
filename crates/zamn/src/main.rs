@@ -1,4 +1,5 @@
 use std::io::{IsTerminal, Read};
+use std::path::PathBuf;
 use std::process::ExitCode;
 
 use zamn::{compile, compile_vue, CompileOptions, Compiled, FileDiagnostic};
@@ -6,6 +7,7 @@ use zamn::{compile, compile_vue, CompileOptions, Compiled, FileDiagnostic};
 const USAGE: &str = "\
 Usage: zamn [options] [file]
        zamn --validate [file...]
+       zamn --hook
 
 Compiles a zamn template to HTML on stdout. Without a file, or with `-`, the
 template is read from stdin. For a `.vue` file, its `<template lang=\"zamn\">`
@@ -17,6 +19,9 @@ Options:
       --map <file>     write a source map
       --validate       only check: print the errors and warnings, or nothing
                        if there are none
+      --hook           run as a Claude Code PostToolUse hook: check the .zamn
+                       or .vue file just written, and exit 2 on any error or
+                       warning
       --tokens         print the token stream as JSON instead
       --ast            print the AST as JSON instead
   -h, --help           show this help";
@@ -25,7 +30,7 @@ fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let mut files = Vec::new();
     let (mut out, mut map) = (None, None);
-    let (mut tokens, mut ast, mut validate) = (false, false, false);
+    let (mut tokens, mut ast, mut validate, mut hook) = (false, false, false, false);
     while let Some(arg) = args.next() {
         let mut value = |name: &str| {
             args.next().unwrap_or_else(|| {
@@ -41,6 +46,7 @@ fn main() -> ExitCode {
             "-o" | "--out" => out = Some(value("--out")),
             "--map" => map = Some(value("--map")),
             "--validate" => validate = true,
+            "--hook" => hook = true,
             "--tokens" => tokens = true,
             "--ast" => ast = true,
             _ if arg.starts_with('-') && arg != "-" => {
@@ -48,6 +54,15 @@ fn main() -> ExitCode {
             }
             _ => files.push(arg),
         }
+    }
+    if hook {
+        if !files.is_empty() || out.is_some() || map.is_some() || tokens || ast || validate {
+            return usage("--hook takes no files and no other options");
+        }
+        if std::io::stdin().is_terminal() {
+            return usage("--hook reads Claude Code's hook input on stdin");
+        }
+        return run_hook();
     }
     if files.is_empty() {
         if std::io::stdin().is_terminal() {
@@ -164,18 +179,73 @@ fn read(file: &str) -> Result<(String, String), ExitCode> {
 /// Reads and compiles one file: a `.vue` file's zamn template, or a template.
 fn load(file: &str, source_map: bool) -> Result<Compiled, ExitCode> {
     let (name, source) = read(file)?;
-    let options = CompileOptions {
-        filename: name.clone(),
-        source_map,
-        ..Default::default()
-    };
-    if !is_vue(file) {
-        return Ok(compile(&source, &options));
-    }
-    compile_vue(&source, &options).ok_or_else(|| {
+    compile_file(&name, &source, is_vue(file), source_map).ok_or_else(|| {
         eprintln!("{name}: no <template lang=\"zamn\"> in this file");
         ExitCode::FAILURE
     })
+}
+
+/// Compiles a template, or a `.vue` file's zamn template: `None` if it has none.
+fn compile_file(name: &str, source: &str, vue: bool, source_map: bool) -> Option<Compiled> {
+    let options = CompileOptions {
+        filename: name.to_owned(),
+        source_map,
+        ..Default::default()
+    };
+    if vue {
+        compile_vue(source, &options)
+    } else {
+        Some(compile(source, &options))
+    }
+}
+
+/// `--hook`: checks the `.zamn` or `.vue` file a Claude Code Write or Edit
+/// wrote, named in the hook input on stdin. Silent when it is valid, or not a
+/// zamn file; with errors or warnings, prints them and exits with 2, which
+/// Claude Code passes on to Claude. Bad input exits with 1, a hook error
+/// Claude Code shows the user.
+fn run_hook() -> ExitCode {
+    let fail = |problem: String| {
+        eprintln!("zamn --hook: {problem}");
+        ExitCode::FAILURE
+    };
+    let mut input = String::new();
+    if let Err(e) = std::io::stdin().read_to_string(&mut input) {
+        return fail(format!("can't read the hook input: {e}"));
+    }
+    let input: serde_json::Value = match serde_json::from_str(&input) {
+        Ok(input) => input,
+        Err(e) => return fail(format!("the hook input is not JSON: {e}")),
+    };
+    let file = match input["tool_input"]["file_path"].as_str() {
+        Some(file) if file.ends_with(".zamn") || is_vue(file) => file,
+        _ => return ExitCode::SUCCESS,
+    };
+    let cwd: PathBuf = match input["cwd"].as_str() {
+        Some(cwd) => cwd.into(),
+        None => match std::env::current_dir() {
+            Ok(cwd) => cwd,
+            Err(e) => return fail(format!("no cwd: {e}")),
+        },
+    };
+    // Named as Claude wrote it: relative to the project when inside it.
+    let path = cwd.join(file);
+    let name = match path.strip_prefix(&cwd) {
+        Ok(relative) => relative.to_string_lossy().into_owned(),
+        Err(_) => file.to_owned(),
+    };
+    let source = match std::fs::read_to_string(&path) {
+        Ok(source) => source,
+        Err(e) => return fail(format!("{name}: {e}")),
+    };
+    // A `.vue` file with an HTML template is fine.
+    match compile_file(&name, &source, is_vue(file), false) {
+        Some(compiled) if !compiled.diagnostics.is_empty() => {
+            report(&compiled.diagnostics);
+            ExitCode::from(2)
+        }
+        _ => ExitCode::SUCCESS,
+    }
 }
 
 /// Prints every diagnostic to stderr; true if none is an error.

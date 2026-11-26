@@ -39,6 +39,6 @@ The list on `/blog/` is built from the posts' frontmatter, newest first. Nothing
 
 ## Token statistics
 
-`bun run docs:tokens` measures the pages in `token-corpus/` and writes `data/token-stats.json` and the tables the AI pages include. Claude counts need `ANTHROPIC_API_KEY` or an `ant auth login` profile, on an account with credits.
+`bun run docs:tokens` measures the pages in `token-corpus/` and writes `data/token-stats.json` and its tables in `data/token-*.md`. Claude counts need `ANTHROPIC_API_KEY` or an `ant auth login` profile, on an account with credits.
 
-`bun run docs:generate` has Claude Code write each page from its `.task.txt`, as HTML and as zamn, and writes `data/generation-summary.md`. It runs on whatever Claude Code is logged in with and costs about $7 at API prices for every arm three times; `--arms`, `--pages` and `--repeats` run less. See [Token savings](ai/token-savings.md) for both methods.
+`bun run docs:generate` has Claude Code write each page from its `.task.txt`, as HTML and as zamn, and writes `data/generation-summary.md`. It runs on whatever Claude Code is logged in with and costs about $7 at API prices for every arm three times; `--arms`, `--pages` and `--repeats` run less.

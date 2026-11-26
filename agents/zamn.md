@@ -25,7 +25,7 @@ zamn compiles to HTML. A template is static markup: logic, loops and composition
 
 ## Writing it
 
-Write readable zamn, laid out the way a person would: children in indented `{ }` blocks, one child per line, attributes on the tag's line. Don't squeeze it: measured with Claude, the tersest form (no indentation, blocks on one line, no optional quotes) took more thinking than it saved, and was invalid more often. Then run `prettier --write` (prettier-plugin-zamn) on the file, if the project uses it.
+Write readable zamn, laid out the way a person would: children in indented `{ }` blocks, one child per line, attributes on the tag's line.
 
 ```zamn
 ul.nav {
@@ -56,7 +56,3 @@ EOF
 ```
 
 In a Vue project, `vue-tsc` and `eslint`, if the project has them, also check the expressions in the template.
-
-## Converting HTML
-
-Drop the closing tags and put children in `{ }`, turn `class="a b"` into `.a.b` (utility names such as `md:flex` included) and `id="x"` into `#x`, turn whitespace that matters between inline elements into `|` lines, and write the content of `<script>` and `<style>` as `script` … `/script`. Character references such as `&nbsp;` stay as they are, but text is escaped: tags inside text become `#{b ...}`, and braces in text become `\{` and `\}`.

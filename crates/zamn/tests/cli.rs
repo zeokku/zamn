@@ -234,3 +234,121 @@ fn several_files_need_validate() {
     let out = zamn(&["--validate", "--ast", "a.zamn"], "");
     assert_eq!(out.status.code(), Some(2));
 }
+
+/// `zamn --hook` with the input Claude Code gives it after a Write to `file`,
+/// run in the file's directory.
+fn hook(file: &str, cwd: &Temp) -> Output {
+    let input = serde_json::json!({
+        "hook_event_name": "PostToolUse",
+        "tool_name": "Write",
+        "tool_input": { "file_path": file, "content": "" },
+        "cwd": cwd.0.parent().unwrap(),
+    });
+    zamn(&["--hook"], &input.to_string())
+}
+
+#[test]
+fn hook_is_silent_for_a_valid_file() {
+    let page = Temp::new("page.zamn", "p {\n  b hi\n}\n");
+    let out = hook(page.path(), &page);
+    assert!(out.status.success(), "{}", text(&out.stderr));
+    assert!(out.stdout.is_empty() && out.stderr.is_empty());
+}
+
+#[test]
+fn hook_exits_2_on_errors_named_relative_to_cwd() {
+    let bad = Temp::new("hook-bad.zamn", "p {\n");
+    let out = hook(bad.path(), &bad);
+    assert_eq!(out.status.code(), Some(2));
+    assert!(out.stdout.is_empty());
+    let stderr = text(&out.stderr);
+    assert!(
+        stderr.starts_with("hook-bad.zamn:1:3: error[UNCLOSED_BRACE]"),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn hook_exits_2_on_warnings_too() {
+    let file = Temp::new("hook-warn.zamn", MISLEADING);
+    let out = hook(file.path(), &file);
+    assert_eq!(out.status.code(), Some(2));
+    let stderr = text(&out.stderr);
+    assert!(
+        stderr.starts_with("hook-warn.zamn:3:")
+            && stderr.contains(": warning[MISLEADING_INDENTATION]: "),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn hook_names_a_file_outside_cwd_as_given() {
+    let bad = Temp::new("hook-outside.zamn", "p {\n");
+    let cwd = Temp::new("hook-cwd.zamn", "");
+    let out = hook(bad.path(), &cwd);
+    assert_eq!(out.status.code(), Some(2));
+    let stderr = text(&out.stderr);
+    assert!(
+        stderr.starts_with(&format!("{}:1:3: error[UNCLOSED_BRACE]", bad.path())),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn hook_ignores_other_files() {
+    let ts = Temp::new("main.ts", "const a: number = 'p {';\n");
+    let out = hook(ts.path(), &ts);
+    assert!(out.status.success());
+    assert!(out.stdout.is_empty() && out.stderr.is_empty());
+    let out = zamn(&["--hook"], r#"{"tool_input":{"command":"ls"},"cwd":"/"}"#);
+    assert!(out.status.success());
+    assert!(out.stdout.is_empty() && out.stderr.is_empty());
+}
+
+#[test]
+fn hook_passes_a_vue_file_with_an_html_template() {
+    let sfc = Temp::new("HookHtml.vue", "<template><p>hi</p></template>\n");
+    let out = hook(sfc.path(), &sfc);
+    assert!(out.status.success(), "{}", text(&out.stderr));
+    assert!(out.stdout.is_empty() && out.stderr.is_empty());
+}
+
+#[test]
+fn hook_reports_errors_at_their_place_in_a_vue_file() {
+    let sfc = Temp::new("HookBad.vue", "<script setup>\nconst a = 1\n</script>\n<template lang=\"zamn\">\np {\n  b hi\n</template>\n");
+    let out = hook(sfc.path(), &sfc);
+    assert_eq!(out.status.code(), Some(2));
+    let stderr = text(&out.stderr);
+    assert!(
+        stderr.starts_with("HookBad.vue:5:3: error[UNCLOSED_BRACE]"),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn hook_fails_on_bad_input() {
+    let out = zamn(&["--hook"], "not json");
+    assert_eq!(out.status.code(), Some(1));
+    let stderr = text(&out.stderr);
+    assert!(
+        stderr.starts_with("zamn --hook: ") && stderr.lines().count() == 1,
+        "{stderr}"
+    );
+
+    let input = serde_json::json!({
+        "tool_input": { "file_path": "/does/not/exist.zamn" },
+        "cwd": "/",
+    });
+    let out = zamn(&["--hook"], &input.to_string());
+    assert_eq!(out.status.code(), Some(1));
+    assert!(text(&out.stderr).starts_with("zamn --hook: does/not/exist.zamn: "));
+}
+
+#[test]
+fn hook_takes_no_files_or_options() {
+    let out = zamn(&["--hook", "page.zamn"], "{}");
+    assert_eq!(out.status.code(), Some(2));
+    assert!(text(&out.stderr).starts_with("--hook takes no files"));
+    let out = zamn(&["--hook", "--validate"], "{}");
+    assert_eq!(out.status.code(), Some(2));
+}
