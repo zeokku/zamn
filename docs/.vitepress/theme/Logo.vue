@@ -1,12 +1,18 @@
 <script setup lang="ts">
-// The logo, `.z{}`, cropped tight, 512px wide: assets/logo/zamn-logo-512.png.
-import logo from "../../../assets/logo/zamn-logo-512.png";
+// The logo, `.z{}`, cropped tight, 512px wide: AVIF, else WebP, else PNG.
+import avif from "../../../assets/logo/zamn-logo-512.avif";
+import webp from "../../../assets/logo/zamn-logo-512.webp";
+import png from "../../../assets/logo/zamn-logo-512.png";
 
 defineProps<{ size?: "nav" | "hero" }>();
 </script>
 
 <template>
-  <img :src="logo" alt="zamn" :class="size ?? 'nav'" />
+  <picture>
+    <source :srcset="avif" type="image/avif" />
+    <source :srcset="webp" type="image/webp" />
+    <img :src="png" alt="zamn" :class="size ?? 'nav'" />
+  </picture>
 </template>
 
 <style scoped>
