@@ -55,15 +55,9 @@ The [ecosystem guide](/ecosystem/overview) sets all of it up in a few minutes.
 
 ## Fewer tokens
 
-More and more templates are written by coding agents, and every token an agent
-writes costs time and money. We measured six realistic pages: a page of zamn
-takes about a third fewer tokens than the formatted HTML a model usually writes.
-Generating it saves less, because Claude thinks more before writing zamn than
-before writing HTML: a few percent per page, and about a sixth over a chat of
-several pages. Newer measurements are in [Engineering the zamn Claude Code
-skill for efficiency](/blog/engineering-zamn-claude-code-skill-for-efficiency), and the [AI
-agents section](/ai/) has [rules](/ai/rules) and a [Claude Code skill](/ai/skill)
-that teach an agent to write zamn.
+More and more templates are written by coding agents, and every token an agent writes costs time and money. We measured six realistic pages: a page of zamn is a fifth to a third fewer tokens than the HTML Claude writes for it.
+
+That doesn't make a chat cheaper yet. Claude has to read zamn's rules before it writes any, and it thinks longer before writing a language it knows only from them. With the [Claude Code skill](/ai/skill) and its hook, a chat that writes a page and edits it six times costs around 6% more in zamn than in HTML, and in 140 chats Claude never left a zamn file that didn't compile. How a dozen setups got there is in [Engineering the zamn Claude Code skill for efficiency](/blog/engineering-zamn-claude-code-skill-for-efficiency). For other agents, the [AI agents section](/ai/) has the same [rules](/ai/rules).
 
 ## Try it
 

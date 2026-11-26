@@ -17,14 +17,6 @@ interface Problem {
 }
 
 const presets: Record<string, string> = {
-  "Vue component": `.card(:class="{ active: isActive }") {
-  h2.title= item.title
-  p(v-if="item.body")= item.body
-  ul.tags {
-    li(v-for="tag in item.tags" :key="tag")= tag
-  }
-  my-button(@click="select(item)" :disabled="busy") Select
-}`,
   Page: `doctype html
 html(lang="en") {
   head {
@@ -48,6 +40,14 @@ html(lang="en") {
     }
   }
 }`,
+  "Vue component": `.card(:class="{ active: isActive }") {
+  h2.title= item.title
+  p(v-if="item.body")= item.body
+  ul.tags {
+    li(v-for="tag in item.tags" :key="tag")= tag
+  }
+  my-button(@click="select(item)" :disabled="busy") Select
+}`,
   Whitespace: `p {
   b this
   |
@@ -70,7 +70,7 @@ script
   go()`,
 };
 
-const source = ref(presets["Vue component"]!);
+const source = ref(presets.Page!);
 const formatted = ref(true);
 const api = shallowRef<Api | null>(null);
 const loadError = ref("");

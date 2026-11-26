@@ -6,7 +6,7 @@ description: A dozen setups of the zamn skill for Claude Code, measured on six p
 
 # Engineering the zamn Claude Code skill for efficiency
 
-zamn files are a fifth to a third shorter than the HTML Claude writes, but Claude has to read the rules before it writes any, and it thinks longer before writing a language it knows only from them. A dozen setups of the [Claude Code skill](/ai/skill) later, a chat in zamn costs 6–10% more than the same chat in HTML. In 140 chats, Claude never left a zamn file that didn't compile.
+zamn files are a fifth to a third shorter than the HTML Claude writes, but Claude has to read the rules before it writes any, and it thinks longer before writing a language it knows only from them. A dozen setups of the [Claude Code skill](/ai/skill) later, a chat in zamn costs around 6% more than the same chat in HTML. In 140 chats, Claude never left a zamn file that didn't compile.
 
 ## How it was measured
 
