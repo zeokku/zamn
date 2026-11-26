@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import browserslist from "browserslist";
 import { defineConfig, type DefaultTheme, type HeadConfig } from "vitepress";
 import llmstxt, { copyOrDownloadAsMarkdownButtons } from "vitepress-plugin-llms";
-import { tagline, taglineText } from "./tagline";
 
 const repo = "https://github.com/zeokku/zamn";
 const site = "https://zeokku.github.io/zamn";
@@ -131,8 +130,10 @@ const ai: DefaultTheme.SidebarItem[] = [
 
 export default defineConfig({
   title: "zamn",
-  // The homepage's tagline, the one source of the main paragraph.
-  description: taglineText(tagline(readFileSync(fromRoot("docs/index.md"), "utf8"))),
+  // For meta tags and link previews, which show about 125 characters: shorter
+  // than the homepage's tagline.
+  description:
+    "A new, modern replacement for HTML. Easy to read, quick to write, and with AI coding agent support for code generation.",
   base: "/zamn/",
   cleanUrls: true,
   srcExclude: ["README.md", "data/**", "parts/**"],
