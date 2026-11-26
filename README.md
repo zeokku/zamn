@@ -112,7 +112,7 @@ Class shorthands take Tailwind-style names: `md:flex`, `w-1/2`, `px-2.5`, `[&>*]
 | `packages/vue-language-plugin-zamn` | Vue language tools (Volar) plugin: type checking and editor support for `<template lang="zamn">` |
 | `packages/vue-eslint-parser-template-tokenizer-zamn` | ESLint: lets vue-eslint-parser read `<template lang="zamn">` |
 | `packages/eslint-plugin-vue-zamn` | ESLint plugin: a config that sets up the tokenizer and eslint-plugin-vue for zamn, and rules of its own |
-| `packages/vscode-zamn` | VS Code extension: syntax highlighting for `.zamn` files and `<template lang="zamn">` |
+| `packages/vscode-zamn` | VS Code extension: syntax highlighting and folding for `.zamn` files and `<template lang="zamn">` |
 | `example` | Vue's starter app in zamn, with Vite, vue-tsc, ESLint and Prettier set up |
 | `docs` | the documentation site (VitePress), with the playground, the blog and the token measurements |
 | `agents` | rules to paste into an agent's context so it writes valid zamn |

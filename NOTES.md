@@ -93,7 +93,7 @@ a config file or through the API.
 ## Two copies of the extension: Windows and WSL (2026-11-26)
 
 - With VS Code on Windows and the repository in WSL, `code-insiders` in a WSL terminal installs into `~/.vscode-server-insiders/extensions`. A copy installed on Windows (`C:\Users\Roman\.vscode-insiders\extensions`) stays there, and nothing in `install:local` touches it.
-- The extension has no code, so VS Code can load it on either side, and the Windows copy won: the editor ran 0.1.1's grammar (from 2026-11-12) while WSL had 0.1.2. "Developer: Inspect Editor Tokens and Scopes" showed it: `#{a(...) Vite}` was one plain token with `source.zamn` and `text.html.vue` and none of 0.1.2's scopes, which is what 0.1.1's grammar gives.
+- The extension had no code then, so VS Code could load it on either side, and the Windows copy won: the editor ran 0.1.1's grammar (from 2026-11-12) while WSL had 0.1.2. "Developer: Inspect Editor Tokens and Scopes" showed it: `#{a(...) Vite}` was one plain token with `source.zamn` and `text.html.vue` and none of 0.1.2's scopes, which is what 0.1.1's grammar gives.
 - This is what looked like "installing over an older version does not always stick" (the comment in `scripts/install-local.ts`, and the README until now): VS Code going back to 0.1.1 after a restart.
 - The fix was by hand: uninstall the copy under "Local" in the Extensions view, run `install:local` again, reload. When the editor's scopes disagree with `bun test`, look for a second copy first.
 

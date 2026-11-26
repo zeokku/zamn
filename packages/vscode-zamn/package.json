@@ -16,6 +16,8 @@
   },
   "categories": ["Programming Languages"],
   "keywords": ["zamn", "vue", "template"],
+  "main": "./dist/extension.js",
+  "activationEvents": ["onLanguage:vue"],
   "contributes": {
     "languages": [
       {
@@ -62,13 +64,17 @@
     }
   },
   "scripts": {
+    "build": "tsc -p . && bun scripts/build.ts",
     "test": "bun test",
-    "package": "bun ../../assets/logo.ts && vsce package --no-dependencies",
+    "package": "bun ../../assets/logo.ts && bun run build && vsce package --no-dependencies",
     "install:local": "bun scripts/install-local.ts"
   },
   "devDependencies": {
+    "@types/vscode": "1.100.0",
     "@vscode/vsce": "^3.0.0",
+    "typescript": "^7.0.2",
     "vscode-oniguruma": "^2.0.0",
-    "vscode-textmate": "^9.0.0"
+    "vscode-textmate": "^9.0.0",
+    "zamn": "workspace:*"
   }
 }

@@ -1,0 +1,10 @@
+{
+  // Type checking only: scripts/build.ts bundles src/ into dist/.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "types": ["bun", "vscode"]
+  }
+}

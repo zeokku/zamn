@@ -1,26 +1,19 @@
 # zamn for VS Code
 
-Syntax highlighting for zamn templates:
+Syntax highlighting and folding for zamn templates:
 
 - `.zamn` files;
 - `<template lang="zamn">` in Vue single-file components, alongside the [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) extension.
 
-Expressions in `{{ }}`, after `tag=` and in the values of directives (`:to`, `@click`, `#default`, `v-if`) are highlighted as TypeScript; the raw content of `script` and `style` (the lines up to `/script` and `/style`) as JavaScript and CSS; the values in `style={...}` as CSS. Syntax that zamn does not have (`if`, `each`, `mixin`, `include`, `- code`, lines of HTML, `#[...]`, `tag.`, `tag/`), text that does not start with `|`, a `{` in text that is not escaped, and a `/tag` line that closes nothing are marked as errors.
+Expressions in `{{ }}`, after `tag=` and in directive values (`:to`, `@click`, `#default`, `v-if`) are highlighted as TypeScript; the raw content of `script` and `style` as JavaScript and CSS; the values in `style={...}` as CSS. Syntax zamn does not have, text that does not start with `|`, an unescaped `{` in text and a `/tag` line that closes nothing are marked as errors.
 
-The extension also registers the `zamn` language: `//` and `/* */` for toggling comments, bracket pairs, and folding by indentation. It has no code of its own. Type checking comes from `vue-language-plugin-zamn`, linting from `eslint-plugin-vue-zamn` and formatting from `prettier-plugin-zamn`.
+The extension also registers the `zamn` language: `//` and `/* */` for toggling comments, and bracket pairs. `{ }`, `|{ }` and `( )` blocks, raw `script` and `style` content and `/* */` comments that span lines fold, by zamn's own lexer; in a Vue file, the Vue extension folds the rest. Type checking comes from `vue-language-plugin-zamn`, linting from `eslint-plugin-vue-zamn`, formatting from `prettier-plugin-zamn`.
 
-The grammar follows the braces, so a `{` it does not see as a block (or a missing `}`) shifts what comes after it; the compiler's errors, through ESLint or the Vue extension, say where. A `script` or `style` gets raw content only when its head (`script(type="module")`) is on one line.
+The grammar follows the braces, so a `{` it does not take for a block, or a missing `}`, shifts what comes after it; the compiler's errors, through ESLint or the Vue extension, say where. A `script` or `style` gets raw content only when its head is on one line.
 
 ## Comments
 
-| | Scope | Looks like |
-|---|---|---|
-| `// note` | `comment.line.double-slash.zamn` | a comment: it is left out of the HTML |
-| `/* note */` | `comment.block.zamn` | a comment: it is left out of the HTML |
-| `//! note` | `string.comment.buffered.block.zamn` | a string: it is in the HTML, as `<!-- note -->` |
-| `/*! note */` | `string.comment.buffered.block.zamn` | a string: it is in the HTML, as `<!-- note -->` |
-
-The last scope is the one VS Code's pug grammar gives the comments it puts in the HTML, so themes that style those style these. To pick the colours yourself:
+`//` and `/* */` are left out of the HTML and are scoped as comments. `//!` and `/*! */` go into the HTML as `<!-- -->` and are scoped `string.comment.buffered.block.zamn`, as VS Code's pug grammar scopes its own, so they look like strings. To pick the colours yourself:
 
 ```jsonc
 // settings.json
@@ -32,21 +25,6 @@ The last scope is the one VS Code's pug grammar gives the comments it puts in th
 }
 ```
 
-The language's comments are `//` and `/* */` (`comments` in `language-configuration.json`): "Toggle Line Comment" and "Toggle Block Comment" write comments that stay out of the output, in `.zamn` files and inside `<template lang="zamn">`.
-
-Extensions that decorate comments, such as [Better Comments Next](https://marketplace.visualstudio.com/items?itemName=edwinhuish.better-comments-next), read that same setting. Better Comments Next looks for the comment marker of the file's language first and then for those of the languages embedded in it, and wants a space between the marker and its tag:
-
-- `// TODO` and `/* TODO */` are decorated, in `.zamn` files and in `.vue` files;
-- `//! TODO` is not, and neither is `//!` taken for its "alert" tag `!`: Better Comments Next finds `//`, then `!` where it wants the space.
-
-In a `.vue` file the language is `vue`, whose only marker is `<!-- -->`. This extension sets a default for `better-comments.languages` that gives `vue` the line comment `//`. If you set `better-comments.languages` yourself, your value replaces that default, so include the entry:
-
-```jsonc
-"better-comments.languages": [
-  { "id": "vue", "comments": { "lineComment": "//", "blockComment": ["<!--", "-->"] } }
-]
-```
-
 ## Install from this repository
 
 ```sh
@@ -54,19 +32,10 @@ cd packages/vscode-zamn
 bun run install:local                # or: bun run install:local code
 ```
 
-`install:local` runs `bun run package`, which writes `vscode-zamn-<version>.vsix`, then uninstalls the extension and installs the newest `.vsix` in the directory. It installs with `code-insiders` if that is on PATH, otherwise with `code`; an argument names another CLI. Open windows keep the old version until reloaded: click the reload button on zamn in the Extensions view, or run "Developer: Reload Window".
+`install:local` packages `vscode-zamn-<version>.vsix`, uninstalls the extension and installs the newest `.vsix`, with `code-insiders` if it is on PATH, otherwise `code`; an argument names another CLI. Reload open windows to load it: the reload button on zamn in the Extensions view, or "Developer: Reload Window".
 
-By hand:
-
-```sh
-code --uninstall-extension zamn.vscode-zamn
-code --install-extension vscode-zamn-<version>.vsix
-```
-
-### WSL and other remotes
-
-The CLI installs where it runs: in a WSL terminal, into the WSL side (`~/.vscode-server/extensions`, or `~/.vscode-server-insiders/extensions`). The extension has no code, so VS Code can load it from either side, and a copy also installed on Windows wins over the one in WSL: the editor then shows the old grammar, whatever `install:local` installed. The Extensions view lists the two copies apart, under "Local" and "WSL". Uninstall the local one, run `install:local` again, and reload.
+With WSL or another remote, the CLI installs on the side it runs on. A copy also installed on Windows wins over the one in WSL, and the editor keeps the old grammar: uninstall the copy under "Local" in the Extensions view, run `install:local` again, and reload.
 
 ## Develop
 
-The grammars are `syntaxes/zamn.tmLanguage.json` and a second one that injects it into Vue files. `bun test` tokenizes samples with the engine VS Code uses and checks the scopes; it needs no build. To look at scopes in the editor, run "Developer: Inspect Editor Tokens and Scopes".
+The grammars are `syntaxes/zamn.tmLanguage.json` and a second one that injects it into Vue files. The folding is `src/`, which `bun run build` type-checks and bundles into `dist/`, with zamn's WebAssembly next to it. `bun test` tokenizes samples with the engine VS Code uses and checks the scopes, checks the folds, and builds and loads the bundle; it needs zamn built (`bun run build` at the root). To see scopes in the editor, run "Developer: Inspect Editor Tokens and Scopes".

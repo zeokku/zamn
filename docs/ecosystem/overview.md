@@ -10,7 +10,7 @@ separate package, so add only what you use.
 | `eslint-plugin-vue-zamn` | lets eslint-plugin-vue lint zamn templates, and reports zamn's syntax errors | [ESLint](./eslint) |
 | `vue-eslint-parser-template-tokenizer-zamn` | the part of the above that reads templates; set up for you by `eslint-plugin-vue-zamn` | [ESLint](./eslint#by-hand) |
 | `prettier-plugin-zamn` | formats `.zamn` files and `<template lang="zamn">` | [Prettier](./prettier) |
-| zamn for VS Code | syntax highlighting in `.zamn` files and Vue components | [VS Code](./vscode) |
+| zamn for VS Code | syntax highlighting and folding in `.zamn` files and Vue components | [VS Code](./vscode) |
 
 ## Set up a Vue project
 

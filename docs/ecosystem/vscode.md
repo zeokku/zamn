@@ -1,6 +1,6 @@
 # VS Code
 
-The [zamn extension](https://marketplace.visualstudio.com/items?itemName=zamn.vscode-zamn) highlights zamn templates:
+The [zamn extension](https://marketplace.visualstudio.com/items?itemName=zamn.vscode-zamn) highlights and folds zamn templates:
 
 - in `.zamn` files;
 - in `<template lang="zamn">` in Vue components, alongside the [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) extension.
@@ -11,7 +11,9 @@ code --install-extension zamn.vscode-zamn
 
 Expressions in `{{ }}`, after `tag=` and in the values of directives (`:to`, `@click`, `#default`, `v-if`), quoted or in brackets, are highlighted as TypeScript, and the content of `script` … `/script` and `style` … `/style` as JavaScript and CSS.
 
-The extension also registers the `zamn` language: `//` and `/* */` for toggling comments, and bracket pairs. It has no code of its own: type checking comes from [vue-language-plugin-zamn](./typescript), linting from [eslint-plugin-vue-zamn](./eslint) and formatting from [prettier-plugin-zamn](./prettier), each through its usual extension.
+Blocks in `{ }`, `|{ }` and `( )`, the content of `script` and `style`, and `/* */` comments fold, wherever they span lines.
+
+The extension also registers the `zamn` language: `//` and `/* */` for toggling comments, and bracket pairs. Type checking comes from [vue-language-plugin-zamn](./typescript), linting from [eslint-plugin-vue-zamn](./eslint) and formatting from [prettier-plugin-zamn](./prettier), each through its usual extension.
 
 ## Comments
 
