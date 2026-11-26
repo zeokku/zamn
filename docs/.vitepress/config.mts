@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import browserslist from "browserslist";
 import { defineConfig, type DefaultTheme, type HeadConfig } from "vitepress";
 import llmstxt, { copyOrDownloadAsMarkdownButtons } from "vitepress-plugin-llms";
+import { tagline, taglineText } from "./tagline";
 
 const repo = "https://github.com/zeokku/zamn";
 const site = "https://zeokku.github.io/zamn";
@@ -130,8 +131,8 @@ const ai: DefaultTheme.SidebarItem[] = [
 
 export default defineConfig({
   title: "zamn",
-  description:
-    "A new, modern and fast way to write HTML with { } blocks instead of closing tags. Easy to read, quick to write, and with coding agent support for code generation.",
+  // The homepage's tagline, the one source of the main paragraph.
+  description: taglineText(tagline(readFileSync(fromRoot("docs/index.md"), "utf8"))),
   base: "/zamn/",
   cleanUrls: true,
   srcExclude: ["README.md", "data/**", "parts/**"],
