@@ -34,6 +34,10 @@
 //             the syntax first
 //   zamnHookLean  zamnHookTrust with the skill cut to its syntax and workflow:
 //             no reasons, no Prettier step, no converting HTML
+//   zamnHookCheck  the hook, with SKILL.md's check step kept as a check Claude
+//             does: "Check the results of the `zamn --validate` hook…"
+//   zamnHookBash  the hook, and Bash allowed to run `zamn`; the check step says
+//             Claude may run it too, though the hook has checked every write
 //   zamnCli   the skill, and Bash allowed to run `zamn` and nothing else
 //
 // After each step the script checks the file: zamn must compile, HTML must
@@ -101,6 +105,8 @@ export const arms = {
   zamnHook: { label: "zamn, skill, hook", lang: "zamn", skill: "hook", hook: true, bash: false, cli: false },
   zamnHookTrust: { label: "zamn, skill, hook, no own check", lang: "zamn", skill: "hookTrust", hook: true, bash: false, cli: false },
   zamnHookLean: { label: "zamn, short skill, hook, no own check", lang: "zamn", skill: "hookLean", hook: true, bash: false, cli: false },
+  zamnHookCheck: { label: "zamn, skill, hook, check its results", lang: "zamn", skill: "hookCheck", hook: true, bash: false, cli: false },
+  zamnHookBash: { label: "zamn, skill, hook, Bash zamn", lang: "zamn", skill: "hookBash", hook: true, bash: true, cli: true },
   zamnCli: { label: "zamn, skill, Bash zamn", lang: "zamn", skill: "readable", hook: false, bash: true, cli: true },
 } satisfies Record<string, ArmSpec>;
 export type Arm = keyof typeof arms;
@@ -136,6 +142,16 @@ const HOOK_STEP = `2. A hook checks the file with \`zamn --validate\` after ever
 const TRUST_STEP = `2. A hook validates the file with \`zamn --validate\` after every write and edit, \`<template lang="zamn">\` of a \`.vue\` file included, so no extra validation is needed: write the file in one go, without checking the syntax yourself first. The hook says nothing when the file is valid, and otherwise reports every error, each with a code and a hint: fix every error it reports.
 
 `;
+// SKILL.md's own check step, as a check of the hook's results: the Bash arm, told to run the check itself, thought
+// about half as much as the others (2026-11-25), and saying no check is needed didn't do the same (2026-11-26).
+const CHECK_STEP = `2. Check the results of the \`zamn --validate\` hook, and fix every error (each has a code and a hint). The hook runs after every write and edit, prints nothing when everything is valid, and checks the \`<template lang="zamn">\` of a \`.vue\` file in place.
+
+`;
+// The hook, and `zamn` Claude can run itself: the Bash arm thought about half as much (2026-11-25, 2026-11-26),
+// which no wording of the hook step did, while the Bash arm's checks after every step cost more than that saved.
+const HOOK_BASH_STEP = `2. A hook checks the file with \`zamn --validate\` after every write and edit, \`<template lang="zamn">\` of a \`.vue\` file included. It says nothing when the file is valid, and otherwise reports every error, each with a code and a hint: fix every error it reports. You can run \`zamn --validate\` yourself as well, but after a write or an edit the hook has already checked the file.
+
+`;
 /**
  * How an arm's skill differs from SKILL.md: its check step, and whether it is
  * cut to what the chats use. Writing the skill to the cache was most of the
@@ -145,6 +161,8 @@ const SKILLS = {
   hook: { step: HOOK_STEP, lean: false },
   hookTrust: { step: TRUST_STEP, lean: false },
   hookLean: { step: TRUST_STEP, lean: true },
+  hookCheck: { step: CHECK_STEP, lean: false },
+  hookBash: { step: HOOK_BASH_STEP, lean: false },
 };
 
 export async function skillText(kind: NonNullable<ArmSpec["skill"]>) {
