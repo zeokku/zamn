@@ -1,6 +1,6 @@
 [package]
 name = "zamn"
-version = "1.0.0"
+version = "1.0.1"
 edition.workspace = true
 license.workspace = true
 description = "Compiler and command line tool for zamn, a static way to write HTML with { } blocks instead of closing tags."
