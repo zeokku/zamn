@@ -42,7 +42,6 @@
 
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: var(--zamn-gradient);
-  --vp-home-hero-image-background-image: none;
 
   --vp-custom-block-tip-border: transparent;
   --vp-custom-block-tip-text: var(--vp-c-text-1);
@@ -385,17 +384,25 @@ body {
   top: 0;
 }
 
-/* Below 960px VitePress pulls the hero image up by 76-108px, which suits its
-   large transparent image box but puts the placeholder logo under the nav bar. */
+/* VitePress builds the hero image for a square picture over a round
+   background blob: a fixed square box, the picture and the blob absolutely
+   centred in it, the box nudged up and left, and below 960px pulled up by
+   76-108px into the hero's padding. The logo is wide and has no blob: the box
+   just centres it, and the logo (Logo.vue) sizes itself. */
+.VPHero.has-image .image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  height: 100%;
+  transform: none;
+}
+.VPHero.has-image .image-bg {
+  display: none;
+}
 @media (max-width: 959px) {
   .VPHero.has-image .image {
     margin: 0 0 24px;
-  }
-  .VPHero.has-image .image-container {
-    display: flex;
-    justify-content: center;
-    width: auto;
-    height: auto;
   }
 }
 /* "Read the introduction or try it in the playground". */

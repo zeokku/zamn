@@ -120,17 +120,6 @@
   color: var(--vp-c-text-1);
 }
 
-/* The hero logo blooms in the brand colours. drop-shadow follows the mark's
-   shape, where a box-shadow would light up its rectangle. Kept tight: a wide
-   one (50px and more) left a visible ring where it faded out. */
-.VPHero .image-src {
-  filter: drop-shadow(0 0 6px rgb(var(--zamn-rgb-accent) / 0.45))
-    drop-shadow(0 0 18px rgb(var(--zamn-rgb-fg) / 0.35));
-}
-.dark .VPHero .image-src {
-  filter: drop-shadow(0 0 6px rgb(var(--zamn-rgb-accent) / 0.75))
-    drop-shadow(0 0 18px rgb(var(--zamn-rgb-accent-light) / 0.4));
-}
 /* The cheatsheet reads as a reference card: narrower than the page. */
 .home-cheatsheet {
   max-width: 880px;
