@@ -29,6 +29,8 @@ https://www.reddit.com/r/vuejs/comments/1c5wb86/cleaner_templates_using_pug_with
 
 # Markdown codeblocks don't have ```zamn highlighting.
 
+# Once zamn has more usage, open issues to add it to Linguist (GitHub highlighting) and other highlighters (highlight.js etc.)
+
 # ? Make style={} syntax toggleable, so we can disable it? for react e.g.
 
 # Landing
