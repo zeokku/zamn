@@ -43,4 +43,4 @@ zamn compiles to HTML. A template is static markup: logic, loops and composition
    }
    ```
 
-2. A hook checks the file with `zamn --validate` after every write and edit, `<template lang="zamn">` of a `.vue` file included. It says nothing when the file is valid, and otherwise reports every error and warning, each with a code and a hint: fix every one it reports. You can run `zamn --validate` yourself as well, but after a write or an edit the hook has already checked the file. If the project has no hook, run `zamn --validate <file>` once, after the last change.
+2. A hook checks the file with `zamn --validate` after every write and edit, `<template lang="zamn">` of a `.vue` file included. It says nothing when the file is valid, and otherwise reports every error and warning, each with a code and a hint: fix every one it reports. You can run `zamn --validate` yourself as well, but after a write or an edit the hook has already checked the file.

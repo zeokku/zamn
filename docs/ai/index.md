@@ -1,6 +1,6 @@
 # Writing zamn with AI agents
 
-An agent writes valid zamn with the rules in its context and a check of every file it writes. What that costs in Claude Code, and how this setup came out of it: [What it costs Claude Code to write zamn](../blog/what-it-costs-claude-code-to-write-zamn).
+An agent writes valid zamn with the rules in its context and a check of every file it writes. What that costs in Claude Code, and how this setup came out of it: [Engineering the most efficient skill for Claude](../blog/engineering-the-most-efficient-skill-for-claude).
 
 ## The workflow
 

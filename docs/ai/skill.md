@@ -42,7 +42,7 @@ Then add the hook to `.claude/settings.json` in the project, or to `~/.claude/se
 }
 ```
 
-Without the hook, the skill has Claude run `zamn --validate` itself, once after its last change.
+The skill expects the hook: without it, Claude doesn't check what it writes. The [agent rules](./rules), for agents without hooks, have it run `zamn --validate` itself.
 
 ## The skill
 

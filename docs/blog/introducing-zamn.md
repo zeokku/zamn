@@ -60,9 +60,10 @@ writes costs time and money. We measured six realistic pages: a page of zamn
 takes about a third fewer tokens than the formatted HTML a model usually writes.
 Generating it saves less, because Claude thinks more before writing zamn than
 before writing HTML: a few percent per page, and about a sixth over a chat of
-several pages. The [AI agents section](/ai/) has the numbers, the method and the
-scripts, plus [rules](/ai/rules) and a [Claude Code skill](/ai/skill) that teach an
-agent to write zamn.
+several pages. Newer measurements are in [Engineering the most efficient skill
+for Claude](/blog/engineering-the-most-efficient-skill-for-claude), and the [AI
+agents section](/ai/) has [rules](/ai/rules) and a [Claude Code skill](/ai/skill)
+that teach an agent to write zamn.
 
 ## Try it
 
