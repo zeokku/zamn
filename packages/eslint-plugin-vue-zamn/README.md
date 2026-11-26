@@ -1,5 +1,7 @@
 # eslint-plugin-vue-zamn
 
+[Documentation](https://zeokku.github.io/zamn/ecosystem/eslint)
+
 ESLint for [zamn](../../README.md) templates in Vue single-file components, on top of [eslint-plugin-vue](https://eslint.vuejs.org):
 
 - a config that lets ESLint read `<template lang="zamn">` and turns off the rules of eslint-plugin-vue that cannot be used there;

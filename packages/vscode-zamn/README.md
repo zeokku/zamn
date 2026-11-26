@@ -1,5 +1,7 @@
 # zamn for VS Code
 
+[Documentation](https://zeokku.github.io/zamn/ecosystem/vscode)
+
 Syntax highlighting and folding for zamn templates:
 
 - `.zamn` files;

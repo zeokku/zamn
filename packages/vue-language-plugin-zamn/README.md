@@ -1,5 +1,7 @@
 # vue-language-plugin-zamn
 
+[Documentation](https://zeokku.github.io/zamn/ecosystem/typescript)
+
 [Vue language tools](https://github.com/vuejs/language-tools) (Volar) plugin for
 [zamn](../../README.md) templates in single-file components. With it,
 `<template lang="zamn">` is type checked by `vue-tsc` and gets completion,

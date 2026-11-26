@@ -1,5 +1,7 @@
 # prettier-plugin-zamn
 
+[Documentation](https://zeokku.github.io/zamn/ecosystem/prettier)
+
 Formats [zamn](../../README.md) templates with [Prettier](https://prettier.io) 3.
 
 ```sh

@@ -1,5 +1,7 @@
 # vue-eslint-parser-template-tokenizer-zamn
 
+[Documentation](https://zeokku.github.io/zamn/ecosystem/eslint#by-hand)
+
 Lets [vue-eslint-parser](https://github.com/vuejs/vue-eslint-parser) read [zamn](../../README.md) templates, so ESLint and [eslint-plugin-vue](https://eslint.vuejs.org) work in `<template lang="zamn">`.
 
 [eslint-plugin-vue-zamn](../eslint-plugin-vue-zamn) sets this up for you, turns off the rules that cannot be used on a zamn template and reports zamn's diagnostics. Use this package directly only if you want to do that yourself:
