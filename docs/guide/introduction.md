@@ -35,12 +35,12 @@ Since there is nothing to run, a template compiles to the same HTML every time, 
 
 ## Why another syntax
 
-- **Less to read.** No `</div>` at the bottom of the screen to match up with the top: a block ends with a `}`, and the indentation inside shows the structure at a glance.
-- **One way to nest.** Only braces make children; indentation is for the eye. Code that is indented wrong still means what its braces say, and zamn warns about a line indented like a child when it isn't one.
+zamn was originally inspired as a modern [pug](https://pugjs.org) replacement: compact templates, but without indentation quirks, with a clearer syntax, modern maintained code and performance. Its syntax for tags, classes, ids and attributes comes from pug's.
+
+- **Less to read.** No `</div>` at the bottom of the screen to match up with the top: a block ends with a `}`.
+- **Braces, not indentation.** Pug templates are commonly criticized for indentation-based nesting, which gets hard to read and maintain. That's why zamn nests with `{ }` blocks instead, just like JavaScript or SCSS. Indentation is for the eye, and zamn warns about a line indented like a child when it isn't one.
 - **Less to write.** For people, and for coding agents: the same page takes fewer tokens in zamn than in HTML. See [Writing zamn with AI agents](../ai/).
 - **Nothing hidden.** What you write is what you get: there's no runtime and no logic in the template.
-
-Its syntax for tags, classes, ids and attributes was inspired by [pug](https://pugjs.org)'s.
 
 ## Where to go next
 

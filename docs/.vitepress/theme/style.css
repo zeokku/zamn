@@ -96,12 +96,10 @@ body {
   border-color: var(--zamn-c-soft) !important;
 }
 .VPFeature.link:hover .icon {
-  transform: scale(1.08) rotate(-4deg);
+  transform: scale(1.08);
 }
 .VPFeature .icon {
   transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.VPFeature .icon {
   border-radius: 12px;
   background: var(--zamn-c-soft);
   color: var(--zamn-c-accent);
@@ -242,6 +240,7 @@ body {
 .VPHero .text {
   letter-spacing: -0.035em;
   font-weight: 800;
+  text-wrap-style: balance;
 }
 /* `<angle brackets>`: the words in the secondary text colour, the punctuation in mono, and the
    `<` and `>` in the brand colour. */
