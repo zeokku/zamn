@@ -1,6 +1,6 @@
 # ESLint
 
-`eslint-plugin-vue-zamn` lets [eslint-plugin-vue](https://eslint.vuejs.org) lint zamn templates. It has a config that teaches ESLint to read `<template lang="zamn">` and turns off the rules that can't apply there, and three rules of its own.
+`eslint-plugin-vue-zamn` lets [eslint-plugin-vue](https://eslint.vuejs.org) lint zamn templates. It has a config that teaches ESLint to read `<template lang="zamn">` and turns off the rules that can't apply there, and four rules of its own.
 
 ```sh
 bun add -d eslint-plugin-vue-zamn
@@ -50,7 +50,7 @@ export default defineConfigWithVueTs(
 For `*.vue` files, it:
 
 - sets vue-eslint-parser's `templateTokenizer` for `zamn`, given as a path, so it is found wherever it is installed and `eslint --cache` can serialize the config;
-- turns on `vue-zamn/no-parsing-error` as an error and `vue-zamn/no-misleading-indentation` as a warning;
+- turns on `vue-zamn/no-parsing-error` as an error, and `vue-zamn/no-misleading-indentation` and `vue-zamn/prefer-shorthand` as warnings;
 - turns off the rules of eslint-plugin-vue that are about how HTML is written:
 
 | Rule | Why |
@@ -106,6 +106,21 @@ p Some text
 ```
 
 The template still compiles, which is why the config turns it on as a warning. It has no options. [Prettier](./prettier) re-indents the template, which fixes it in one of the two ways: if the line was meant to be a child, put it in `{ }` first.
+
+### `vue-zamn/prefer-shorthand`
+
+Reports a `class` or `id` attribute with a static value, and fixes it to the shorthand. Classes keep their order, and a `div` tag goes, since an element without a tag is a div:
+
+```text
+p(class="a b" title="t")     →   p.a.b(title="t")
+div(id="app" class="page")   →   #app.page
+```
+
+Bindings (`:class`), values a shorthand cannot hold (`id="a b"`, `class="a&b"`) and a second id are left alone. The config turns it on as a warning. The `attributes` option picks what it checks, both by default:
+
+```js
+"vue-zamn/prefer-shorthand": ["warn", { attributes: ["class"] }],
+```
 
 ### `vue-zamn/component-name-in-template-casing`
 

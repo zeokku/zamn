@@ -7,16 +7,9 @@
 import type { Rule } from "eslint";
 import vue from "eslint-plugin-vue";
 import type { AST } from "vue-eslint-parser";
+import { isZamn } from "../template.js";
 
 const base: Rule.RuleModule = vue.rules["component-name-in-template-casing"];
-
-/** Whether the file's `<template>` is written in zamn. */
-function isZamn(context: Rule.RuleContext) {
-  const template = (context.sourceCode.ast as unknown as AST.ESLintProgram).templateBody;
-  return !!template?.startTag.attributes.some(
-    (attr) => !attr.directive && attr.key.name === "lang" && attr.value?.value === "zamn",
-  );
-}
 
 /** What Vue's fix writes, without a fixer to write it with. */
 const recorder = { replaceText: (_token: unknown, text: string) => text } as unknown as Rule.RuleFixer;

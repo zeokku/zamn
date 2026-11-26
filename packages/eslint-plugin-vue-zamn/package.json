@@ -22,7 +22,8 @@
     "test": "bun test"
   },
   "dependencies": {
-    "vue-eslint-parser-template-tokenizer-zamn": "workspace:*"
+    "vue-eslint-parser-template-tokenizer-zamn": "workspace:*",
+    "zamn": "workspace:*"
   },
   "peerDependencies": {
     "eslint": "^9.0.0 || ^10.0.0",

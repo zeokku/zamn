@@ -82,6 +82,7 @@ test("recommended: the config can be serialized, for --cache, and sets the rules
   expect(config!.rules).toMatchObject({
     "vue-zamn/no-parsing-error": "error",
     "vue-zamn/no-misleading-indentation": "warn",
+    "vue-zamn/prefer-shorthand": "warn",
   });
 });
 
@@ -194,4 +195,80 @@ test("component-name-in-template-casing: is Vue's rule in an HTML template", asy
   expect(await fix(code, { [casing]: "error" })).toBe(
     sfc("  <MyCard title=\"a\"><p>text</p></MyCard>\n", setup, ""),
   );
+});
+
+const shorthand = "vue-zamn/prefer-shorthand";
+
+test("prefer-shorthand: reports static class and id attributes, and fixes them", async () => {
+  const code = sfc(zamn`
+    div {
+      p(class="a  b" title="t") Text
+      p.x(title="t" class="y")
+      p(class="b").a
+      a(
+        href="/docs"
+        id="docs") Docs
+      p Some #{span(class="em") text}
+      li: span(id="x", class="y") z
+      div(class="box") { p(class="w-1/2 md:flex [&>*]:p-2") x }
+      p(class="a" class="b") two
+    }
+  `);
+  expect((await lint(code)).filter((m) => m.includes(shorthand))).toEqual([
+    `3:5 warn ${shorthand}: Write \`.a.b\` instead of the \`class\` attribute.`,
+    `4:17 warn ${shorthand}: Write \`.y\` instead of the \`class\` attribute.`,
+    `5:5 warn ${shorthand}: Write \`.b\` instead of the \`class\` attribute.`,
+    `8:5 warn ${shorthand}: Write \`#docs\` instead of the \`id\` attribute.`,
+    `9:17 warn ${shorthand}: Write \`.em\` instead of the \`class\` attribute.`,
+    `10:12 warn ${shorthand}: Write \`#x\` instead of the \`id\` attribute.`,
+    `10:20 warn ${shorthand}: Write \`.y\` instead of the \`class\` attribute.`,
+    `11:7 warn ${shorthand}: Write \`.box\` instead of the \`class\` attribute.`,
+    `11:24 warn ${shorthand}: Write \`.w-1/2.md:flex.[&>*]:p-2\` instead of the \`class\` attribute.`,
+    `12:5 warn ${shorthand}: Write \`.a\` instead of the \`class\` attribute.`,
+    `12:15 warn ${shorthand}: Write \`.b\` instead of the \`class\` attribute.`,
+  ]);
+  expect(await fix(code, {})).toBe(
+    sfc(zamn`
+      div {
+        p.a.b(title="t") Text
+        p.x.y(title="t")
+        p.b.a
+        a#docs(
+          href="/docs") Docs
+        p Some #{span.em text}
+        li: span#x.y z
+        .box { p.w-1/2.md:flex.[&>*]:p-2 x }
+        p.a.b two
+      }
+    `),
+  );
+});
+
+test("prefer-shorthand: leaves what a shorthand cannot be", async () => {
+  const code = sfc(zamn`
+    div {
+      p(:class="{ on }" :id="id") bound
+      p(class="" id="has space") empty
+      p(class="a&b" id="a.b") characters
+      p#x(id="y") two ids
+      p(CLASS="a") not merged
+      p(class=true) boolean
+    }
+  `);
+  expect((await lint(code)).filter((m) => m.includes(shorthand))).toEqual([]);
+});
+
+test("prefer-shorthand: the attributes option picks class or id", async () => {
+  const code = sfc('p(class="a" id="b") x\n');
+  expect(await fix(code, { [shorthand]: ["warn", { attributes: ["class"] }] })).toBe(
+    sfc('p.a(id="b") x\n'),
+  );
+  expect(await fix(code, { [shorthand]: ["warn", { attributes: ["id"] }] })).toBe(
+    sfc('p#b(class="a") x\n'),
+  );
+});
+
+test("prefer-shorthand: says nothing about an HTML template", async () => {
+  const code = sfc('  <p id="a" class="b"></p>\n', "", "");
+  expect(await lint(code)).toEqual([]);
 });

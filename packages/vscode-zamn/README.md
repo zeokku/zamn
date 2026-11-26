@@ -56,14 +56,16 @@ bun run install:local                # or: bun run install:local code
 
 `install:local` runs `bun run package`, which writes `vscode-zamn-<version>.vsix`, then uninstalls the extension and installs the newest `.vsix` in the directory. It installs with `code-insiders` if that is on PATH, otherwise with `code`; an argument names another CLI. Open windows keep the old version until reloaded: click the reload button on zamn in the Extensions view, or run "Developer: Reload Window".
 
-Installing a newer `.vsix` over an older one does not always stick: after a restart VS Code may go back to the previous version (0.1.1 instead of 0.1.2, say). That is why `install:local` uninstalls first. By hand:
+By hand:
 
 ```sh
 code --uninstall-extension zamn.vscode-zamn
-code --install-extension vscode-zamn-0.1.2.vsix
+code --install-extension vscode-zamn-<version>.vsix
 ```
 
-The same goes for `code-insiders`.
+### WSL and other remotes
+
+The CLI installs where it runs: in a WSL terminal, into the WSL side (`~/.vscode-server/extensions`, or `~/.vscode-server-insiders/extensions`). The extension has no code, so VS Code can load it from either side, and a copy also installed on Windows wins over the one in WSL: the editor then shows the old grammar, whatever `install:local` installed. The Extensions view lists the two copies apart, under "Local" and "WSL". Uninstall the local one, run `install:local` again, and reload.
 
 ## Develop
 

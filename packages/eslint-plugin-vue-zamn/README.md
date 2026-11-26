@@ -3,7 +3,7 @@
 ESLint for [zamn](../../README.md) templates in Vue single-file components, on top of [eslint-plugin-vue](https://eslint.vuejs.org):
 
 - a config that lets ESLint read `<template lang="zamn">` and turns off the rules of eslint-plugin-vue that cannot be used there;
-- three rules of its own.
+- four rules of its own.
 
 ```sh
 bun add -d eslint-plugin-vue-zamn
@@ -35,7 +35,7 @@ Needs ESLint 9 or later (flat config), eslint-plugin-vue 10, vue-eslint-parser 1
 For `*.vue` files:
 
 - sets `parserOptions.templateTokenizer.zamn` to [vue-eslint-parser-template-tokenizer-zamn](../vue-eslint-parser-template-tokenizer-zamn), given as a path, so vue-eslint-parser finds it from wherever it is installed and `eslint --cache` can serialize the config;
-- turns on `vue-zamn/no-parsing-error` (`error`) and `vue-zamn/no-misleading-indentation` (`warn`);
+- turns on `vue-zamn/no-parsing-error` (`error`), and `vue-zamn/no-misleading-indentation` and `vue-zamn/prefer-shorthand` (`warn`);
 - turns off these rules of eslint-plugin-vue:
 
 | Rule | Why |
@@ -86,6 +86,21 @@ p Some text
 ```
 
 The template still compiles, so the config turns it on as a warning. It has no options.
+
+### `vue-zamn/prefer-shorthand`
+
+Reports a `class` or `id` attribute with a static value, and fixes it to the shorthand. Classes keep their order, and a `div` tag goes, since an element without a tag is a div:
+
+```text
+p(class="a b" title="t")     →   p.a.b(title="t")
+div(id="app" class="page")   →   #app.page
+```
+
+Bindings (`:class`), values a shorthand cannot hold (`id="a b"`, `class="a&b"`) and a second id are left alone. The config turns it on as a warning. The `attributes` option picks what it checks, both by default:
+
+```js
+"vue-zamn/prefer-shorthand": ["warn", { attributes: ["class"] }],
+```
 
 ### `vue-zamn/component-name-in-template-casing`
 

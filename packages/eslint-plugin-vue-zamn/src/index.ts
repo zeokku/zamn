@@ -4,6 +4,7 @@ import type { ESLint, Linter, Rule } from "eslint";
 import componentNameInTemplateCasing from "./rules/component-name-in-template-casing.js";
 import noMisleadingIndentation from "./rules/no-misleading-indentation.js";
 import noParsingError from "./rules/no-parsing-error.js";
+import preferShorthand from "./rules/prefer-shorthand.js";
 
 // Given to vue-eslint-parser as a path, not as the class: the parser finds
 // it from wherever it is installed, and the config can be serialized, which
@@ -43,14 +44,15 @@ export interface Plugin extends ESLint.Plugin {
     "component-name-in-template-casing": Rule.RuleModule;
     "no-misleading-indentation": Rule.RuleModule;
     "no-parsing-error": Rule.RuleModule;
+    "prefer-shorthand": Rule.RuleModule;
   };
   configs: {
     /**
      * Sets up the tokenizer for `<template lang="zamn">`, turns off the
      * rules of eslint-plugin-vue that cannot be used on a zamn template, and
-     * turns on `vue-zamn/no-parsing-error` and
-     * `vue-zamn/no-misleading-indentation`. Put it after the configs of
-     * eslint-plugin-vue.
+     * turns on `vue-zamn/no-parsing-error`,
+     * `vue-zamn/no-misleading-indentation` and `vue-zamn/prefer-shorthand`.
+     * Put it after the configs of eslint-plugin-vue.
      */
     recommended: Linter.Config[];
   };
@@ -62,6 +64,7 @@ const plugin: Plugin = {
     "component-name-in-template-casing": componentNameInTemplateCasing,
     "no-misleading-indentation": noMisleadingIndentation,
     "no-parsing-error": noParsingError,
+    "prefer-shorthand": preferShorthand,
   },
   configs: { recommended: [] },
 };
@@ -79,6 +82,7 @@ plugin.configs.recommended.push({
     ...Object.fromEntries(off.map((rule) => [rule, "off"])),
     "vue-zamn/no-parsing-error": "error",
     "vue-zamn/no-misleading-indentation": "warn",
+    "vue-zamn/prefer-shorthand": "warn",
   },
 });
 

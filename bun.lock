@@ -67,6 +67,7 @@
       "version": "0.1.0",
       "dependencies": {
         "vue-eslint-parser-template-tokenizer-zamn": "workspace:*",
+        "zamn": "workspace:*",
       },
       "devDependencies": {
         "eslint": "^10.0.0",
