@@ -260,7 +260,6 @@ export interface StepResult {
   byCall?: ModelCall[];
   /** Each tool call, as its name and the first line of its command or file. */
   tools: string[];
-  zamnRuns: number;
   hookErrors: number;
   /** The error codes the fix-up was sent for, or null if none was needed. */
   fixUp: string[] | null;
@@ -447,7 +446,14 @@ export function callsOf(messages: any[], model: string): ModelCall[] {
   return [...calls.values()];
 }
 
-const isZamnRun = (c: any) => c.name === "Bash" && /(^|[\s|;&(])zamn(\s|$)/m.test(c.input?.command ?? "");
+/**
+ * A step's Bash commands, from its `tools` (so that run files recorded before
+ * this count the same), and those that run `zamn`: with `zamn` as a command, at
+ * the start or after `;`, `&&`, `||`, `|` or `(`, but not as an argument
+ * (`which zamn`, `ls .claude/skills/zamn`).
+ */
+const bashOf = (s: { tools: string[] }) => s.tools.filter((t) => t.startsWith("Bash: "));
+const zamnOf = (s: { tools: string[] }) => bashOf(s).filter((t) => /(^Bash:|[;&|(])\s*zamn(\s|$)/.test(t));
 
 /** Runs one chat: the page's steps in turn. */
 async function chat(arm: Arm, page: Page, repeat: number, log: Log): Promise<Chat> {
@@ -530,7 +536,6 @@ async function chat(arm: Arm, page: Page, repeat: number, log: Log): Promise<Cha
           const what = c.input?.command ?? c.input?.file_path ?? c.input?.skill ?? "";
           return `${c.name}: ${String(what).split("\n")[0]!.replace(env.dir, ".")}`.slice(0, 120);
         }),
-        zamnRuns: toolUses.filter(isZamnRun).length,
         hookErrors: messages.filter((m) => m.type === "system" && m.subtype === "hook_response" && m.exit_code !== 0).length,
         fixUp,
         valid: errors.length === 0,
@@ -543,7 +548,7 @@ async function chat(arm: Arm, page: Page, repeat: number, log: Log): Promise<Cha
       previous = totals;
       log.info(
         `${label}: ${describeTotals(step.usage)}, ${step.calls} model calls` +
-          (cli ? `, ${step.zamnRuns} zamn runs` : "") +
+          (cli ? `, ${bashOf(step).length} Bash commands, ${zamnOf(step).length} of them zamn` : "") +
           (hook && step.hookErrors ? `, ${step.hookErrors} hook errors` : "") +
           (problems.length ? `, shown ${plural(problems.length, "error")} (${problems.map(describeProblem).join("; ")})` : "") +
           `, ${step.valid ? styleText("green", fixUp ? "valid after the fix-up" : "valid") : styleText("red", errors.join(" "))}`,
@@ -777,7 +782,16 @@ export function summary(stats: ChatStats): string {
     line("Claude was shown an error", present.map((a) =>
       allSteps(a).every((s) => s.problems) ? count(a, (s) => s.problems.length > 0) : "—")),
     ...(present.some((a) => spec(a).cli)
-      ? [line("`zamn` runs", present.map((a) => (spec(a).cli ? num(sum(a, (c) => c.steps.reduce((n, s) => n + s.zamnRuns, 0))) : "")))]
+      ? [
+          // Totals over every run, not page means: how often Claude reached for Bash.
+          line("Bash commands", present.map((a) => (spec(a).cli ? num(allSteps(a).reduce((n, s) => n + bashOf(s).length, 0)) : ""))),
+          line("of which `zamn`", present.map((a) => {
+            if (!spec(a).cli) return "";
+            const cs = chatsOf(a).filter((c) => pages.includes(c.page));
+            const runs = allSteps(a).reduce((n, s) => n + zamnOf(s).length, 0);
+            return `${num(runs)}, in ${cs.filter((c) => c.steps.some((s) => zamnOf(s).length)).length} of ${cs.length} chats`;
+          })),
+        ]
       : []),
     ...(present.some((a) => spec(a).hook)
       ? [line("Hook errors", present.map((a) => (spec(a).hook ? num(sum(a, (c) => c.steps.reduce((n, s) => n + s.hookErrors, 0))) : "")))]

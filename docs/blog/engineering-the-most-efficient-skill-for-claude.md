@@ -6,7 +6,7 @@ description: A dozen setups of the zamn skill for Claude Code, measured on six p
 
 # Engineering the most efficient skill for Claude
 
-zamn files are a fifth to a third shorter than the HTML Claude writes, but Claude has to read the rules before it writes any, and it thinks longer before writing a language it knows only from them. A dozen setups of the [Claude Code skill](/ai/skill) later, a chat in zamn costs 10% more than the same chat in HTML. In 128 chats, Claude never left a zamn file that didn't compile.
+zamn files are a fifth to a third shorter than the HTML Claude writes, but Claude has to read the rules before it writes any, and it thinks longer before writing a language it knows only from them. A dozen setups of the [Claude Code skill](/ai/skill) later, a chat in zamn costs 6–10% more than the same chat in HTML. In 140 chats, Claude never left a zamn file that didn't compile.
 
 ## How it was measured
 
@@ -26,9 +26,10 @@ Cost of the six chats, against HTML with the same tools. A real Claude Code sess
 | … shorter skill | the same, with the Prettier step, converting HTML and a rationale cut (−14%) | $1.212 | +11% |
 | skill, Bash `zamn` | Bash may run `zamn`, and the skill says to check with it | $1.459 | +25% |
 | **skill, hook, Bash `zamn`** | the hook, and "you can run `zamn --validate` yourself as well, but the hook has already checked the file" | $1.272 | **+9%** |
-| **shipped** | the same, with the shorter skill and the hook reporting warnings too | $1.288 | **+10%** |
+| … shorter skill | the same, with the shorter skill and the hook reporting warnings too | $1.288 | +10% |
 | … with a fallback | adds "if the project has no hook, run `zamn --validate` once, after the last change" | $1.351 | +16% |
 | … without the check step | the skill says nothing about checking | $1.492 | +28% |
+| **shipped** | the shorter skill, reordered, and "you can run `zamn --validate` yourself, but there is no need: the hook has already checked the file" | $1.240 | **+6%** |
 
 ## What made the difference
 
@@ -38,13 +39,13 @@ Cost of the six chats, against HTML with the same tools. A real Claude Code sess
 
 **Every check Claude runs costs more than the thinking it saves.** A `zamn --validate` is a tool call of about 100 output tokens, and its call and result stay in the conversation, read again by every later call. With Bash `zamn` and no hook, that made the setup the most expensive. The hook checks for nothing: a valid file adds nothing to the conversation.
 
-**The check step is what keeps Claude from checking.** A hook that passes says nothing, so Claude can't tell whether there is one. Told that the hook has already checked every write, it left the check to the hook, and ran `zamn` in 2 chats of 12. Given a fallback for a missing hook, it checked to be safe, in 8 of 12. Told nothing, it went looking for a way to check (`which zamn`, `zamn --help`) and ran `zamn` after most steps, in 11 of 12.
+**The check step is what keeps Claude from checking.** A hook that passes says nothing, so Claude can't tell whether there is one. Told that the hook has already checked every write, it left the check to the hook, and ran `zamn` in 1 chat of 12. Given a fallback for a missing hook, it checked to be safe, in 8 of 12. Told nothing, it went looking for a way to check (`which zamn`, `zamn --help`) and ran `zamn` after most steps, in 10 of 12.
 
 ## What shipped
 
-The [skill](/ai/skill) and `zamn --hook`, a PostToolUse hook in `.claude/settings.json` that validates every `.zamn` file Claude writes or edits, and the zamn template of every `.vue` file. It is silent when the file is valid, and reports errors and warnings, each with a code and a hint. The skill says the hook has already checked every write, and that Claude may run `zamn --validate` as well. It has no fallback: it expects the hook, and the [agent rules](/ai/rules), for agents without one, keep `zamn --validate`.
+The [skill](/ai/skill) and `zamn --hook`, a PostToolUse hook in `.claude/settings.json` that validates every `.zamn` file Claude writes or edits, and the zamn template of every `.vue` file. It is silent when the file is valid, and reports errors and warnings, each with a code and a hint. The skill says Claude may run `zamn --validate`, but has no need to: the hook has already checked every write. Its last rewording came in 4 points under the setup before it, but was cheaper in only half of the run-against-run comparisons, so the two are tied. It has no fallback: it expects the hook, and the [agent rules](/ai/rules), for agents without one, keep `zamn --validate`.
 
-In all 128 chats the hook reported one problem, a line indented as if it were nested, and Claude fixed it in the same step.
+In all 140 chats the hook reported one problem, a line indented as if it were nested, and Claude fixed it in the same step.
 
 ## Caveats
 
