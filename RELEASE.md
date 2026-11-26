@@ -18,6 +18,8 @@ Dependencies follow the same rule:
 
 Publishing a GitHub Release runs all three workflows. Each publishes only what is new: the packages whose version in the repository is not on their registry yet. The rest are left alone, so a release can carry one patch or the whole ecosystem.
 
+Each workflow also runs by hand, without a release: Actions → the workflow → Run workflow, on `main`, or `gh workflow run npm-publish.yml` (`crates-publish.yml`, `vscode-publish.yml`). It publishes what is new in the same way.
+
 | What | Workflow | Goes public when |
 |---|---|---|
 | npm packages | [npm-publish.yml](.github/workflows/npm-publish.yml) | you approve each staged version on npmjs.com |
@@ -90,8 +92,8 @@ Already done: the publisher `zeokku` trusts `vscode-publish.yml` in `zeokku/zamn
 
 ## When a run fails
 
-Fix the cause, then re-run the failed jobs: what went out is published now and is skipped.
+Fix the cause, push it, and run the workflow by hand on `main`: what went out is published now and is skipped. "Re-run jobs" doesn't take the fix: a run started by a release uses the workflow and the code of the release's commit.
 
-- **npm.** What was staged stays staged, and a version cannot be staged twice: reject it (`npm stage reject <stage-id>`) before the re-run, or approve it if it is good.
+- **npm.** What was staged stays staged, and a version cannot be staged twice: reject it (`npm stage reject <stage-id>`) before the next run, or approve it if it is good.
 - **crates.io.** `cargo publish` stops at the first crate that fails; the ones before it are public. A broken version can be yanked (`cargo yank --version 1.0.1 zamn`), not replaced: bump the patch.
 - **Marketplace.** A version cannot be published twice: bump the patch.

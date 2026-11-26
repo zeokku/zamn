@@ -9,12 +9,11 @@ fn zamn(args: &[&str], stdin: &str) -> Output {
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
-    child
-        .stdin
-        .take()
-        .unwrap()
-        .write_all(stdin.as_bytes())
-        .unwrap();
+    // On bad arguments zamn exits without reading its input, and may be gone
+    // before this write: a closed pipe then is not a failure.
+    if let Err(err) = child.stdin.take().unwrap().write_all(stdin.as_bytes()) {
+        assert_eq!(err.kind(), std::io::ErrorKind::BrokenPipe, "{err}");
+    }
     child.wait_with_output().unwrap()
 }
 

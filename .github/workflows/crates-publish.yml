@@ -5,6 +5,8 @@ name: crates.io publish
 on:
   release:
     types: [published]
+  # Run by hand from the Actions tab, on the branch picked there.
+  workflow_dispatch:
 
 permissions:
   contents: read
