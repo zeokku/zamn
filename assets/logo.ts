@@ -111,9 +111,11 @@ function ico(images: [size: number, png: Buffer][]): Buffer {
 const outputs: Record<string, Buffer> = {};
 const out = (path: string, png: Buffer) => (outputs[path] = png);
 
-// Tight, no margin: for places that size it themselves (the docs' nav and hero).
-const tightWidth = 1200;
-out("assets/logo/zamn-logo.png", await render(tightWidth, Math.round((mark.height * tightWidth) / mark.width), 1));
+// Tight, no margin: for places that size it themselves. 512 wide is for the
+// docs' nav and hero (at most 320px wide on the page).
+const tight = (w: number) => render(w, Math.round((mark.height * w) / mark.width), 1);
+out("assets/logo/zamn-logo.png", await tight(1200));
+out("assets/logo/zamn-logo-512.png", await tight(512));
 // Wide, 2:1, with a margin.
 for (const w of [1600, 1200, 800, 400]) {
   out(`assets/logo/zamn-logo-${w}x${w / 2}.png`, await render(w, w / 2, 0.84));

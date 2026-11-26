@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// The logo, `.z{}`, cropped tight: assets/logo/zamn-logo.png.
-import logo from "../../../assets/logo/zamn-logo.png";
+// The logo, `.z{}`, cropped tight, 512px wide: assets/logo/zamn-logo-512.png.
+import logo from "../../../assets/logo/zamn-logo-512.png";
 
 defineProps<{ size?: "nav" | "hero" }>();
 </script>
