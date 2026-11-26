@@ -1,6 +1,6 @@
 # zamn
 
-A static way to write HTML, with `{ }` blocks instead of closing tags, written in Rust.
+A new, modern and fast way to write HTML with `{ }` blocks instead of closing tags. Easy to read, quick to write, and with AI coding agent support for code generation.
 
 Tags, `.class`, `#id` and `(attributes)` on one line, and children in braces. A template is static markup, with logic, loops and composition left to your framework, and a single file that compiles to one HTML string, with a source map. The syntax for tags, classes and attributes was inspired by [pug](https://pugjs.org)'s.
 
