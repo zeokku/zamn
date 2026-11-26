@@ -8,6 +8,7 @@
     "url": "git+https://github.com/zeokku/zamn.git",
     "directory": "packages/vue-language-plugin-zamn"
   },
+  "homepage": "https://zeokku.github.io/zamn/ecosystem/typescript",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

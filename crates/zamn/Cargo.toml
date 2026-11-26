@@ -7,6 +7,7 @@ description = "Compiler and command line tool for zamn, a static way to write HT
 keywords = ["html", "template", "compiler", "vue"]
 categories = ["template-engine", "web-programming", "command-line-utilities"]
 repository.workspace = true
+homepage.workspace = true
 readme.workspace = true
 
 [dependencies]

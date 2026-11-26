@@ -8,6 +8,7 @@
     "url": "git+https://github.com/zeokku/zamn.git",
     "directory": "packages/eslint-plugin-vue-zamn"
   },
+  "homepage": "https://zeokku.github.io/zamn/ecosystem/eslint",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

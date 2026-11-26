@@ -8,6 +8,7 @@
     "url": "git+https://github.com/zeokku/zamn.git",
     "directory": "packages/vue-eslint-parser-template-tokenizer-zamn"
   },
+  "homepage": "https://zeokku.github.io/zamn/ecosystem/eslint#by-hand",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

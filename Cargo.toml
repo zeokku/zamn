@@ -6,6 +6,7 @@ members = ["crates/*"]
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/zeokku/zamn"
+homepage = "https://zeokku.github.io/zamn/reference/rust"
 readme = "README.md"
 
 [workspace.dependencies]

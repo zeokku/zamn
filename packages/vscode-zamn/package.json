@@ -9,6 +9,7 @@
     "url": "git+https://github.com/zeokku/zamn.git",
     "directory": "packages/vscode-zamn"
   },
+  "homepage": "https://zeokku.github.io/zamn/ecosystem/vscode",
   "private": true,
   "publisher": "zeokku",
   "icon": "images/icon.png",

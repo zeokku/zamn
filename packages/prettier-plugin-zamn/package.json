@@ -8,6 +8,7 @@
     "url": "git+https://github.com/zeokku/zamn.git",
     "directory": "packages/prettier-plugin-zamn"
   },
+  "homepage": "https://zeokku.github.io/zamn/ecosystem/prettier",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

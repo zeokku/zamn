@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 description = "Lexer for zamn templates: source to tokens, spans and diagnostics."
 repository.workspace = true
+homepage.workspace = true
 readme.workspace = true
 
 [dependencies]
