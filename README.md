@@ -1,3 +1,5 @@
+![zamn: HTML without the angle brackets](assets/readme-header.jpg)
+
 # zamn
 
 A new, modern and fast way to write HTML with `{ }` blocks instead of closing tags. Easy to read, quick to write, and with AI coding agent support for code generation.

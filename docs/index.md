@@ -1,6 +1,9 @@
 ---
 # https://vitepress.dev/reference/default-theme-home-page
 layout: home
+# The tab and link preview title; without it the homepage is just "zamn".
+title: "zamn: HTML without the angle brackets"
+titleTemplate: false
 
 hero:
   name: ".zamn"

@@ -10,7 +10,8 @@
     "test": "bun test",
     "tokens": "bun scripts/token-stats.ts",
     "generate": "bun scripts/generation-stats.ts",
-    "chats": "bun scripts/chat-stats.ts"
+    "chats": "bun scripts/chat-stats.ts",
+    "og": "bun ../assets/logo.ts && bun scripts/og-image.ts"
   },
   "dependencies": {
     "zamn": "workspace:*"
@@ -24,6 +25,7 @@
     "browserslist": "^4.29.6",
     "gpt-tokenizer": "^4.1.2",
     "monaco-editor": "^0.58.0",
+    "playwright": "^1.65.1",
     "prettier": "^3.10.1",
     "prettier-plugin-zamn": "workspace:*",
     "shiki": "^4.6.0",

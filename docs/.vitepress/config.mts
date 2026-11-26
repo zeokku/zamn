@@ -2,11 +2,12 @@ import { copyFileSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import browserslist from "browserslist";
-import { defineConfig, type DefaultTheme } from "vitepress";
+import { defineConfig, type DefaultTheme, type HeadConfig } from "vitepress";
 import llmstxt, { copyOrDownloadAsMarkdownButtons } from "vitepress-plugin-llms";
 
 const repo = "https://github.com/zeokku/zamn";
 const site = "https://zeokku.github.io/zamn";
+const ogImageAlt = ".zamn: HTML without the <angle brackets>, and the .z{} logo";
 const fromRoot = (path: string) => fileURLToPath(new URL(`../../${path}`, import.meta.url));
 const json = (path: string) => JSON.parse(readFileSync(fromRoot(path), "utf8"));
 
@@ -138,8 +139,39 @@ export default defineConfig({
   // Dark by default; the switch in the nav still turns it light.
   appearance: "dark",
   sitemap: { hostname: `${site}/` },
-  // `head` hrefs don't get `base`.
-  head: [["link", { rel: "icon", href: "/zamn/favicon.ico", sizes: "16x16 32x32 48x48" }]],
+  // `head` hrefs don't get `base`. The link preview's tags that every page
+  // shares; `transformHead` adds each page's own.
+  head: [
+    ["link", { rel: "icon", href: "/zamn/favicon.ico", sizes: "16x16 32x32 48x48" }],
+    ["meta", { name: "theme-color", content: "#212121" }],
+    ["meta", { property: "og:site_name", content: "zamn" }],
+    // docs/public/og.jpg, written by `bun run docs:og`.
+    ["meta", { property: "og:image", content: `${site}/og.jpg` }],
+    ["meta", { property: "og:image:type", content: "image/jpeg" }],
+    ["meta", { property: "og:image:width", content: "1200" }],
+    ["meta", { property: "og:image:height", content: "630" }],
+    ["meta", { property: "og:image:alt", content: ogImageAlt }],
+    ["meta", { name: "twitter:card", content: "summary_large_image" }],
+    ["meta", { name: "twitter:image", content: `${site}/og.jpg` }],
+    ["meta", { name: "twitter:image:alt", content: ogImageAlt }],
+  ],
+  transformHead({ pageData, title, description }) {
+    // cleanUrls: `guide/introduction.md` is served at `guide/introduction`,
+    // `blog/index.md` at `blog/`.
+    const url = `${site}/${pageData.relativePath.replace(/(^|\/)index\.md$/, "$1").replace(/\.md$/, "")}`;
+    const post = pageData.relativePath.startsWith("blog/") && pageData.frontmatter.date;
+    const head: HeadConfig[] = [
+      ["link", { rel: "canonical", href: url }],
+      ["meta", { property: "og:url", content: url }],
+      ["meta", { property: "og:type", content: post ? "article" : "website" }],
+      ["meta", { property: "og:title", content: title }],
+      ["meta", { property: "og:description", content: description }],
+      ["meta", { name: "twitter:title", content: title }],
+      ["meta", { name: "twitter:description", content: description }],
+    ];
+    if (post) head.push(["meta", { property: "article:published_time", content: new Date(post).toISOString() }]);
+    return head;
+  },
 
   themeConfig: {
     nav: [
